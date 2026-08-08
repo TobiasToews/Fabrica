@@ -29,6 +29,7 @@ def prepare_isaac_pair_yaml(log_dir, yaml_path):
         for ei, edge in enumerate(G_preced.edges):
             pair_info[subdir_name][ei] = {'plug': edge[1], 'socket': edge[0]}
 
+    os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
     with open(yaml_path, 'w') as fp:
         yaml.dump(pair_info, fp)
 

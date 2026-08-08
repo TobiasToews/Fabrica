@@ -22,14 +22,17 @@ Run these in order from the `Fabrica` repo root. Each one fixes a specific
 build failure — see the sections below for why.
 
 ```bash
-# 1. C/C++ toolchain
+# 1. CMake itself — see "CMake: Permission denied" below before skipping this
+conda install -y -c conda-forge cmake
+
+# 2. C/C++ toolchain
 sudo apt update && sudo apt install -y build-essential
 
-# 2. OpenGL + X11 dev headers (needed by CMake's find_package(OpenGL) and by GLFW)
+# 3. OpenGL + X11 dev headers (needed by CMake's find_package(OpenGL) and by GLFW)
 sudo apt install -y libgl1-mesa-dev libglu1-mesa-dev libxrandr-dev \
     libxinerama-dev libxcursor-dev libxi-dev libx11-dev libxext-dev
 
-# 3. Missing submodules (pybind11, libigl) — see "Broken submodules" below
+# 4. Missing submodules (pybind11, libigl) — see "Broken submodules" below
 cd simulation/externals
 git clone https://github.com/pybind/pybind11.git pybind11
 git -C pybind11 checkout ee2b5226295d67b690faddd446a329bb2840a1a8
@@ -37,11 +40,32 @@ git clone https://github.com/libigl/libigl.git libigl
 git -C libigl checkout 87a550af22fc4af210af40f1d61d81594bbaf546
 cd ../..
 
-# 4. X11 XF86VidMode extension (link-time dependency of GLFW)
+# 5. X11 XF86VidMode extension (link-time dependency of GLFW)
 sudo apt install -y libxxf86vm-dev
 
-# 5. Now the build succeeds
+# 6. Now the build succeeds
 pip install ./simulation
+```
+
+## Problem: `PermissionError: [Errno 13] Permission denied: 'cmake'`
+
+**Cause:** two things stack up on a fresh machine. First, `cmake` usually
+isn't installed anywhere at all yet (not via apt/conda/pip — check with
+`which cmake`, `conda list cmake`, `dpkg -l | grep cmake`). Second, on WSL,
+`PATH` inherits Windows' `PATH`, which typically includes a
+`.../AppData/Local/Microsoft/WindowsApps` directory — and if that directory
+belongs to a *different* Windows user profile than the one WSL is running
+under (check the username in the path), WSL can't access it at all. When
+Python searches `PATH` for `cmake` and hits that inaccessible directory
+first, the search aborts with `PermissionError` right there instead of
+continuing on to report a plain "not found" — so this error shows up even
+though the real problem is simply that cmake was never installed.
+
+**Fix:** install cmake into the conda env. `<conda prefix>/bin` is always the
+first entry in `PATH` when the env is activated, so this guarantees cmake is
+found before the search ever reaches the broken WindowsApps directory:
+```bash
+conda install -y -c conda-forge cmake
 ```
 
 ## Problem: `No CMAKE_C_COMPILER could be found`

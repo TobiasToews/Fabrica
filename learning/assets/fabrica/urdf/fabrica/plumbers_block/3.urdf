@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="3">
+    <link name="3">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/plumbers_block/3.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/plumbers_block/3.obj"/>
+            </geometry>
+            <sdf resolution="128"/>
+        </collision>
+    </link>
+</robot>

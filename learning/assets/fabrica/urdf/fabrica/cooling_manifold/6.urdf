@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="6">
+    <link name="6">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/cooling_manifold/6.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/cooling_manifold/6.obj"/>
+            </geometry>
+            <sdf resolution="128"/>
+        </collision>
+    </link>
+</robot>

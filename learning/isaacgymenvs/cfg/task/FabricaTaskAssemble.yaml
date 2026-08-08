@@ -24,6 +24,9 @@ env:
     palm_to_finger_dist: 0.1034 # distance from end-effector palm to midpoint between fingers
 
     if_eval: False
+    path_transform: True
+    residual_action: True
+    openloop: False
 
 randomize:
 

@@ -1,0 +1,191 @@
+beam:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: beam/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: beam/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: beam/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: beam/3
+  '6':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: beam/6
+car:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: car/5
+cooling_manifold:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/5
+  '6':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: cooling_manifold/6
+duct:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/5
+  '6':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/6
+  '7':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: duct/7
+gamepad:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: gamepad/5
+plumbers_block:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: plumbers_block/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: plumbers_block/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: plumbers_block/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: plumbers_block/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: plumbers_block/4
+stool_circular:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/5
+  '6':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/6
+  '7':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/7
+  '8':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: stool_circular/8

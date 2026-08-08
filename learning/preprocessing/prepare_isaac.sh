@@ -29,13 +29,13 @@ python learning/preprocessing/prepare_isaac_plan_info_batch.py \
     --log-dir logs/$EXP_NAME \
     --plan-info-dir learning/isaacgymenvs/tasks/fabrica/data/plan_info
 
-echo "=== Step 4/6: Generating Franka URDF from plan ==="
+echo "=== Step 4/6: Generating URDF files ==="
+python learning/preprocessing/generate_urdf.py
+
+echo "=== Step 5/6: Generating Franka URDF from plan ==="
 python learning/preprocessing/generate_franka_urdf_from_plan.py \
     --plan-info-dir plan_info \
     --franka-dir fabrica_franka
-
-echo "=== Step 5/6: Generating URDF files ==="
-python learning/preprocessing/generate_urdf.py
 
 echo "=== Step 6/6: Generating YAML file ==="
 python learning/preprocessing/generate_yaml.py

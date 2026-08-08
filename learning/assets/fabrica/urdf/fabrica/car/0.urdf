@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="0">
+    <link name="0">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/car/0.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/car/0.obj"/>
+            </geometry>
+            <sdf resolution="128"/>
+        </collision>
+    </link>
+</robot>

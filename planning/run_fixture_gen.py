@@ -349,7 +349,11 @@ def add_countersunk_pads_to_fixture(fixture_mesh, min_fixture_y):
 
 def run_fixture_gen(assembly_dir, log_dir, optimized, seed, render=False):
     import pyglet
-    pyglet.options["headless"] = not render
+    # Only force pyglet's headless (EGL) backend when there's truly no X
+    # display to fall back to. On WSL2 with WSLg, DISPLAY is set and the
+    # regular Xlib backend renders fine (GPU-accelerated via WSLg), whereas
+    # pyglet's headless/EGL backend fails to create a context in that setup.
+    pyglet.options["headless"] = (not render) and not os.environ.get("DISPLAY")
 
     precedence_path = os.path.join(log_dir, 'precedence.pkl')
     if not os.path.exists(precedence_path):
