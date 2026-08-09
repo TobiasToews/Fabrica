@@ -1,3 +1,6 @@
+# Excluded: exceeds GitHub's 100MB file size limit
+assets/fabrica/duct/0.sdf
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

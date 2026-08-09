@@ -8,6 +8,8 @@ sys.path.append(project_base_dir)
 import numpy as np
 import networkx as nx
 import pickle
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from time import time
 import json

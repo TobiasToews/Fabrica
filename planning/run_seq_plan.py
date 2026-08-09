@@ -9,6 +9,8 @@ import numpy as np
 import json
 import pickle
 import networkx as nx
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from time import time
 import traceback

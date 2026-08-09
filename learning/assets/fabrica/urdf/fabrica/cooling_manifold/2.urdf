@@ -10,7 +10,7 @@
             <geometry>
                 <mesh filename="../../../mesh/fabrica/cooling_manifold/2.obj"/>
             </geometry>
-            <sdf resolution="128"/>
+            <sdf resolution="512"/>
         </collision>
     </link>
 </robot>

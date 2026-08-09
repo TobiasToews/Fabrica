@@ -176,6 +176,8 @@ def run_preced_plan(assembly_dir, log_dir, arm_type, num_proc=1, inner_num_proc=
 
 def draw_graph(G, save_path=None):
     from networkx.drawing.nx_pydot import graphviz_layout
+    import matplotlib
+    matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     pos = graphviz_layout(G, prog='dot')
     nx.draw_networkx(G, pos, arrows=True, with_labels=True)
