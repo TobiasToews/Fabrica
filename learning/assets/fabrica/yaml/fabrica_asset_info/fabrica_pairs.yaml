@@ -1,9 +1,9 @@
-duct:
+car:
   0:
-    plug: '6'
+    plug: '5'
     socket: '1'
   1:
-    plug: '2'
+    plug: '0'
     socket: '1'
   2:
     plug: '3'
@@ -12,11 +12,5 @@ duct:
     plug: '4'
     socket: '1'
   4:
-    plug: '7'
-    socket: '1'
-  5:
-    plug: '5'
-    socket: '1'
-  6:
     plug: '1'
-    socket: '0'
+    socket: '2'

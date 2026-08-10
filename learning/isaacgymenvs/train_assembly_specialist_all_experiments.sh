@@ -12,14 +12,22 @@ export MAX_ITER=1500
 # export NUM_ENVS=16
 # export MAX_ITER=2
 
+# ASSEMBLIES=(
+#     "car"
+#     "cooling_manifold"
+#     "stool_circular"
+#     "beam"
+#     "gamepad"
+#     "plumbers_block"
+#     "duct"
+# )
 ASSEMBLIES=(
-    "car"
-    "cooling_manifold"
-    "stool_circular"
-    "beam"
-    "gamepad"
-    "plumbers_block"
     "duct"
+    "plumbers_block"
+    "gamepad"
+    "car"
+    "beam"
+    "stool_circular"
 )
 
 for ASSEMBLY in "${ASSEMBLIES[@]}"
