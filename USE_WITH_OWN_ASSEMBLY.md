@@ -1,18 +1,24 @@
 # How to include, train, and test your own assembly
 
-> Status: this workflow is based on the current loading and planning code paths, but it has not been end-to-end verified with a brand-new custom assembly in this session.
+> Status: this workflow is based on the repository’s current loading and planning code paths. It has not been end-to-end verified with a brand-new custom assembly in this session.
 
-The steps below reflect the actual pipeline used by the repository code, including the asset-loading and SDF-generation flow.
+## Quick summary
 
-## 1. Prepare the asset format
+To add a new assembly, you need to:
 
-Create a new folder at:
+1. Place one OBJ file per part in a new folder under assets/fabrica/.
+2. Generate SDF collision files from those meshes.
+3. Run planning, prepare Isaac Gym assets, and then train or evaluate with your assembly name.
+
+## 1. Prepare the asset folder
+
+Create a new directory at:
 
 ```bash
 assets/fabrica/<my_assembly>/
 ```
 
-Put one OBJ file per part in that folder, for example:
+Put one OBJ file per part into that folder, for example:
 
 ```text
 assets/fabrica/<my_assembly>/0.obj
@@ -20,12 +26,12 @@ assets/fabrica/<my_assembly>/1.obj
 assets/fabrica/<my_assembly>/2.obj
 ```
 
-A few important details:
+Important requirements:
 
 - Part IDs are derived from the file names, so they do not need to be sequential.
 - Each mesh must already be positioned and oriented in a shared world coordinate frame.
 - Mesh units should be in meters.
-- If all OBJ files are loaded together with no extra transform, they should already appear as a correctly assembled object. This is the key assumption used by the loader.
+- If all OBJ files are loaded together with no extra transform, they should already look like a correctly assembled object. This is the key assumption used by the loader.
 
 Optional: add a config file named `config.json` with:
 
@@ -53,7 +59,7 @@ This step voxelizes each OBJ into a `.sdf` collision file, matching the format a
 bash ./planning/run_planning.sh <EXP_NAME> <my_assembly>
 ```
 
-The planning pipeline is geometry-driven, so this should work the same way as it does for the built-in assemblies such as beam, car, or duct.
+The planning pipeline is geometry-driven, so it should work the same way as it does for the built-in assemblies such as beam, car, or duct.
 
 ## 4. Prepare Isaac Gym assets
 
@@ -82,3 +88,13 @@ python train.py task=FabricaFixPlugTaskAssemble task.env.assemblies=["<my_assemb
 ## Notes
 
 The guidance above is based on reading the repository implementation rather than on a completed end-to-end run with a brand-new custom assembly. If you already have a CAD model available, the first two steps are the most important ones to validate carefully before spending time on training.
+
+## Useful external datasets
+
+If you want to source example assemblies rather than preparing your own CAD files, these are the most relevant options:
+
+- Assemble-Them-All: the closest fit to Fabrica’s lineage and format. It provides assembled OBJ meshes and is a strong starting point for insertion-style or translational assembly tasks.
+- Fusion 360 Gallery Assembly Dataset: larger and more diverse, but it typically requires more conversion work to fit Fabrica’s expected folder layout.
+- NIST Assembly Task Boards: very relevant for peg-in-hole and insertion-only scenarios, though they are less plug-and-play as a bulk dataset.
+
+For a first pass, Assemble-Them-All is the most practical choice because it is closest to the expected mesh format and requires the least adaptation.

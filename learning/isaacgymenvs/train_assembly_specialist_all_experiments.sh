@@ -4,6 +4,11 @@
 GPU=${1:-0}
 FRICTION=${2:-1}
 
+# Required on WSL2 so PhysX can find libcuda.so and use GPU physics.
+# Without this, physics silently falls back to CPU, which then crashes
+# outright on SDF tri-mesh colliders (GPU-only feature).
+export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH
+
 export CUDA_VISIBLE_DEVICES="$GPU"
 export NUM_ENVS=1024
 export MAX_ITER=1500
@@ -21,13 +26,18 @@ export MAX_ITER=1500
 #     "plumbers_block"
 #     "duct"
 # )
+# ASSEMBLIES=(
+#     "duct"
+#     "plumbers_block"
+#     "gamepad"
+#     "car"
+#     "beam"
+#     "stool_circular"
+# )
+
 ASSEMBLIES=(
-    "duct"
-    "plumbers_block"
+    #"duct"
     "gamepad"
-    "car"
-    "beam"
-    "stool_circular"
 )
 
 for ASSEMBLY in "${ASSEMBLIES[@]}"
