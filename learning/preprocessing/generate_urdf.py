@@ -19,7 +19,7 @@ def generate_urdf(obj_path, output_dir):
             <geometry>
                 <mesh filename="../../../mesh/fabrica/{subfolder}/{parts[-1]}"/>
             </geometry>
-            <sdf resolution="512"/>
+            <sdf resolution="420"/>
         </collision>
     </link>
 </robot>

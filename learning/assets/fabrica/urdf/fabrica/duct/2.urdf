@@ -10,7 +10,7 @@
             <geometry>
                 <mesh filename="../../../mesh/fabrica/duct/2.obj"/>
             </geometry>
-            <sdf resolution="512"/>
+            <sdf resolution="420"/>
         </collision>
     </link>
 </robot>

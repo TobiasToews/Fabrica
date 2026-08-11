@@ -36,8 +36,8 @@ export MAX_ITER=1500
 # )
 
 ASSEMBLIES=(
-    #"duct"
-    "gamepad"
+    "duct"
+    #"gamepad"
 )
 
 for ASSEMBLY in "${ASSEMBLIES[@]}"
