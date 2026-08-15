@@ -205,7 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--arm', type=str, default='panda', help='robot arm type')
     parser.add_argument('--num-proc', type=int, default=1, help='number of processes')
     parser.add_argument('--inner-num-proc', type=int, default=6, help='number of inner processes')
-    parser.add_argument('--verbose', action='store_true', default=False, help='verbose')
+    parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
     args = parser.parse_args()
 
     run_preced_plan(args.assembly_dir, args.log_dir, args.arm, num_proc=args.num_proc, inner_num_proc=args.inner_num_proc, verbose=args.verbose)

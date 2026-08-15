@@ -326,14 +326,16 @@
             <geometry>
                 <mesh filename="../../mesh/fabrica/car/1.obj"/>
             </geometry>
-            <sdf resolution="420"/>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="512"/>
         </collision>
     </link>
 
     <joint name="1_joint" type="fixed">
         <parent link="panda_hand"/>
         <child link="1"/>
-        <origin xyz="-0.007195466560283146 0.007597534486021684 0.17886477364253614" rpy="-3.1387658909453133 0.24763113174855222 -3.130060413186998" />
+        <origin xyz="0.03324575901363038 0.0075975344852474425 0.17040052053262852" rpy="3.1371184563743935 -0.380646584506636 -3.129550231856628" />
     </joint>
     
 </robot>

@@ -98,3 +98,18 @@ If you want to source example assemblies rather than preparing your own CAD file
 - NIST Assembly Task Boards: very relevant for peg-in-hole and insertion-only scenarios, though they are less plug-and-play as a bulk dataset.
 
 For a first pass, Assemble-Them-All is the most practical choice because it is closest to the expected mesh format and requires the least adaptation.
+
+## Potential Parts:
+- Doorhandle assembly on Kitchendoors 
+- Coordinate System (like the little plastic one you got -> but not so round?)
+- Car Key
+- Wera Tool-Check PLUS  https://www.conrad.de/de/p/wera-tool-check-plus-1-05049055001-bit-set-39teilig-schlitz-kreuzschlitz-phillips-kreuzschlitz-pozidriv-innen-sechska-3430839.html?insert_kz=NA&hk=SEM&utm_source=google&utm_medium=cpc&utm_campaign=DE+-+PMAX+-+NonBrand+-+High&utm_id=22797105046&gad_source=1&gad_campaignid=22787577324&gbraid=0AAAAAD1-3H61rVZcCkj5xynCZ48qTlpss&gclid=Cj0KCQjw-frTBhCvARIsADv4XY7ErSwycGvg_iqE0IZF8aUH_5qKnOOF40bEqriWbQKVdaBRXxziGp8aAv9JEALw_wcB
+-Kinderspielzeug: https://functional-manipulation-benchmark.github.io/
+- Wellendichtring montieren 
+- piping flange -> part of Fusion360 Gallery
+- stecker in steckdose stecken?
+- Stifte in Motorgehäuse montieren
+- Socket tool box
+
+
+## Requierments to 

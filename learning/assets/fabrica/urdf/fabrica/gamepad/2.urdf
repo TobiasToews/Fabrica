@@ -10,7 +10,9 @@
             <geometry>
                 <mesh filename="../../../mesh/fabrica/gamepad/2.obj"/>
             </geometry>
-            <sdf resolution="420"/>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="512"/>
         </collision>
     </link>
 </robot>

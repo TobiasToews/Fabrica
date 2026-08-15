@@ -1,5 +1,7 @@
 # Excluded: exceeds GitHub's 100MB file size limit
 assets/fabrica/duct/0.sdf
+assets/fabrica/robot_yours/
+datasets/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

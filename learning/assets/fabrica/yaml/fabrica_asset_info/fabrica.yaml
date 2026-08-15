@@ -153,6 +153,52 @@ plumbers_block:
     density: 1250.0
     friction: 0.5
     urdf_path: plumbers_block/4
+robot_yours:
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: robot_yours/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: robot_yours/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: robot_yours/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: robot_yours/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: robot_yours/5
+socket_set:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/2
+  '3':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/3
+  '4':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/4
+  '5':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set/5
 stool_circular:
   '0':
     density: 1250.0
