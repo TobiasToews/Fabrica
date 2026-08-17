@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="7">
+    <link name="7">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/nail_cutter/7.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/nail_cutter/7.obj"/>
+            </geometry>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="512"/>
+        </collision>
+    </link>
+</robot>

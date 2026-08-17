@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="67367668-058c-11ec-b71d-061e4e83ef1b">
+    <link name="67367668-058c-11ec-b71d-061e4e83ef1b">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/jet_not_tested_yet/67367668-058c-11ec-b71d-061e4e83ef1b.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/jet_not_tested_yet/67367668-058c-11ec-b71d-061e4e83ef1b.obj"/>
+            </geometry>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="512"/>
+        </collision>
+    </link>
+</robot>

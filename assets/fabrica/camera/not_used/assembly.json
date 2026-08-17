@@ -1,0 +1,586 @@
+{
+    "tree": {
+        "root": {}
+    },
+    "root": {
+        "component": "994899d2-0546-11ec-9394-06214ff114d7",
+        "bodies": {
+            "993b53ac-0546-11ec-a6ec-06214ff114d7": {
+                "is_visible": true
+            },
+            "99458c76-0546-11ec-93b1-06214ff114d7": {
+                "is_visible": true
+            },
+            "9945b3c0-0546-11ec-a120-06214ff114d7": {
+                "is_visible": true
+            },
+            "9945daa8-0546-11ec-bf54-06214ff114d7": {
+                "is_visible": true
+            },
+            "994676da-0546-11ec-8292-06214ff114d7": {
+                "is_visible": true
+            },
+            "9946ec08-0546-11ec-bbbd-06214ff114d7": {
+                "is_visible": true
+            },
+            "99476142-0546-11ec-8d3d-06214ff114d7": {
+                "is_visible": true
+            },
+            "9947d6a6-0546-11ec-bd52-06214ff114d7": {
+                "is_visible": true
+            },
+            "994872a6-0546-11ec-89aa-06214ff114d7": {
+                "is_visible": true
+            }
+        }
+    },
+    "occurrences": {},
+    "components": {
+        "994899d2-0546-11ec-9394-06214ff114d7": {
+            "name": "root",
+            "type": "Component",
+            "part_number": "Untitled",
+            "bodies": [
+                "993b53ac-0546-11ec-a6ec-06214ff114d7",
+                "99458c76-0546-11ec-93b1-06214ff114d7",
+                "9945b3c0-0546-11ec-a120-06214ff114d7",
+                "9945daa8-0546-11ec-bf54-06214ff114d7",
+                "994676da-0546-11ec-8292-06214ff114d7",
+                "9946ec08-0546-11ec-bbbd-06214ff114d7",
+                "99476142-0546-11ec-8d3d-06214ff114d7",
+                "9947d6a6-0546-11ec-bd52-06214ff114d7",
+                "994872a6-0546-11ec-89aa-06214ff114d7"
+            ]
+        }
+    },
+    "bodies": {
+        "993b53ac-0546-11ec-a6ec-06214ff114d7": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "993b53ac-0546-11ec-a6ec-06214ff114d7.png",
+            "smt": "993b53ac-0546-11ec-a6ec-06214ff114d7.smt",
+            "step": "993b53ac-0546-11ec-a6ec-06214ff114d7.step",
+            "obj": "993b53ac-0546-11ec-a6ec-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": 0.040466456455638816,
+                    "y": 4.574095972639149,
+                    "z": 0.5355802260009891
+                },
+                "area": 559.9793398575716,
+                "volume": 504.5392724666057,
+                "density": 0.00785,
+                "mass": 3.9606332888628546
+            },
+            "appearance": {
+                "id": "Prism-090",
+                "name": "Paint - Enamel Glossy (Blue)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "99458c76-0546-11ec-93b1-06214ff114d7": {
+            "name": "Body5",
+            "type": "BRepBody",
+            "png": "99458c76-0546-11ec-93b1-06214ff114d7.png",
+            "smt": "99458c76-0546-11ec-93b1-06214ff114d7.smt",
+            "step": "99458c76-0546-11ec-93b1-06214ff114d7.step",
+            "obj": "99458c76-0546-11ec-93b1-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -3.5617448139988255e-16,
+                    "y": 4.318000137805938,
+                    "z": 4.8724791545778
+                },
+                "area": 47.41870831604295,
+                "volume": 4.987322035027848,
+                "density": 0.00785,
+                "mass": 0.0391504779749686
+            },
+            "appearance": {
+                "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                "name": "Steel - Satin"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "9945b3c0-0546-11ec-a120-06214ff114d7": {
+            "name": "Body6",
+            "type": "BRepBody",
+            "png": "9945b3c0-0546-11ec-a120-06214ff114d7.png",
+            "smt": "9945b3c0-0546-11ec-a120-06214ff114d7.smt",
+            "step": "9945b3c0-0546-11ec-a120-06214ff114d7.step",
+            "obj": "9945b3c0-0546-11ec-a120-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -3.5617448139988255e-16,
+                    "y": 4.318000137805938,
+                    "z": 7.793017040916318
+                },
+                "area": 47.41870831604295,
+                "volume": 4.987322035027848,
+                "density": 0.00785,
+                "mass": 0.0391504779749686
+            },
+            "appearance": {
+                "id": "Prism-152",
+                "name": "Glass (Clear)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "9945daa8-0546-11ec-bf54-06214ff114d7": {
+            "name": "Body7",
+            "type": "BRepBody",
+            "png": "9945daa8-0546-11ec-bf54-06214ff114d7.png",
+            "smt": "9945daa8-0546-11ec-bf54-06214ff114d7.smt",
+            "step": "9945daa8-0546-11ec-bf54-06214ff114d7.step",
+            "obj": "9945daa8-0546-11ec-bf54-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -4.633030703415474,
+                    "y": 6.66352460481916,
+                    "z": -1.2888072658201952
+                },
+                "area": 6.940382968499924,
+                "volume": 1.159775970474227,
+                "density": 0.00785,
+                "mass": 0.00910424136822268
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "994676da-0546-11ec-8292-06214ff114d7": {
+            "name": "Body8",
+            "type": "BRepBody",
+            "png": "994676da-0546-11ec-8292-06214ff114d7.png",
+            "smt": "994676da-0546-11ec-8292-06214ff114d7.smt",
+            "step": "994676da-0546-11ec-8292-06214ff114d7.step",
+            "obj": "994676da-0546-11ec-8292-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -4.633030703415475,
+                    "y": 5.48750460481916,
+                    "z": -1.2888072658201952
+                },
+                "area": 6.940382968499924,
+                "volume": 1.159775970474227,
+                "density": 0.00785,
+                "mass": 0.00910424136822268
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "9946ec08-0546-11ec-bbbd-06214ff114d7": {
+            "name": "Body9",
+            "type": "BRepBody",
+            "png": "9946ec08-0546-11ec-bbbd-06214ff114d7.png",
+            "smt": "9946ec08-0546-11ec-bbbd-06214ff114d7.smt",
+            "step": "9946ec08-0546-11ec-bbbd-06214ff114d7.step",
+            "obj": "9946ec08-0546-11ec-bbbd-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -4.633030703415474,
+                    "y": 4.311484604819159,
+                    "z": -1.2888072658201952
+                },
+                "area": 6.940382968499924,
+                "volume": 1.1597759704742272,
+                "density": 0.00785,
+                "mass": 0.009104241368222682
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "99476142-0546-11ec-8d3d-06214ff114d7": {
+            "name": "Body10",
+            "type": "BRepBody",
+            "png": "99476142-0546-11ec-8d3d-06214ff114d7.png",
+            "smt": "99476142-0546-11ec-8d3d-06214ff114d7.smt",
+            "step": "99476142-0546-11ec-8d3d-06214ff114d7.step",
+            "obj": "99476142-0546-11ec-8d3d-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -4.633030703415476,
+                    "y": 3.135464604819161,
+                    "z": -1.2888072658201954
+                },
+                "area": 6.940382968499924,
+                "volume": 1.159775970474227,
+                "density": 0.00785,
+                "mass": 0.00910424136822268
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "9947d6a6-0546-11ec-bd52-06214ff114d7": {
+            "name": "Body11",
+            "type": "BRepBody",
+            "png": "9947d6a6-0546-11ec-bd52-06214ff114d7.png",
+            "smt": "9947d6a6-0546-11ec-bd52-06214ff114d7.smt",
+            "step": "9947d6a6-0546-11ec-bd52-06214ff114d7.step",
+            "obj": "9947d6a6-0546-11ec-bd52-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -4.622869963400578,
+                    "y": 8.429662301707443,
+                    "z": 1.8204425241298123
+                },
+                "area": 3.5183763082650548,
+                "volume": 0.5114117583114672,
+                "density": 0.00785,
+                "mass": 0.0040145823027450175
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "994872a6-0546-11ec-89aa-06214ff114d7": {
+            "name": "Body12",
+            "type": "BRepBody",
+            "png": "994872a6-0546-11ec-89aa-06214ff114d7.png",
+            "smt": "994872a6-0546-11ec-89aa-06214ff114d7.smt",
+            "step": "994872a6-0546-11ec-89aa-06214ff114d7.step",
+            "obj": "994872a6-0546-11ec-89aa-06214ff114d7.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": 4.599673603585475,
+                    "y": 7.893049999999998,
+                    "z": -1.308297413501561
+                },
+                "area": 12.90104173834705,
+                "volume": 2.142616990508713,
+                "density": 0.00785,
+                "mass": 0.016819543375493396
+            },
+            "appearance": {
+                "id": "Prism-089",
+                "name": "Paint - Enamel Glossy (Black)"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        }
+    },
+    "contacts": [
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "993b53ac-0546-11ec-a6ec-06214ff114d7",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": 1.613620908444062e-16,
+                    "y": 1.6827572096938859,
+                    "z": 5.623560259399414
+                },
+                "index": 2,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 2.635242928112053,
+                        "y": 6.953243065917992,
+                        "z": 8.051800259399414
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -2.635242928112053,
+                        "y": 1.6827572096938859,
+                        "z": 3.1953202593994146
+                    }
+                },
+                "id": 265
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "9945b3c0-0546-11ec-a120-06214ff114d7",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": 1.613620908444062e-16,
+                    "y": 1.6827572096938859,
+                    "z": 7.793017040916319
+                },
+                "index": 0,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 2.635242928112053,
+                        "y": 6.953243065917992,
+                        "z": 7.907317040916319
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -2.635242928112053,
+                        "y": 1.6827572096938859,
+                        "z": 7.678717040916319
+                    }
+                },
+                "id": 347
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "993b53ac-0546-11ec-a6ec-06214ff114d7",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": 1.613620908444062e-16,
+                    "y": 1.6827572096938859,
+                    "z": 5.623560259399414
+                },
+                "index": 2,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 2.635242928112053,
+                        "y": 6.953243065917992,
+                        "z": 8.051800259399414
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -2.635242928112053,
+                        "y": 1.6827572096938859,
+                        "z": 3.1953202593994146
+                    }
+                },
+                "id": 265
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "99458c76-0546-11ec-93b1-06214ff114d7",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": 1.613620908444062e-16,
+                    "y": 1.6827572096938859,
+                    "z": 4.8724791545778
+                },
+                "index": 0,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 2.635242928112053,
+                        "y": 6.953243065917992,
+                        "z": 4.9867791545778
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -2.635242928112053,
+                        "y": 1.6827572096938859,
+                        "z": 4.7581791545778
+                    }
+                },
+                "id": 340
+            }
+        }
+    ],
+    "properties": {
+        "name": "Untitled",
+        "bounding_box": {
+            "type": "BoundingBox3D",
+            "max_point": {
+                "type": "Point3D",
+                "x": 5.873483603585475,
+                "y": 10.584792558123201,
+                "z": 8.128000259399414
+            },
+            "min_point": {
+                "type": "Point3D",
+                "x": -5.842000186443331,
+                "y": 8.673617379884037e-19,
+                "z": -2.5908
+            }
+        },
+        "vertex_count": 121,
+        "edge_count": 183,
+        "face_count": 104,
+        "loop_count": 128,
+        "shell_count": 9,
+        "body_count": 9,
+        "area": 698.9977064102692,
+        "volume": 521.8070491673786,
+        "density": 0.00785,
+        "mass": 4.096185335963922,
+        "center_of_mass": {
+            "type": "Point3D",
+            "x": 0.01229372915891426,
+            "y": 4.58950036879598,
+            "z": 0.6238648385630501
+        },
+        "principal_axes": {
+            "x_axis": {
+                "type": "Vector3D",
+                "x": 0.9998118538000578,
+                "y": -0.010910474841260424,
+                "z": 0.016038034157291783,
+                "length": 1.0000000000000002
+            },
+            "y_axis": {
+                "type": "Vector3D",
+                "x": 0.01108489170835126,
+                "y": 0.9998799452086222,
+                "z": -0.010826834505841819,
+                "length": 1.0
+            },
+            "z_axis": {
+                "type": "Vector3D",
+                "x": -0.01591798280896044,
+                "y": 0.011002577349920556,
+                "z": 0.9998127630286346,
+                "length": 1.0
+            }
+        },
+        "xyz_moments_of_inertia": {
+            "xx": 131.1985865652334,
+            "yy": 58.00729096149822,
+            "zz": 151.58533247870412,
+            "xy": -0.08981917592976474,
+            "yz": -11.628132855445541,
+            "xz": -0.38302682528138643
+        },
+        "surface_types": [
+            {
+                "surface_type": "NurbsSurfaceType",
+                "face_count": 62
+            },
+            {
+                "surface_type": "PlaneSurfaceType",
+                "face_count": 21
+            },
+            {
+                "surface_type": "CylinderSurfaceType",
+                "face_count": 15
+            },
+            {
+                "surface_type": "ConeSurfaceType",
+                "face_count": 6
+            }
+        ],
+        "vertex_valence": [
+            {
+                "valence": 2,
+                "count": 18
+            },
+            {
+                "valence": 1,
+                "count": 25
+            },
+            {
+                "valence": 3,
+                "count": 59
+            },
+            {
+                "valence": 4,
+                "count": 8
+            },
+            {
+                "valence": 5,
+                "count": 9
+            },
+            {
+                "valence": 6,
+                "count": 2
+            }
+        ],
+        "design_type": "ParametricDesignType",
+        "likes_count": 3,
+        "comments_count": 2,
+        "views_count": 878,
+        "products": [
+            "Fusion 360"
+        ],
+        "categories": [
+            "Electronics"
+        ],
+        "industries": [
+            "Product Design & Manufacturing"
+        ]
+    }
+}

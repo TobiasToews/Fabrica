@@ -1,0 +1,1973 @@
+{
+    "tree": {
+        "root": {
+            "a47ee036-05a3-11ec-a986-020a4e46e3ef": {},
+            "a47f074a-05a3-11ec-9be0-020a4e46e3ef": {},
+            "a47f5574-05a3-11ec-950e-020a4e46e3ef": {},
+            "a47f7c80-05a3-11ec-a756-020a4e46e3ef": {},
+            "a47fa38a-05a3-11ec-83a6-020a4e46e3ef": {},
+            "a4803fb6-05a3-11ec-9df2-020a4e46e3ef": {}
+        }
+    },
+    "root": {
+        "component": "a47e43f9-05a3-11ec-8616-020a4e46e3ef",
+        "bodies": {
+            "a4778d3e-05a3-11ec-82df-020a4e46e3ef": {
+                "is_visible": false
+            },
+            "a478c540-05a3-11ec-9e2a-020a4e46e3ef": {
+                "is_visible": false
+            },
+            "a47a24ba-05a3-11ec-8b63-020a4e46e3ef": {
+                "is_visible": false
+            }
+        }
+    },
+    "occurrences": {
+        "a47ee036-05a3-11ec-a986-020a4e46e3ef": {
+            "name": "Component1:1",
+            "type": "Occurrence",
+            "component": "a47e43f8-05a3-11ec-8c92-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31715385611789965,
+                    "y": 0.244733990515372,
+                    "z": -1.6080093666031792
+                },
+                "area": 2.8685731301253616,
+                "volume": 0.04890815087688552,
+                "density": 0.00785,
+                "mass": 0.0003839289843835513
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0,
+                    "length": 1.0
+                }
+            },
+            "bodies": {
+                "a4759174-05a3-11ec-b444-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        },
+        "a47f074a-05a3-11ec-9be0-020a4e46e3ef": {
+            "name": "Component2:1",
+            "type": "Occurrence",
+            "component": "a47e9222-05a3-11ec-83d3-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.3169286231922218,
+                    "y": -0.12446952682544186,
+                    "z": -1.6079459246245862
+                },
+                "area": 2.8684909312092373,
+                "volume": 0.04890262567797815,
+                "density": 0.00785,
+                "mass": 0.00038388561157212843
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0,
+                    "length": 1.0
+                }
+            },
+            "bodies": {
+                "a47c212c-05a3-11ec-bddc-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        },
+        "a47f5574-05a3-11ec-950e-020a4e46e3ef": {
+            "name": "Component3:1",
+            "type": "Occurrence",
+            "component": "a47e9223-05a3-11ec-b07d-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31749999999363,
+                    "y": 0.060324999999999976,
+                    "z": -2.774447862771441
+                },
+                "area": 0.12631309186370104,
+                "volume": 0.0037680742508970195,
+                "density": 0.00785,
+                "mass": 2.9579382869541602e-05
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0,
+                    "length": 1.0
+                }
+            },
+            "bodies": {
+                "a47da76e-05a3-11ec-ab48-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        },
+        "a47f7c80-05a3-11ec-a756-020a4e46e3ef": {
+            "name": "Component4:1",
+            "type": "Occurrence",
+            "component": "a47e6b15-05a3-11ec-9c1e-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "timeline_index": 34,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31749915052801625,
+                    "y": 0.04546755432317671,
+                    "z": -0.9007522385426765
+                },
+                "area": 0.7757052639881038,
+                "volume": 0.036140779586610904,
+                "density": 0.00785,
+                "mass": 0.00028370511975489554
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0,
+                    "length": 1.0
+                }
+            },
+            "bodies": {
+                "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        },
+        "a47fa38a-05a3-11ec-83a6-020a4e46e3ef": {
+            "name": "Component5:1",
+            "type": "Occurrence",
+            "component": "a47e6b14-05a3-11ec-902c-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "timeline_index": 45,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": 0.43879695601567015,
+                    "y": 0.060736056112861626,
+                    "z": -2.771310763900968
+                },
+                "area": 0.8926838544925549,
+                "volume": 0.014452559871517725,
+                "density": 0.00785,
+                "mass": 0.00011345259499141413
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 2.456947862771444,
+                    "y": 0.0,
+                    "z": -3.091947862771439
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 4.163336342344337e-17,
+                    "y": 0.0,
+                    "z": -1.0000000000000002,
+                    "length": 1.0000000000000002
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0000000000000002,
+                    "y": 0.0,
+                    "z": 4.163336342344337e-17,
+                    "length": 1.0000000000000002
+                }
+            },
+            "bodies": {
+                "a47a9a50-05a3-11ec-862a-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        },
+        "a4803fb6-05a3-11ec-9df2-020a4e46e3ef": {
+            "name": "Component6:1",
+            "type": "Occurrence",
+            "component": "a47eb92c-05a3-11ec-b884-020a4e46e3ef",
+            "is_grounded": false,
+            "is_visible": true,
+            "timeline_index": 57,
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31620217300891057,
+                    "y": 0.8473716286739112,
+                    "z": -1.5759007754505223
+                },
+                "area": 2.1649544194232133,
+                "volume": 0.03737740510748099,
+                "density": 0.00785,
+                "mass": 0.0002934126300937258
+            },
+            "transform": {
+                "origin": {
+                    "type": "Point3D",
+                    "x": 0.0,
+                    "y": 0.7738910810222743,
+                    "z": -1.9486072960320557
+                },
+                "x_axis": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "y_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": -0.9999999999999981,
+                    "z": 0.0,
+                    "length": 0.9999999999999981
+                },
+                "z_axis": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -0.9999999999999981,
+                    "length": 0.9999999999999981
+                }
+            },
+            "bodies": {
+                "a47dcf0a-05a3-11ec-9120-020a4e46e3ef": {
+                    "is_visible": true
+                }
+            }
+        }
+    },
+    "components": {
+        "a47e43f8-05a3-11ec-8c92-020a4e46e3ef": {
+            "name": "Component1",
+            "type": "Component",
+            "part_number": "Component1",
+            "bodies": [
+                "a4759174-05a3-11ec-b444-020a4e46e3ef"
+            ]
+        },
+        "a47e43f9-05a3-11ec-8616-020a4e46e3ef": {
+            "name": "root",
+            "type": "Component",
+            "part_number": "Untitled",
+            "bodies": [
+                "a4778d3e-05a3-11ec-82df-020a4e46e3ef",
+                "a478c540-05a3-11ec-9e2a-020a4e46e3ef",
+                "a47a24ba-05a3-11ec-8b63-020a4e46e3ef"
+            ]
+        },
+        "a47e6b14-05a3-11ec-902c-020a4e46e3ef": {
+            "name": "Component5",
+            "type": "Component",
+            "part_number": "Component5",
+            "bodies": [
+                "a47a9a50-05a3-11ec-862a-020a4e46e3ef"
+            ]
+        },
+        "a47e6b15-05a3-11ec-9c1e-020a4e46e3ef": {
+            "name": "Component4",
+            "type": "Component",
+            "part_number": "Component4",
+            "bodies": [
+                "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef"
+            ]
+        },
+        "a47e9222-05a3-11ec-83d3-020a4e46e3ef": {
+            "name": "Component2",
+            "type": "Component",
+            "part_number": "Component2",
+            "bodies": [
+                "a47c212c-05a3-11ec-bddc-020a4e46e3ef"
+            ]
+        },
+        "a47e9223-05a3-11ec-b07d-020a4e46e3ef": {
+            "name": "Component3",
+            "type": "Component",
+            "part_number": "Component3",
+            "bodies": [
+                "a47da76e-05a3-11ec-ab48-020a4e46e3ef"
+            ]
+        },
+        "a47eb92c-05a3-11ec-b884-020a4e46e3ef": {
+            "name": "Component6",
+            "type": "Component",
+            "part_number": "Component6",
+            "bodies": [
+                "a47dcf0a-05a3-11ec-9120-020a4e46e3ef"
+            ]
+        }
+    },
+    "bodies": {
+        "a4759174-05a3-11ec-b444-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a4759174-05a3-11ec-b444-020a4e46e3ef.png",
+            "smt": "a4759174-05a3-11ec-b444-020a4e46e3ef.smt",
+            "step": "a4759174-05a3-11ec-b444-020a4e46e3ef.step",
+            "obj": "a4759174-05a3-11ec-b444-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31715385611789965,
+                    "y": 0.244733990515372,
+                    "z": -1.6080093666031792
+                },
+                "area": 2.8685731301253616,
+                "volume": 0.04890815087688552,
+                "density": 0.00785,
+                "mass": 0.0003839289843835513
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a4778d3e-05a3-11ec-82df-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a4778d3e-05a3-11ec-82df-020a4e46e3ef.png",
+            "smt": "a4778d3e-05a3-11ec-82df-020a4e46e3ef.smt",
+            "step": "a4778d3e-05a3-11ec-82df-020a4e46e3ef.step",
+            "obj": "a4778d3e-05a3-11ec-82df-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.6150705634650228,
+                    "y": 0.38265394155631827,
+                    "z": -0.5415990760711554
+                },
+                "area": 0.004252541037879165,
+                "volume": 8.52607295791339e-06,
+                "density": 0.00785,
+                "mass": 6.69296727196201e-08
+            },
+            "appearance": {
+                "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                "name": "Steel - Satin"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a478c540-05a3-11ec-9e2a-020a4e46e3ef": {
+            "name": "Body3",
+            "type": "BRepBody",
+            "png": "a478c540-05a3-11ec-9e2a-020a4e46e3ef.png",
+            "smt": "a478c540-05a3-11ec-9e2a-020a4e46e3ef.smt",
+            "step": "a478c540-05a3-11ec-9e2a-020a4e46e3ef.step",
+            "obj": "a478c540-05a3-11ec-9e2a-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.019929767637288397,
+                    "y": 0.3826540028216422,
+                    "z": -0.5415990863645689
+                },
+                "area": 0.004252541104579463,
+                "volume": 8.526083514839298e-06,
+                "density": 0.00785,
+                "mass": 6.692975559148848e-08
+            },
+            "appearance": {
+                "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                "name": "Steel - Satin"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47a24ba-05a3-11ec-8b63-020a4e46e3ef": {
+            "name": "Body6",
+            "type": "BRepBody",
+            "png": "a47a24ba-05a3-11ec-8b63-020a4e46e3ef.png",
+            "smt": "a47a24ba-05a3-11ec-8b63-020a4e46e3ef.smt",
+            "step": "a47a24ba-05a3-11ec-8b63-020a4e46e3ef.step",
+            "obj": "a47a24ba-05a3-11ec-8b63-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.3161290847233913,
+                    "y": 0.5374998115076965,
+                    "z": -0.5470591067406662
+                },
+                "area": 0.25136926122797276,
+                "volume": 0.006654379254381735,
+                "density": 0.00785,
+                "mass": 5.223687714689661e-05
+            },
+            "appearance": {
+                "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                "name": "Steel - Satin"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47a9a50-05a3-11ec-862a-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a47a9a50-05a3-11ec-862a-020a4e46e3ef.png",
+            "smt": "a47a9a50-05a3-11ec-862a-020a4e46e3ef.smt",
+            "step": "a47a9a50-05a3-11ec-862a-020a4e46e3ef.step",
+            "obj": "a47a9a50-05a3-11ec-862a-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.320637098870471,
+                    "y": 0.060736056112861626,
+                    "z": -2.0181509067557735
+                },
+                "area": 0.8926838544925549,
+                "volume": 0.014452559871517725,
+                "density": 0.00785,
+                "mass": 0.00011345259499141413
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef.png",
+            "smt": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef.smt",
+            "step": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef.step",
+            "obj": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31749915052801625,
+                    "y": 0.04546755432317671,
+                    "z": -0.9007522385426765
+                },
+                "area": 0.7757052639881038,
+                "volume": 0.036140779586610904,
+                "density": 0.00785,
+                "mass": 0.00028370511975489554
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47c212c-05a3-11ec-bddc-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a47c212c-05a3-11ec-bddc-020a4e46e3ef.png",
+            "smt": "a47c212c-05a3-11ec-bddc-020a4e46e3ef.smt",
+            "step": "a47c212c-05a3-11ec-bddc-020a4e46e3ef.step",
+            "obj": "a47c212c-05a3-11ec-bddc-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.3169286231922218,
+                    "y": -0.12446952682544186,
+                    "z": -1.6079459246245862
+                },
+                "area": 2.8684909312092373,
+                "volume": 0.04890262567797815,
+                "density": 0.00785,
+                "mass": 0.00038388561157212843
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47da76e-05a3-11ec-ab48-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a47da76e-05a3-11ec-ab48-020a4e46e3ef.png",
+            "smt": "a47da76e-05a3-11ec-ab48-020a4e46e3ef.smt",
+            "step": "a47da76e-05a3-11ec-ab48-020a4e46e3ef.step",
+            "obj": "a47da76e-05a3-11ec-ab48-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31749999999363,
+                    "y": 0.060324999999999976,
+                    "z": -2.774447862771441
+                },
+                "area": 0.12631309186370104,
+                "volume": 0.0037680742508970195,
+                "density": 0.00785,
+                "mass": 2.9579382869541602e-05
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        },
+        "a47dcf0a-05a3-11ec-9120-020a4e46e3ef": {
+            "name": "Body1",
+            "type": "BRepBody",
+            "png": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef.png",
+            "smt": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef.smt",
+            "step": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef.step",
+            "obj": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef.obj",
+            "physical_properties": {
+                "center_of_mass": {
+                    "type": "Point3D",
+                    "x": -0.31620217300891057,
+                    "y": -0.07348054765163713,
+                    "z": -0.3727065205815342
+                },
+                "area": 2.1649544194232133,
+                "volume": 0.03737740510748099,
+                "density": 0.00785,
+                "mass": 0.0002934126300937258
+            },
+            "appearance": {
+                "id": "Prism-072",
+                "name": "Stainless Steel - Polished"
+            },
+            "material": {
+                "appearance": {
+                    "id": "PrismMaterial-018_physmat_aspects:Prism-256",
+                    "name": "Steel - Satin"
+                },
+                "id": "PrismMaterial-018",
+                "name": "Steel"
+            }
+        }
+    },
+    "as_built_joints": {
+        "a48129e2-05a3-11ec-b70b-020a4e46e3ef": {
+            "name": "Rev6",
+            "type": "AsBuiltJoint",
+            "parent_component": "a47e43f9-05a3-11ec-8616-020a4e46e3ef",
+            "occurrence_one": "a47fa38a-05a3-11ec-83a6-020a4e46e3ef",
+            "occurrence_two": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+            "timeline_index": 74,
+            "joint_motion": {
+                "joint_type": "RevoluteJointType",
+                "rotation_axis": "ZAxisJointDirection",
+                "rotation_limits": {
+                    "maximum_value": 1.5707963267948966,
+                    "minimum_value": -1.5707963267948966,
+                    "rest_value": 0.0,
+                    "is_maximum_value_enabled": true,
+                    "is_minimum_value_enabled": true,
+                    "is_rest_value_enabled": true
+                }
+            },
+            "joint_geometry": {
+                "geometry_type": "JointPlanarBRepFaceGeometry",
+                "key_point_type": "CenterKeyPoint",
+                "origin": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.15875,
+                    "z": -2.7744478627714413
+                },
+                "primary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 1.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "secondary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "tertiary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": -1.0,
+                    "length": 1.0
+                },
+                "entity_one": {
+                    "type": "BRepFace",
+                    "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                    "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                    "surface_type": "PlaneSurfaceType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.31749999999999773,
+                        "y": 0.15875,
+                        "z": -2.7744478627714413
+                    },
+                    "index": 4,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.2635249999999979,
+                            "y": 0.15875,
+                            "z": -2.7204728627714414
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.37147499999999756,
+                            "y": 0.15875,
+                            "z": -2.828422862771441
+                        }
+                    }
+                }
+            }
+        },
+        "a4823b98-05a3-11ec-bbe2-020a4e46e3ef": {
+            "name": "Rev8",
+            "type": "AsBuiltJoint",
+            "parent_component": "a47e43f9-05a3-11ec-8616-020a4e46e3ef",
+            "occurrence_one": "a4803fb6-05a3-11ec-9df2-020a4e46e3ef",
+            "occurrence_two": "a47f7c80-05a3-11ec-a756-020a4e46e3ef",
+            "timeline_index": 76,
+            "joint_motion": {
+                "joint_type": "RevoluteJointType",
+                "rotation_axis": "XAxisJointDirection",
+                "rotation_limits": {
+                    "maximum_value": 0.0,
+                    "minimum_value": -3.141592653589793,
+                    "rest_value": 0.0,
+                    "is_maximum_value_enabled": true,
+                    "is_minimum_value_enabled": true,
+                    "is_rest_value_enabled": true
+                }
+            },
+            "joint_geometry": {
+                "geometry_type": "JointPlanarBRepFaceGeometry",
+                "key_point_type": "CenterKeyPoint",
+                "origin": {
+                    "type": "Point3D",
+                    "x": -0.31750000000000006,
+                    "y": 0.3869455405111375,
+                    "z": -0.974303648016029
+                },
+                "primary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": -0.1613682858983549,
+                    "z": -0.9868942579153183,
+                    "length": 0.9999999999999999
+                },
+                "secondary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 1.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "length": 1.0
+                },
+                "tertiary_axis_vector": {
+                    "type": "Vector3D",
+                    "x": 0.0,
+                    "y": -0.9868942579153183,
+                    "z": 0.1613682858983549,
+                    "length": 0.9999999999999999
+                },
+                "entity_one": {
+                    "type": "BRepFace",
+                    "occurrence": "a4803fb6-05a3-11ec-9df2-020a4e46e3ef",
+                    "body": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef",
+                    "surface_type": "PlaneSurfaceType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.31750000000000006,
+                        "y": 0.3869455405111375,
+                        "z": -0.9743036480160288
+                    },
+                    "index": 37,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.0635,
+                            "y": 0.4057458761244243,
+                            "z": -0.9712295821696652
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.5715,
+                            "y": 0.3681452048978507,
+                            "z": -0.9773777138623925
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "contacts": [
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef",
+                "occurrence": "a47f7c80-05a3-11ec-a756-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000000006,
+                    "y": 0.3957913348748223,
+                    "z": -1.01219155802779
+                },
+                "index": 2,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.20964815705332474,
+                        "y": 0.40893999524205915,
+                        "z": -0.977899988181889
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.4253518429466754,
+                        "y": 0.36950573564521505,
+                        "z": -1.0378404625870439
+                    }
+                },
+                "id": 29
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef",
+                "occurrence": "a4803fb6-05a3-11ec-9df2-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3174999999995977,
+                    "y": 0.3720703119787417,
+                    "z": -0.9612349777824942
+                },
+                "index": 13,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.20423932363202654,
+                        "y": 0.37771471637408965,
+                        "z": -0.959825785677908
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.43076067636720883,
+                        "y": 0.36896495579036537,
+                        "z": -0.9662161593385319
+                    }
+                },
+                "id": 16
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.060325,
+                    "z": -2.853822862771441
+                },
+                "index": 1,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.13335,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": -0.0127,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 3
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47a9a50-05a3-11ec-862a-020a4e46e3ef",
+                "occurrence": "a47fa38a-05a3-11ec-83a6-020a4e46e3ef",
+                "surface_type": "TorusSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.4023506370644179,
+                    "y": 0.06073605847930086,
+                    "z": -2.7879379209548976
+                },
+                "index": 0,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.22590319469051967,
+                        "y": 0.07978605847930084,
+                        "z": -2.696370920954897
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.40903719469052,
+                        "y": 0.04168605847930085,
+                        "z": -2.879504920954898
+                    }
+                },
+                "id": 104
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.24807669161911117,
+                    "y": 0.027504766742727484,
+                    "z": -2.8129289604487724
+                },
+                "index": 14,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.03754146116807533,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": 0.005569636972677354,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 163
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.060325,
+                    "z": -2.853822862771441
+                },
+                "index": 1,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.13335,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": -0.0127,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 3
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "NurbsSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3230240989647306,
+                    "y": 0.021105425606086917,
+                    "z": -2.8542765099034524
+                },
+                "index": 13,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.21272499999999778,
+                        "y": 0.026815854124559658,
+                        "z": -2.6723188997626317
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.4222749999999975,
+                        "y": -0.01969216201791824,
+                        "z": -2.8817011242640573
+                    }
+                },
+                "id": 162
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.060325,
+                    "z": -2.853822862771441
+                },
+                "index": 1,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.13335,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": -0.0127,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 3
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3161261247043155,
+                    "y": -0.0719954661259159,
+                    "z": -1.8907290381125739
+                },
+                "index": 8,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.001373875295670901,
+                        "y": 0.059548537796457246,
+                        "z": -0.6995200331066047
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.6336261247043289,
+                        "y": -0.2502258062558083,
+                        "z": -3.087993053600469
+                    }
+                },
+                "id": 157
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47a9a50-05a3-11ec-862a-020a4e46e3ef",
+                "occurrence": "a47fa38a-05a3-11ec-83a6-020a4e46e3ef",
+                "surface_type": "PlaneSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3174853843588639,
+                    "y": 0.041686058479300764,
+                    "z": -2.018804378132424
+                },
+                "index": 17,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.2092662278314009,
+                        "y": 0.04168605847930068,
+                        "z": -1.1247217700215837
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.42567418562206333,
+                        "y": 0.04168605847930068,
+                        "z": -2.8961419241341186
+                    }
+                },
+                "id": 121
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.4413906075031283,
+                    "y": -0.2350016585514398,
+                    "z": -0.9387710439004683
+                },
+                "index": 0,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.1905,
+                        "y": -0.19475929798113512,
+                        "z": -0.7838404625870438
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.4445,
+                        "y": -0.2750958082764288,
+                        "z": -1.0378404625870439
+                    }
+                },
+                "id": 149
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef",
+                "occurrence": "a47f7c80-05a3-11ec-a756-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000000006,
+                    "y": 0.08508999999999994,
+                    "z": -1.0378404625870439
+                },
+                "index": 5,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.19050000000000006,
+                        "y": 0.4597399999999999,
+                        "z": -0.7838404625870439
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.44450000000000006,
+                        "y": -0.28956000000000004,
+                        "z": -1.0378404625870439
+                    }
+                },
+                "id": 32
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000000295,
+                    "y": 0.2310463540992025,
+                    "z": -1.8954231951809941
+                },
+                "index": 12,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.0,
+                        "y": 0.4085939608170271,
+                        "z": -0.704781332552292
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.635,
+                        "y": 0.09883471498673574,
+                        "z": -3.091947862771441
+                    }
+                },
+                "id": 160
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47dcf0a-05a3-11ec-9120-020a4e46e3ef",
+                "occurrence": "a4803fb6-05a3-11ec-9df2-020a4e46e3ef",
+                "surface_type": "PlaneSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3175,
+                    "y": 0.44520430524670823,
+                    "z": -0.7360583188502285
+                },
+                "index": 32,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.0,
+                        "y": 0.449221681845052,
+                        "z": -0.7114888944759359
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.635,
+                        "y": 0.4057458761244243,
+                        "z": -0.9773777138623925
+                    }
+                },
+                "id": 35
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.24792211602141778,
+                    "y": 0.09280392445630274,
+                    "z": -2.8126487617931035
+                },
+                "index": 11,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.2381249999999979,
+                        "y": 0.11470645252349494,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": 0.08273503435984612,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 159
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.060325,
+                    "z": -2.853822862771441
+                },
+                "index": 1,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.13335,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": -0.0127,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 3
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "NurbsSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3808405064489986,
+                    "y": 0.12857673862811925,
+                    "z": -2.715982567074593
+                },
+                "index": 10,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.21272499999999786,
+                        "y": 0.13996825643878452,
+                        "z": -2.672318852745999
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.42227499999999757,
+                        "y": 0.09346062925741802,
+                        "z": -2.881701077247425
+                    }
+                },
+                "id": 158
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47da76e-05a3-11ec-ab48-020a4e46e3ef",
+                "occurrence": "a47f5574-05a3-11ec-950e-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31749999999999773,
+                    "y": 0.060325,
+                    "z": -2.853822862771441
+                },
+                "index": 1,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.23812499999999787,
+                        "y": 0.13335,
+                        "z": -2.6950728627714415
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3968749999999976,
+                        "y": -0.0127,
+                        "z": -2.853822862771441
+                    }
+                },
+                "id": 3
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "PlaneSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31677093308654775,
+                    "y": 0.06072842797549286,
+                    "z": -3.0882739317272594
+                },
+                "index": 7,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.26632894688443487,
+                        "y": 0.06073370259560501,
+                        "z": -3.0879343302750812
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3672129192886605,
+                        "y": 0.060723153355381865,
+                        "z": -3.088613533179438
+                    }
+                },
+                "id": 155
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "PlaneSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31677120133204373,
+                    "y": 0.059553812416569415,
+                    "z": -3.088332655052647
+                },
+                "index": 9,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.266696587184846,
+                        "y": 0.05955908703668041,
+                        "z": -3.087993053600469
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.3668458154792416,
+                        "y": 0.059548537796457246,
+                        "z": -3.0886722565048257
+                    }
+                },
+                "id": 158
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000001677,
+                    "y": 0.19227770651797726,
+                    "z": -1.8906703147871857
+                },
+                "index": 6,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.0,
+                        "y": 0.3705080466478707,
+                        "z": -0.6994613097812175
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.6350000000000068,
+                        "y": 0.06073370259560501,
+                        "z": -3.0879343302750812
+                    }
+                },
+                "id": 154
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47a9a50-05a3-11ec-862a-020a4e46e3ef",
+                "occurrence": "a47fa38a-05a3-11ec-83a6-020a4e46e3ef",
+                "surface_type": "PlaneSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31748417082163494,
+                    "y": 0.07978605847930079,
+                    "z": -2.0188041446607286
+                },
+                "index": 13,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.20926622783140086,
+                        "y": 0.07978605847930084,
+                        "z": -1.124721770021584
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.4256741870337426,
+                        "y": 0.07978605847930084,
+                        "z": -2.8961419241341186
+                    }
+                },
+                "id": 117
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000001677,
+                    "y": 0.19227770651797726,
+                    "z": -1.8906703147871857
+                },
+                "index": 6,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.0,
+                        "y": 0.3705080466478707,
+                        "z": -0.6994613097812175
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.6350000000000068,
+                        "y": 0.06073370259560501,
+                        "z": -3.0879343302750812
+                    }
+                },
+                "id": 154
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                "occurrence": "a47f074a-05a3-11ec-9be0-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.3161261247043155,
+                    "y": -0.0719954661259159,
+                    "z": -1.8907290381125739
+                },
+                "index": 8,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": 0.001373875295670901,
+                        "y": 0.059548537796457246,
+                        "z": -0.6995200331066047
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.6336261247043289,
+                        "y": -0.2502258062558083,
+                        "z": -3.087993053600469
+                    }
+                },
+                "id": 157
+            }
+        },
+        {
+            "entity_one": {
+                "type": "BRepFace",
+                "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                "occurrence": "a47ee036-05a3-11ec-a986-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.44139100898420863,
+                    "y": 0.3552743742054735,
+                    "z": -0.9387692630065883
+                },
+                "index": 0,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.1905,
+                        "y": 0.3953683012015264,
+                        "z": -0.7838404625870439
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.4445,
+                        "y": 0.31503224607212915,
+                        "z": -1.0378404625870439
+                    }
+                },
+                "id": 148
+            },
+            "entity_two": {
+                "type": "BRepFace",
+                "body": "a47bd2f6-05a3-11ec-95f6-020a4e46e3ef",
+                "occurrence": "a47f7c80-05a3-11ec-a756-020a4e46e3ef",
+                "surface_type": "CylinderSurfaceType",
+                "point_on_entity": {
+                    "type": "Point3D",
+                    "x": -0.31750000000000006,
+                    "y": 0.08508999999999994,
+                    "z": -1.0378404625870439
+                },
+                "index": 5,
+                "bounding_box": {
+                    "type": "BoundingBox3D",
+                    "max_point": {
+                        "type": "Point3D",
+                        "x": -0.19050000000000006,
+                        "y": 0.4597399999999999,
+                        "z": -0.7838404625870439
+                    },
+                    "min_point": {
+                        "type": "Point3D",
+                        "x": -0.44450000000000006,
+                        "y": -0.28956000000000004,
+                        "z": -1.0378404625870439
+                    }
+                },
+                "id": 32
+            }
+        }
+    ],
+    "holes": [
+        {
+            "type": "RoundHoleWithThroughBottom",
+            "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+            "diameter": 0.254,
+            "length": 0.08033605512939725,
+            "origin": {
+                "type": "Point3D",
+                "x": -0.3175,
+                "y": 0.31503224607212915,
+                "z": -0.9108404625870439
+            },
+            "direction": {
+                "type": "Vector3D",
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "faces": [
+                {
+                    "type": "BRepFace",
+                    "root_component": "a47e43f8-05a3-11ec-8c92-020a4e46e3ef",
+                    "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                    "surface_type": "CylinderSurfaceType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.44139100898420863,
+                        "y": 0.3552743742054735,
+                        "z": -0.9387692630065883
+                    },
+                    "index": 0,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": 0.3953683012015264,
+                            "z": -0.7838404625870439
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.4445,
+                            "y": 0.31503224607212915,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "type": "BRepEdge",
+                    "root_component": "a47e43f8-05a3-11ec-8c92-020a4e46e3ef",
+                    "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                    "curve_type": "NurbsCurve3DCurveType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.3175000000000001,
+                        "y": 0.3953683012015264,
+                        "z": -0.7838404625870439
+                    },
+                    "index": 1,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": 0.3953683012015264,
+                            "z": -0.7838404625870439
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.44449999999999995,
+                            "y": 0.3542657356452152,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                },
+                {
+                    "type": "BRepEdge",
+                    "root_component": "a47e43f8-05a3-11ec-8c92-020a4e46e3ef",
+                    "body": "a4759174-05a3-11ec-b444-020a4e46e3ef",
+                    "curve_type": "NurbsCurve3DCurveType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.31749999999999995,
+                        "y": 0.35631242196802126,
+                        "z": -0.7838404625870439
+                    },
+                    "index": 0,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": 0.35631242196802126,
+                            "z": -0.7838404625870439
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.4445,
+                            "y": 0.31503224607212915,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "RoundHoleWithThroughBottom",
+            "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+            "diameter": 0.254,
+            "length": 0.08033651029529368,
+            "origin": {
+                "type": "Point3D",
+                "x": -0.3175,
+                "y": -0.2750958082764288,
+                "z": -0.9108404625870439
+            },
+            "direction": {
+                "type": "Vector3D",
+                "x": 0.0,
+                "y": 1.0,
+                "z": 0.0
+            },
+            "faces": [
+                {
+                    "type": "BRepFace",
+                    "root_component": "a47e9222-05a3-11ec-83d3-020a4e46e3ef",
+                    "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                    "surface_type": "CylinderSurfaceType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.4413906075031283,
+                        "y": -0.2350016585514398,
+                        "z": -0.9387710439004683
+                    },
+                    "index": 0,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": -0.19475929798113512,
+                            "z": -0.7838404625870438
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.4445,
+                            "y": -0.2750958082764288,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "type": "BRepEdge",
+                    "root_component": "a47e9222-05a3-11ec-83d3-020a4e46e3ef",
+                    "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                    "curve_type": "NurbsCurve3DCurveType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.31750000000000006,
+                        "y": -0.1947592979811352,
+                        "z": -1.0378404625870437
+                    },
+                    "index": 1,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": -0.19475929798113512,
+                            "z": -0.783840462587044
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.4445,
+                            "y": -0.23603997720683376,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                },
+                {
+                    "type": "BRepEdge",
+                    "root_component": "a47e9222-05a3-11ec-83d3-020a4e46e3ef",
+                    "body": "a47c212c-05a3-11ec-bddc-020a4e46e3ef",
+                    "curve_type": "NurbsCurve3DCurveType",
+                    "point_on_entity": {
+                        "type": "Point3D",
+                        "x": -0.3175,
+                        "y": -0.23399275356961094,
+                        "z": -1.0378404625870439
+                    },
+                    "index": 0,
+                    "bounding_box": {
+                        "type": "BoundingBox3D",
+                        "max_point": {
+                            "type": "Point3D",
+                            "x": -0.1905,
+                            "y": -0.23399275356961094,
+                            "z": -0.7838404625870438
+                        },
+                        "min_point": {
+                            "type": "Point3D",
+                            "x": -0.4445,
+                            "y": -0.2750958082764288,
+                            "z": -1.0378404625870439
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": {
+        "name": "Untitled",
+        "bounding_box": {
+            "type": "BoundingBox3D",
+            "max_point": {
+                "type": "Point3D",
+                "x": 1.3628478273732774,
+                "y": 1.5902422615329144,
+                "z": -0.5298404625870443
+            },
+            "min_point": {
+                "type": "Point3D",
+                "x": -0.6350000000000068,
+                "y": -0.34036000000000005,
+                "z": -3.091947862771441
+            }
+        },
+        "vertex_count": 231,
+        "edge_count": 355,
+        "face_count": 149,
+        "loop_count": 174,
+        "shell_count": 6,
+        "body_count": 6,
+        "area": 9.696720691102172,
+        "volume": 0.1895495953713703,
+        "density": 0.00785,
+        "mass": 0.0014879643236652567,
+        "center_of_mass": {
+            "type": "Point3D",
+            "x": -0.2593419321600938,
+            "y": 0.2126276568535434,
+            "z": -1.578696973147789
+        },
+        "principal_axes": {
+            "x_axis": {
+                "type": "Vector3D",
+                "x": 0.9785753312093554,
+                "y": 0.12213396300986129,
+                "z": 0.16575167036264285,
+                "length": 0.9999999999999999
+            },
+            "y_axis": {
+                "type": "Vector3D",
+                "x": -0.12974034616908325,
+                "y": 0.9909005996342903,
+                "z": 0.035825189745910556,
+                "length": 1.0
+            },
+            "z_axis": {
+                "type": "Vector3D",
+                "x": -0.1598679571534797,
+                "y": -0.056562326012195484,
+                "z": 0.9855165851225757,
+                "length": 0.9999999999999998
+            }
+        },
+        "xyz_moments_of_inertia": {
+            "xx": 0.004734237001529209,
+            "yy": 0.004641925727380052,
+            "zz": 0.0005198452998100231,
+            "xy": 9.481828453029995e-05,
+            "yz": 0.0005301957486323289,
+            "xz": -0.0005071923909549703
+        },
+        "surface_types": [
+            {
+                "surface_type": "CylinderSurfaceType",
+                "face_count": 59
+            },
+            {
+                "surface_type": "NurbsSurfaceType",
+                "face_count": 27
+            },
+            {
+                "surface_type": "PlaneSurfaceType",
+                "face_count": 42
+            },
+            {
+                "surface_type": "ConeSurfaceType",
+                "face_count": 4
+            },
+            {
+                "surface_type": "TorusSurfaceType",
+                "face_count": 17
+            }
+        ],
+        "vertex_valence": [
+            {
+                "valence": 1,
+                "count": 17
+            },
+            {
+                "valence": 3,
+                "count": 154
+            },
+            {
+                "valence": 4,
+                "count": 45
+            },
+            {
+                "valence": 2,
+                "count": 15
+            }
+        ],
+        "design_type": "ParametricDesignType",
+        "likes_count": 1,
+        "comments_count": 0,
+        "views_count": 698,
+        "products": [
+            "Fusion 360"
+        ],
+        "categories": [
+            "Tools"
+        ],
+        "industries": [
+            "Product Design & Manufacturing"
+        ]
+    }
+}

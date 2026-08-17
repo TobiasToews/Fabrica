@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="human_smaller">
+    <link name="human_smaller">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/socket_set/human_smaller.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/socket_set/human_smaller.obj"/>
+            </geometry>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="512"/>
+        </collision>
+    </link>
+</robot>

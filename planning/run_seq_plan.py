@@ -519,7 +519,7 @@ if __name__ == '__main__':
     parser.add_argument('--log-dir', type=str, required=True, help='directory to load precedence and save generated grasps')
     parser.add_argument('--early-term', action='store_true', default=False, help='early termination')
     parser.add_argument('--plot', action='store_true', default=False, help='plot tree')
-    parser.add_argument('--verbose', action='store_true', default=False, help='verbose')
+    parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
     args = parser.parse_args()
 
     run_seq_plan(args.assembly_dir, args.log_dir, early_term=args.early_term, plot=args.plot, verbose=args.verbose)

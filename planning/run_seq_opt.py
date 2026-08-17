@@ -521,7 +521,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--log-dir', type=str, required=True, help='directory to load precedence and save generated grasps')
     parser.add_argument('--plot', action='store_true', default=False, help='plot tree')
-    parser.add_argument('--verbose', action='store_true', default=False)
+    parser.add_argument('--verbose', action='store_true', default=True)
     args = parser.parse_args()
 
     run_seq_opt(args.log_dir, plot=args.plot, verbose=args.verbose)

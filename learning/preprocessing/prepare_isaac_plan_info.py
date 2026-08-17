@@ -70,14 +70,12 @@ def prepare_isaac_plan_info(log_dir, plan_info_path):
     
     sequence, grasps_sequence = sequence[::-1], grasps_sequence[::-1] # reverse the sequence to be forward assembly
     for (part_move, part_hold), (grasps_move, grasp_hold) in zip(sequence, grasps_sequence):
-        parts_preced = list(G_preced.predecessors(part_move))
-        assert len(parts_preced) == 1
         path = sample_path(G_preced.nodes[part_move]['path'], n_frame=10)
         path_new = []
         for state in path:
             state_new = np.concatenate([(state[:3] - assembly_center) * 0.01, R.from_euler('xyz', state[3:]).as_quat()])
             path_new.append(state_new)
-        plan_info[(part_move, parts_preced[0])] = {
+        plan_info[(part_move, part_hold)] = {
             'arm_q_plug': [arm_chain.active_from_full(grasps_move[-1].arm_q), arm_chain.active_from_full(grasps_move[0].arm_q)],
             'arm_q_socket': arm_chain.active_from_full(grasp_hold.arm_q),
             'open_ratio_plug': grasps_move[0].open_ratio,

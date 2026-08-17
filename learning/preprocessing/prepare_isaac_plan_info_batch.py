@@ -31,3 +31,12 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         exit()
 
+    missing = [sub_log_dir for sub_log_dir, sub_plan_info_path in worker_args if not os.path.exists(sub_plan_info_path)]
+    if len(missing) > 0:
+        raise RuntimeError(
+            f'[prepare_isaac_plan_info_batch] No plan_info was generated for: {missing}. '
+            f'This means sequence planning did not produce a full disassembly solution for these assemblies '
+            f'(check precedence.pkl / grasps.pkl / tree_opt.pkl under each log dir). '
+            f'Fix the planning failure before running Isaac Gym preprocessing/training on them.'
+        )
+

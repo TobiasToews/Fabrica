@@ -1,16 +1,19 @@
-socket_set:
+human_normal:
   0:
-    plug: '3'
-    socket: '0'
-  1:
-    plug: '2'
-    socket: '0'
-  2:
     plug: '4'
     socket: '0'
-  3:
+  1:
+    plug: '6'
+    socket: '3'
+  2:
     plug: '5'
-    socket: '0'
+    socket: '3'
+  3:
+    plug: '3'
+    socket: '1'
   4:
+    plug: '2'
+    socket: '0'
+  5:
     plug: '1'
     socket: '0'
