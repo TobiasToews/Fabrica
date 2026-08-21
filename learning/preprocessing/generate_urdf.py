@@ -21,7 +21,7 @@ def generate_urdf(obj_path, output_dir):
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
             <! Normal resolution is 512 -->
-            <sdf resolution="512"/>
+            <sdf resolution="420"/>
         </collision>
     </link>
 </robot>

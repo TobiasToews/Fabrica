@@ -235,13 +235,13 @@
   <joint name="panda_finger_joint1" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_leftfinger"/>
-    <origin xyz="0.0 0.013000001728468361 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 0.013000001728468363 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
 
   <joint name="panda_finger_joint2" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_rightfinger"/>
-    <origin xyz="0.0 -0.013000001728468361 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 -0.013000001728468363 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
   
   <link name="panda_leftfinger">
@@ -328,14 +328,14 @@
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
             <! Normal resolution is 512 -->
-            <sdf resolution="512"/>
+            <sdf resolution="420"/>
         </collision>
     </link>
 
     <joint name="2_joint" type="fixed">
         <parent link="panda_hand"/>
         <child link="2"/>
-        <origin xyz="0.07238909851839671 -0.010583579231381313 0.09611393467351281" rpy="-2.728672636010399 0.37162481000528835 0.8787035463614051" />
+        <origin xyz="0.06968150062407548 -0.010583579231331602 0.08880187574381407" rpy="-2.646562208852089 0.4322793191761467 0.9108565001745715" />
     </joint>
     
 </robot>

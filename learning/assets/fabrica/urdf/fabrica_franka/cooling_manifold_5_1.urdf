@@ -328,14 +328,14 @@
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
             <! Normal resolution is 512 -->
-            <sdf resolution="512"/>
+            <sdf resolution="420"/>
         </collision>
     </link>
 
     <joint name="5_joint" type="fixed">
         <parent link="panda_hand"/>
         <child link="5"/>
-        <origin xyz="0.07947241045123402 0.007168592926170392 0.08210553691265408" rpy="-2.6816488917694232 -0.4989890138044708 2.3389045326528106" />
+        <origin xyz="-0.06106503450781084 -0.0071685929262412795 0.1652834637258515" rpy="2.8130989797561035 0.37713132390029647 -0.7467594974543734" />
     </joint>
     
 </robot>
