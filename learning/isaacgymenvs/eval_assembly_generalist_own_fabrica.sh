@@ -30,10 +30,10 @@ ASSEMBLIES=(
 )
 
 # 2000 epoachs policy:
-CHECKPOINT=""
+CHECKPOINT="runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth"
 
 cd ~/Fabrica
-bash ./learning/preprocessing/prepare_isaac.sh exp_generalist
+bash ./learning/preprocessing/prepare_isaac.sh exp_generalist_own_fabrica
 cd ~/Fabrica/learning/isaacgymenvs
 
 for ASSEMBLY in "${ASSEMBLIES[@]}"

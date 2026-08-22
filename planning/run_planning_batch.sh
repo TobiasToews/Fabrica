@@ -32,10 +32,10 @@ fi
 export OMP_NUM_THREADS=1
 
 echo "Running precedence and path planning..."
-python planning/run_preced_plan_batch.py --assembly-dir assets/$ASSEMBLY_DIR --log-dir logs/$EXP_NAME --num-proc 12 --outer-num-proc 5 --arm $ARM
+python planning/run_preced_plan_batch.py --assembly-dir assets/$ASSEMBLY_DIR --log-dir logs/$EXP_NAME --num-proc 3 --outer-num-proc 3 --inner-num-proc 1 --arm $ARM
 
 echo "Running grasp and arm IK generation..."
-python planning/run_grasp_arm_gen_batch.py --assembly-dir assets/$ASSEMBLY_DIR --log-dir logs/$EXP_NAME --num-proc 4 --inner-num-proc 50 --max-n-grasp 100 --arm $ARM --gripper $GRIPPER --ft-sensor $FT_SENSOR
+python planning/run_grasp_arm_gen_batch.py --assembly-dir assets/$ASSEMBLY_DIR --log-dir logs/$EXP_NAME --num-proc 4 --inner-num-proc 50 --max-n-grasp 300 --arm $ARM --gripper $GRIPPER --ft-sensor $FT_SENSOR
 
 echo "Running sequence planning..."
 python planning/run_seq_plan_batch.py --assembly-dir assets/$ASSEMBLY_DIR --log-dir logs/$EXP_NAME --num-proc 12 --plot
