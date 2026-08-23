@@ -4,8 +4,11 @@ import traceback
 
 
 def parallel_worker(worker, args, kwargs, queue, proc_idx):
-    result = worker(*args, **kwargs)
-    queue.put([result, proc_idx, args, kwargs])
+    try:
+        result = worker(*args, **kwargs)
+        queue.put([result, proc_idx, args, kwargs, None])
+    except Exception:
+        queue.put([None, proc_idx, args, kwargs, traceback.format_exc()])
 
 
 def parallel_execute(worker, args, kwargs=None, num_proc=1, show_progress=True, desc=None, terminate_func=None, return_args=False, raise_exception=True):
@@ -38,8 +41,10 @@ def parallel_execute(worker, args, kwargs=None, num_proc=1, show_progress=True, 
                 n_active_proc += 1
 
                 if n_active_proc >= num_proc: # launch a new process after an existing one finishes
-                    result, proc_idx, arg, kwarg = queue.get()
+                    result, proc_idx, arg, kwarg, err = queue.get()
                     procs.pop(proc_idx)
+                    if err is not None:
+                        raise RuntimeError(f'[parallel_execute] worker {proc_idx} failed:\n{err}')
                     if return_args:
                         if has_kwargs:
                             yield result, arg, kwarg
@@ -80,8 +85,10 @@ def parallel_execute(worker, args, kwargs=None, num_proc=1, show_progress=True, 
                     pbar.update(1)
 
         for _ in range(n_active_proc): # wait for existing processes to finish
-            result, proc_idx, arg, kwarg = queue.get()
+            result, proc_idx, arg, kwarg, err = queue.get()
             procs.pop(proc_idx)
+            if err is not None:
+                raise RuntimeError(f'[parallel_execute] worker {proc_idx} failed:\n{err}')
             if return_args:
                 if has_kwargs:
                     yield result, arg, kwarg

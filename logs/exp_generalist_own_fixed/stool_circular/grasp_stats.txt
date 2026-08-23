@@ -1,80 +1,80 @@
 --- grasp stats ---
-part 0: 300 move + 300 hold
-part 1: 300 move + 300 hold
-part 2: 300 move + 300 hold
-part 3: 300 move + 300 hold
-part 4: 300 move + 300 hold
-part 5: 300 move + 300 hold
-part 6: 300 move + 300 hold
-part 7: 300 move + 300 hold
-part 8: 300 move + 300 hold
+part 0: 100 move + 100 hold
+part 1: 100 move + 100 hold
+part 2: 100 move + 100 hold
+part 3: 100 move + 100 hold
+part 4: 100 move + 100 hold
+part 5: 100 move + 100 hold
+part 6: 100 move + 100 hold
+part 7: 100 move + 100 hold
+part 8: 100 move + 100 hold
 --- grasp pair stats ---
-part pair 0-0: 993
-part pair 0-1: 16602
-part pair 0-2: 8254
-part pair 0-3: 9627
-part pair 0-4: 177
-part pair 0-5: 25104
-part pair 0-6: 3397
-part pair 0-7: 2651
-part pair 0-8: 7673
-part pair 1-1: 2781
-part pair 1-2: 3690
-part pair 1-3: 5276
-part pair 1-4: 1035
-part pair 1-5: 11107
-part pair 1-6: 3304
-part pair 1-7: 169
-part pair 1-8: 8010
-part pair 2-2: 5016
-part pair 3-0: 23782
-part pair 3-1: 16534
-part pair 3-2: 13261
-part pair 3-3: 3014
-part pair 3-4: 11430
-part pair 3-5: 18201
-part pair 3-7: 6003
-part pair 3-8: 19010
-part pair 4-0: 22083
-part pair 4-1: 30553
-part pair 4-2: 20697
-part pair 4-3: 23411
-part pair 4-4: 820
-part pair 4-5: 37181
-part pair 4-6: 5755
-part pair 4-7: 18494
-part pair 4-8: 26569
-part pair 5-0: 14856
-part pair 5-1: 6864
-part pair 5-2: 2976
-part pair 5-3: 192
-part pair 5-4: 5991
-part pair 5-5: 3444
-part pair 5-6: 1063
-part pair 5-7: 1549
-part pair 6-0: 24504
-part pair 6-1: 22148
-part pair 6-2: 17611
-part pair 6-3: 15793
-part pair 6-4: 4975
-part pair 6-5: 30595
-part pair 6-6: 604
-part pair 6-7: 12386
-part pair 6-8: 19798
-part pair 7-0: 21984
-part pair 7-1: 19863
-part pair 7-2: 15549
-part pair 7-3: 10286
-part pair 7-5: 25890
-part pair 7-6: 8541
-part pair 7-7: 3305
-part pair 7-8: 19520
-part pair 8-0: 4788
-part pair 8-1: 12345
-part pair 8-2: 7137
-part pair 8-3: 3131
-part pair 8-4: 1892
-part pair 8-5: 18062
-part pair 8-6: 197
-part pair 8-7: 1365
-part pair 8-8: 1062
+part pair 0-0: 96
+part pair 0-1: 2145
+part pair 0-2: 1157
+part pair 0-3: 916
+part pair 0-4: 27
+part pair 0-5: 2835
+part pair 0-6: 203
+part pair 0-7: 415
+part pair 0-8: 1011
+part pair 1-1: 351
+part pair 1-2: 439
+part pair 1-3: 595
+part pair 1-4: 223
+part pair 1-5: 1375
+part pair 1-6: 238
+part pair 1-7: 36
+part pair 1-8: 952
+part pair 2-2: 827
+part pair 3-0: 2447
+part pair 3-1: 2159
+part pair 3-2: 1597
+part pair 3-3: 261
+part pair 3-4: 1051
+part pair 3-5: 1968
+part pair 3-7: 517
+part pair 3-8: 1818
+part pair 4-0: 2484
+part pair 4-1: 3850
+part pair 4-2: 2595
+part pair 4-3: 2392
+part pair 4-4: 144
+part pair 4-5: 4164
+part pair 4-6: 514
+part pair 4-7: 1890
+part pair 4-8: 3147
+part pair 5-0: 1468
+part pair 5-1: 971
+part pair 5-2: 280
+part pair 5-3: 17
+part pair 5-4: 696
+part pair 5-5: 360
+part pair 5-6: 97
+part pair 5-7: 172
+part pair 6-0: 2641
+part pair 6-1: 3065
+part pair 6-2: 2157
+part pair 6-3: 1643
+part pair 6-4: 478
+part pair 6-5: 3435
+part pair 6-6: 51
+part pair 6-7: 1185
+part pair 6-8: 2223
+part pair 7-0: 2351
+part pair 7-1: 2612
+part pair 7-2: 2168
+part pair 7-3: 1068
+part pair 7-5: 3044
+part pair 7-6: 898
+part pair 7-7: 370
+part pair 7-8: 2211
+part pair 8-0: 424
+part pair 8-1: 1828
+part pair 8-2: 956
+part pair 8-3: 441
+part pair 8-4: 141
+part pair 8-5: 2394
+part pair 8-6: 9
+part pair 8-7: 73
+part pair 8-8: 98

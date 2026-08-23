@@ -328,7 +328,7 @@
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
             <! Normal resolution is 512 -->
-            <sdf resolution="256"/>
+            <sdf resolution="200"/>
         </collision>
     </link>
 
