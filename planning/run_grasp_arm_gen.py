@@ -628,7 +628,7 @@ if __name__ == '__main__':
     parser.add_argument('--reduced-limit', type=float, default=0.1, help='reduced joint limit in percentage')
     parser.add_argument('--num-proc', type=int, default=1, help='number of processes')
     parser.add_argument('--seed', type=int, default=0, help='random seed')
-    parser.add_argument('--verbose', action='store_true', default=False, help='verbose')
+    parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
     args = parser.parse_args()
 
     run_grasp_arm_gen(args.assembly_dir, args.log_dir, args.gripper, args.arm, args.ft_sensor, args.seed, args.n_surface_pt, args.n_angle, args.antipodal_thres, args.ik_optimizer, args.ik_regularization, args.offset_delta, args.reduced_limit, args.max_n_grasp, args.num_proc, args.verbose)

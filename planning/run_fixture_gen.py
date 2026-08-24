@@ -349,7 +349,11 @@ def add_countersunk_pads_to_fixture(fixture_mesh, min_fixture_y):
 
 def run_fixture_gen(assembly_dir, log_dir, optimized, seed, render=False):
     import pyglet
-    pyglet.options["headless"] = not render
+    # Only force pyglet's headless (EGL) backend when there's truly no X
+    # display to fall back to. On WSL2 with WSLg, DISPLAY is set and the
+    # regular Xlib backend renders fine (GPU-accelerated via WSLg), whereas
+    # pyglet's headless/EGL backend fails to create a context in that setup.
+    pyglet.options["headless"] = (not render) and not os.environ.get("DISPLAY")
 
     precedence_path = os.path.join(log_dir, 'precedence.pkl')
     if not os.path.exists(precedence_path):
@@ -447,9 +451,15 @@ def run_fixture_gen(assembly_dir, log_dir, optimized, seed, render=False):
     with open(os.path.join(fixture_dir, 'pickup.json'), 'w') as fp:
         json.dump(pose_pickup_global, fp)
     fixture_mesh.export(os.path.join(fixture_dir, 'fixture.obj'))
-    with open(os.path.join(fixture_dir, 'fixture.png'), 'wb') as fp:
-        fp.write(scene.save_image(visible=False))
-    
+    try:
+        with open(os.path.join(fixture_dir, 'fixture.png'), 'wb') as fp:
+            fp.write(scene.save_image(visible=False))
+    except Exception as e:
+        # fixture.png is just a debug preview; the fixture data above (pickup.json,
+        # fixture.obj) is already saved, so don't let a flaky X11/GL connection
+        # (common on WSL2) fail the whole pipeline over a cosmetic render.
+        print(f'[run_fixture_gen] Warning: failed to render fixture.png: {e}')
+
     stats_path = os.path.join(log_dir, 'stats.json')
     with open(stats_path, 'r') as fp:
         stats = json.load(fp)

@@ -431,7 +431,7 @@ if __name__ == '__main__':
     parser.add_argument('--log-dir', type=str, required=True)
     parser.add_argument('--optimized', action='store_true')
     parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--verbose', default=False, action='store_true')
+    parser.add_argument('--verbose', default=True, action='store_true')
     args = parser.parse_args()
 
     run_motion_plan(args.assembly_dir, args.log_dir, args.optimized, args.seed, args.verbose)

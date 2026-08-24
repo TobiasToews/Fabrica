@@ -19,7 +19,9 @@ def generate_urdf(obj_path, output_dir):
             <geometry>
                 <mesh filename="../../../mesh/fabrica/{subfolder}/{parts[-1]}"/>
             </geometry>
-            <sdf resolution="512"/>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="200"/>
         </collision>
     </link>
 </robot>

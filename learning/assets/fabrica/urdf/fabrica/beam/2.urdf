@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="2">
+    <link name="2">
+        <visual>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/beam/2.obj"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="../../../mesh/fabrica/beam/2.obj"/>
+            </geometry>
+            <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
+            <! Normal resolution is 512 -->
+            <sdf resolution="200"/>
+        </collision>
+    </link>
+</robot>

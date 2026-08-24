@@ -272,7 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('--offset-delta', type=float, default=0.0)
     parser.add_argument('--num-proc', type=int, default=1, help='number of processes')
     parser.add_argument('--seed', type=int, default=0, help='random seed')
-    parser.add_argument('--verbose', action='store_true', default=False, help='verbose')
+    parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
     args = parser.parse_args()
 
     run_grasp_gen(args.assembly_dir, args.log_dir, args.gripper, args.ft_sensor, args.seed, args.n_surface_pt, args.n_angle, args.antipodal_thres, args.offset_delta, args.max_n_grasp, args.num_proc, args.verbose)
