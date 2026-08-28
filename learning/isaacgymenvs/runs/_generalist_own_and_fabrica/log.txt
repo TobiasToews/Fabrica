@@ -1,0 +1,3076 @@
+(isaacgym) tobi@P10044SUCQCG:~/Fabrica$ bash ./learning/isaacgymenvs/eval_assembly_generalist_own_fabrica.sh
+=== Step 1/6: Preparing Isaac assets ===
+=== Step 2/6: Preparing Isaac pair YAML ===
+=== Step 3/6: Preparing Isaac plan info ===
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 9/9 [00:03<00:00,  2.42it/s]
+=== Step 4/6: Generating URDF files ===
+URDF generation completed.
+=== Step 5/6: Generating Franka URDF from plan ===
+URDF generation completed.
+=== Step 6/6: Generating YAML file ===
+YAML file generated at learning/preprocessing/../assets/fabrica/yaml/fabrica_asset_info/fabrica.yaml
+=== All preprocessing steps completed ===
+=== Evaluating Assembly beam in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['beam']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x1c7cd210, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (-0.050800, -0.038100) (-0.038100, 0.038100) (0.063500, 0.078740)
+  ~!~! Extents: (0.012700, 0.076200, 0.015240)
+  ~!~! Resolution: (43, 256, 52)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x1e00d9b0, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (0.038100, 0.050800) (-0.038100, 0.038100) (0.063500, 0.078740)
+  ~!~! Extents: (0.012700, 0.076200, 0.015240)
+  ~!~! Resolution: (43, 256, 52)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x1e3b8210, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (0.038700, 0.050203) (-0.006002, 0.006002) (-0.000000, 0.076200)
+  ~!~! Extents: (0.011503, 0.012003, 0.076200)
+  ~!~! Resolution: (39, 41, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x1c7cf510, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (-0.050203, -0.038700) (-0.006002, 0.006002) (-0.000000, 0.076200)
+  ~!~! Extents: (0.011503, 0.012003, 0.076200)
+  ~!~! Resolution: (39, 41, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x1f7b2760, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (-0.050203, -0.038700) (-0.006002, 0.006002) (-0.000000, 0.076200)
+  ~!~! Extents: (0.011503, 0.012003, 0.076200)
+  ~!~! Resolution: (39, 41, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x1d584d90, resolution=256, spacing=0.000298
+  ~!~! Bounds:  (0.038700, 0.050203) (-0.006002, 0.006002) (-0.000000, 0.076200)
+  ~!~! Extents: (0.011503, 0.012003, 0.076200)
+  ~!~! Resolution: (39, 41, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x1dba6bc0, resolution=256, spacing=0.000595
+  ~!~! Bounds:  (-0.076200, 0.076200) (-0.008890, 0.008890) (-0.000000, 0.012700)
+  ~!~! Extents: (0.152400, 0.017780, 0.012700)
+  ~!~! Resolution: (256, 30, 22)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x20dc1be0, resolution=256, spacing=0.000595
+  ~!~! Bounds:  (-0.076200, 0.076200) (-0.008890, 0.008890) (-0.000000, 0.012700)
+  ~!~! Extents: (0.152400, 0.017780, 0.012700)
+  ~!~! Resolution: (256, 30, 22)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.7451171875 | Keypoint Reward: -4.081051826477051 | Keypoint Dist: 0.004081051796674728 | Deviation: 0.0
+reward: -834.66 steps: 127.0
+-854687.6875
+av reward: -834.6559448242188 av steps: 127.0
+=== Finished evaluating beam ===
+=== Evaluating Assembly car in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['car']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x2d7d0a00, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (0.042301, 0.077301) (-0.040000, -0.005000) (0.041922, 0.076871)
+  ~!~! Extents: (0.035000, 0.035000, 0.034949)
+  ~!~! Resolution: (256, 256, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x2d863080, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (0.042301, 0.077301) (0.005000, 0.040000) (0.041922, 0.076871)
+  ~!~! Extents: (0.035000, 0.035000, 0.034949)
+  ~!~! Resolution: (256, 256, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x2f7d5d60, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (-0.073559, -0.038559) (0.005000, 0.040000) (0.041922, 0.076871)
+  ~!~! Extents: (0.035000, 0.035000, 0.034949)
+  ~!~! Resolution: (256, 256, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x2e87e130, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (-0.073559, -0.038559) (-0.040000, -0.005000) (0.041922, 0.076871)
+  ~!~! Extents: (0.035000, 0.035000, 0.034949)
+  ~!~! Resolution: (256, 256, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x2da30e70, resolution=256, spacing=0.000668
+  ~!~! Bounds:  (-0.085483, 0.085483) (-0.025000, 0.025000) (0.050000, 0.111941)
+  ~!~! Extents: (0.170966, 0.050000, 0.061941)
+  ~!~! Resolution: (256, 75, 93)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x2d917d90, resolution=256, spacing=0.000619
+  ~!~! Bounds:  (-0.072925, 0.085483) (-0.022500, 0.022500) (0.000000, 0.060000)
+  ~!~! Extents: (0.158408, 0.045000, 0.060000)
+  ~!~! Resolution: (256, 73, 97)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x2ed72250, resolution=256, spacing=0.000619
+  ~!~! Bounds:  (-0.072925, 0.085483) (-0.022500, 0.022500) (0.000000, 0.060000)
+  ~!~! Extents: (0.158408, 0.045000, 0.060000)
+  ~!~! Resolution: (256, 73, 97)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x2e8836a0, resolution=256, spacing=0.000619
+  ~!~! Bounds:  (-0.072925, 0.085483) (-0.022500, 0.022500) (0.000000, 0.060000)
+  ~!~! Extents: (0.158408, 0.045000, 0.060000)
+  ~!~! Resolution: (256, 73, 97)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0x2d9f2c90, resolution=256, spacing=0.000619
+  ~!~! Bounds:  (-0.072925, 0.085483) (-0.022500, 0.022500) (0.000000, 0.060000)
+  ~!~! Extents: (0.158408, 0.045000, 0.060000)
+  ~!~! Resolution: (256, 73, 97)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x32de5040, resolution=256, spacing=0.000619
+  ~!~! Bounds:  (-0.072925, 0.085483) (-0.022500, 0.022500) (0.000000, 0.060000)
+  ~!~! Extents: (0.158408, 0.045000, 0.060000)
+  ~!~! Resolution: (256, 73, 97)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.88671875 | Keypoint Reward: -4.20970344543457 | Keypoint Dist: 0.004209702834486961 | Deviation: 0.0146484375
+reward: -680.37 steps: 127.0
+-696702.8125
+av reward: -680.3738403320312 av steps: 127.0
+=== Finished evaluating car ===
+=== Evaluating Assembly cooling_manifold in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['cooling_manifold']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x2e372140, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (0.040198, 0.059704) (-0.060144, -0.039663) (0.000000, 0.035000)
+  ~!~! Extents: (0.019507, 0.020481, 0.035000)
+  ~!~! Resolution: (143, 150, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x2f817200, resolution=256, spacing=0.000182
+  ~!~! Bounds:  (-0.040049, -0.022395) (-0.008652, 0.008845) (0.015000, 0.061500)
+  ~!~! Extents: (0.017654, 0.017497, 0.046500)
+  ~!~! Resolution: (98, 97, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x2e043b40, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (-0.060096, -0.040002) (-0.059932, -0.039875) (0.000000, 0.035000)
+  ~!~! Extents: (0.020095, 0.020058, 0.035000)
+  ~!~! Resolution: (147, 147, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x2df63190, resolution=256, spacing=0.000182
+  ~!~! Bounds:  (0.022297, 0.039951) (-0.008652, 0.008845) (0.015000, 0.061500)
+  ~!~! Extents: (0.017654, 0.017497, 0.046500)
+  ~!~! Resolution: (98, 97, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x2e850ac0, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (0.039806, 0.060096) (0.040184, 0.060009) (0.000000, 0.035000)
+  ~!~! Extents: (0.020290, 0.019825, 0.035000)
+  ~!~! Resolution: (149, 146, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x2c727890, resolution=256, spacing=0.000137
+  ~!~! Bounds:  (-0.060078, -0.040020) (0.040049, 0.060144) (0.000000, 0.035000)
+  ~!~! Extents: (0.020058, 0.020095, 0.035000)
+  ~!~! Resolution: (147, 147, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x2c736cc0, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x2c705730, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0x341bd890, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x3058c6f0, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+~!~!~! Loaded/Cooked SDF triangle mesh 10 @ 0x31b6e250, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+~!~!~! Loaded/Cooked SDF triangle mesh 11 @ 0x34b9b6c0, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.060048, 0.059950) (-0.059903, 0.060096) (0.000000, 0.035000)
+  ~!~! Extents: (0.119999, 0.119999, 0.035000)
+  ~!~! Resolution: (256, 256, 75)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.896484375 | Keypoint Reward: -3.5173349380493164 | Keypoint Dist: 0.0035173348151147366 | Deviation: 0.001953125
+reward: -956.60 steps: 127.0
+-979556.875
+av reward: -956.5985107421875 av steps: 127.0
+=== Finished evaluating cooling_manifold ===
+=== Evaluating Assembly duct in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['duct']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x482484c0, resolution=256, spacing=0.000155
+  ~!~! Bounds:  (-0.046353, -0.014226) (0.012180, 0.035271) (0.122325, 0.162092)
+  ~!~! Extents: (0.032127, 0.023090, 0.039766)
+  ~!~! Resolution: (207, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x49807380, resolution=256, spacing=0.000156
+  ~!~! Bounds:  (-0.010741, 0.021603) (0.035977, 0.059023) (0.101764, 0.141631)
+  ~!~! Extents: (0.032344, 0.023046, 0.039867)
+  ~!~! Resolution: (208, 148, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x47c191f0, resolution=256, spacing=0.000155
+  ~!~! Bounds:  (0.024921, 0.057048) (-0.035271, -0.012180) (0.081175, 0.120941)
+  ~!~! Extents: (0.032127, 0.023090, 0.039766)
+  ~!~! Resolution: (207, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x47bbd3e0, resolution=256, spacing=0.000155
+  ~!~! Bounds:  (0.024897, 0.057024) (0.012229, 0.035320) (0.081189, 0.120955)
+  ~!~! Extents: (0.032127, 0.023090, 0.039766)
+  ~!~! Resolution: (207, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x47df32b0, resolution=256, spacing=0.000156
+  ~!~! Bounds:  (-0.010691, 0.021607) (-0.059030, -0.035970) (0.101736, 0.141581)
+  ~!~! Extents: (0.032298, 0.023060, 0.039845)
+  ~!~! Resolution: (208, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x4ccf45b0, resolution=256, spacing=0.000156
+  ~!~! Bounds:  (-0.046328, -0.014031) (-0.035305, -0.012244) (0.122311, 0.162156)
+  ~!~! Extents: (0.032297, 0.023060, 0.039845)
+  ~!~! Resolution: (208, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x4d0c01f0, resolution=256, spacing=0.000469
+  ~!~! Bounds:  (-0.052048, 0.054375) (-0.060000, 0.060000) (0.083660, 0.154577)
+  ~!~! Extents: (0.106423, 0.120000, 0.070917)
+  ~!~! Resolution: (228, 256, 152)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x497f49d0, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0x4a492030, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x48205a10, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 10 @ 0x49927af0, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 11 @ 0x4be9e690, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 12 @ 0x4b676f70, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 13 @ 0x4975b5e0, resolution=256, spacing=0.000561
+  ~!~! Bounds:  (-0.057048, 0.051875) (-0.060000, 0.060000) (0.000000, 0.143660)
+  ~!~! Extents: (0.108923, 0.120000, 0.143660)
+  ~!~! Resolution: (195, 214, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.931640625 | Keypoint Reward: -2.4257888793945312 | Keypoint Dist: 0.002425788901746273 | Deviation: 0.0
+reward: -550.94 steps: 127.0
+-564160.875
+av reward: -550.9383544921875 av steps: 127.0
+=== Finished evaluating duct ===
+=== Evaluating Assembly gamepad in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['gamepad']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0xc1921f0, resolution=256, spacing=0.000234
+  ~!~! Bounds:  (-0.007000, 0.007000) (-0.006764, 0.053236) (0.006500, 0.018500)
+  ~!~! Extents: (0.014000, 0.060000, 0.012000)
+  ~!~! Resolution: (60, 256, 52)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0xc1cf280, resolution=256, spacing=0.000111
+  ~!~! Bounds:  (0.013764, 0.025764) (-0.019850, -0.007850) (0.015000, 0.043534)
+  ~!~! Extents: (0.012000, 0.012000, 0.028534)
+  ~!~! Resolution: (108, 108, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0xd392ad0, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (0.032049, 0.055049) (-0.009977, 0.013023) (0.007500, 0.037500)
+  ~!~! Extents: (0.023000, 0.023000, 0.030000)
+  ~!~! Resolution: (197, 197, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0xe390530, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (-0.055208, -0.032208) (-0.010047, 0.012953) (0.007500, 0.037500)
+  ~!~! Extents: (0.023000, 0.023000, 0.030000)
+  ~!~! Resolution: (197, 197, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x11929460, resolution=256, spacing=0.000111
+  ~!~! Bounds:  (-0.025764, -0.013764) (-0.019850, -0.007850) (0.015000, 0.043534)
+  ~!~! Extents: (0.012000, 0.012000, 0.028534)
+  ~!~! Resolution: (108, 108, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0xd114010, resolution=256, spacing=0.000528
+  ~!~! Bounds:  (-0.067602, 0.067602) (-0.053236, 0.022347) (0.000000, 0.025000)
+  ~!~! Extents: (0.135204, 0.075583, 0.025000)
+  ~!~! Resolution: (256, 144, 48)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x1191ec90, resolution=256, spacing=0.000528
+  ~!~! Bounds:  (-0.067602, 0.067602) (-0.053236, 0.022347) (0.000000, 0.025000)
+  ~!~! Extents: (0.135204, 0.075583, 0.025000)
+  ~!~! Resolution: (256, 144, 48)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0xe5b1de0, resolution=256, spacing=0.000528
+  ~!~! Bounds:  (-0.067602, 0.067602) (-0.053236, 0.022347) (0.000000, 0.025000)
+  ~!~! Extents: (0.135204, 0.075583, 0.025000)
+  ~!~! Resolution: (256, 144, 48)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0xe6c0c20, resolution=256, spacing=0.000528
+  ~!~! Bounds:  (-0.067602, 0.067602) (-0.053236, 0.022347) (0.000000, 0.025000)
+  ~!~! Extents: (0.135204, 0.075583, 0.025000)
+  ~!~! Resolution: (256, 144, 48)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x12bc41d0, resolution=256, spacing=0.000528
+  ~!~! Bounds:  (-0.067602, 0.067602) (-0.053236, 0.022347) (0.000000, 0.025000)
+  ~!~! Extents: (0.135204, 0.075583, 0.025000)
+  ~!~! Resolution: (256, 144, 48)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.6474609375 | Keypoint Reward: -5.353520393371582 | Keypoint Dist: 0.0053535206243395805 | Deviation: 0.0
+reward: -1056.99 steps: 127.0
+-1082359.875
+av reward: -1056.9920654296875 av steps: 127.0
+=== Finished evaluating gamepad ===
+=== Evaluating Assembly plumbers_block in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['plumbers_block']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x34b57280, resolution=256, spacing=0.000273
+  ~!~! Bounds:  (0.025584, 0.054416) (-0.011235, 0.013766) (0.035000, 0.105000)
+  ~!~! Extents: (0.028833, 0.025001, 0.070000)
+  ~!~! Resolution: (106, 92, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x35c49ae0, resolution=256, spacing=0.000273
+  ~!~! Bounds:  (-0.054416, -0.025584) (-0.011235, 0.013766) (0.035000, 0.105000)
+  ~!~! Extents: (0.028833, 0.025001, 0.070000)
+  ~!~! Resolution: (106, 92, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x351af9d0, resolution=256, spacing=0.000391
+  ~!~! Bounds:  (-0.050000, 0.050000) (-0.018734, 0.021266) (0.065000, 0.091147)
+  ~!~! Extents: (0.100000, 0.040000, 0.026147)
+  ~!~! Resolution: (256, 103, 67)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x3aa444e0, resolution=256, spacing=0.000312
+  ~!~! Bounds:  (-0.021361, 0.021362) (-0.040000, 0.040000) (0.027158, 0.076658)
+  ~!~! Extents: (0.042723, 0.080000, 0.049500)
+  ~!~! Resolution: (137, 256, 159)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x35685920, resolution=256, spacing=0.000391
+  ~!~! Bounds:  (-0.050000, 0.050000) (-0.018734, 0.021266) (0.065000, 0.091147)
+  ~!~! Extents: (0.100000, 0.040000, 0.026147)
+  ~!~! Resolution: (256, 103, 67)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x39402bb0, resolution=256, spacing=0.000391
+  ~!~! Bounds:  (-0.050000, 0.050000) (-0.018734, 0.021266) (0.065000, 0.091147)
+  ~!~! Extents: (0.100000, 0.040000, 0.026147)
+  ~!~! Resolution: (256, 103, 67)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x35cfca50, resolution=256, spacing=0.000625
+  ~!~! Bounds:  (-0.080000, 0.080000) (-0.018734, 0.021266) (0.000000, 0.065000)
+  ~!~! Extents: (0.160000, 0.040000, 0.065000)
+  ~!~! Resolution: (256, 64, 104)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x392eac50, resolution=256, spacing=0.000625
+  ~!~! Bounds:  (-0.080000, 0.080000) (-0.018734, 0.021266) (0.000000, 0.065000)
+  ~!~! Extents: (0.160000, 0.040000, 0.065000)
+  ~!~! Resolution: (256, 64, 104)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.8486328125 | Keypoint Reward: -4.853976249694824 | Keypoint Dist: 0.004853976424783468 | Deviation: 0.1044921875
+reward: -1037.44 steps: 127.0
+-1062343.375
+av reward: -1037.4447021484375 av steps: 127.0
+=== Finished evaluating plumbers_block ===
+=== Evaluating Assembly stool_circular in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['stool_circular']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x158df9e0, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (-0.035884, -0.017884) (0.017884, 0.035884) (0.086500, 0.116500)
+  ~!~! Extents: (0.018000, 0.018000, 0.030000)
+  ~!~! Resolution: (154, 154, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x159f9770, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (-0.035884, -0.017884) (-0.035884, -0.017884) (0.086500, 0.116500)
+  ~!~! Extents: (0.018000, 0.018000, 0.030000)
+  ~!~! Resolution: (154, 154, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x16558950, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (-0.037276, -0.016492) (0.017884, 0.035884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x16841000, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (-0.037276, -0.016492) (-0.035884, -0.017884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x15f15230, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (0.017884, 0.035884) (0.017884, 0.035884) (0.086500, 0.116500)
+  ~!~! Extents: (0.018000, 0.018000, 0.030000)
+  ~!~! Resolution: (154, 154, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x16958610, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (0.017884, 0.035884) (-0.035884, -0.017884) (0.086500, 0.116500)
+  ~!~! Extents: (0.018000, 0.018000, 0.030000)
+  ~!~! Resolution: (154, 154, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x15975330, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (0.016492, 0.037276) (0.017884, 0.035884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x19b13060, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (0.016492, 0.037276) (-0.035884, -0.017884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0x197c3760, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (-0.037276, -0.016492) (0.017884, 0.035884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x174e5920, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (-0.037276, -0.016492) (-0.035884, -0.017884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 10 @ 0x1a49a8e0, resolution=256, spacing=0.000293
+  ~!~! Bounds:  (-0.037500, 0.037500) (-0.037500, 0.037500) (0.000000, 0.016500)
+  ~!~! Extents: (0.075000, 0.075000, 0.016500)
+  ~!~! Resolution: (256, 256, 57)
+~!~!~! Loaded/Cooked SDF triangle mesh 11 @ 0x1ef99700, resolution=256, spacing=0.000293
+  ~!~! Bounds:  (-0.037500, 0.037500) (-0.037500, 0.037500) (0.000000, 0.016500)
+  ~!~! Extents: (0.075000, 0.075000, 0.016500)
+  ~!~! Resolution: (256, 256, 57)
+~!~!~! Loaded/Cooked SDF triangle mesh 12 @ 0x1f0abf90, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (0.016492, 0.037276) (0.017884, 0.035884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 13 @ 0x17baf180, resolution=256, spacing=0.000371
+  ~!~! Bounds:  (0.016492, 0.037276) (-0.035884, -0.017884) (0.001500, 0.096500)
+  ~!~! Extents: (0.020785, 0.018000, 0.095000)
+  ~!~! Resolution: (57, 49, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 14 @ 0x1d5e9230, resolution=256, spacing=0.000293
+  ~!~! Bounds:  (-0.037500, 0.037500) (-0.037500, 0.037500) (0.000000, 0.016500)
+  ~!~! Extents: (0.075000, 0.075000, 0.016500)
+  ~!~! Resolution: (256, 256, 57)
+~!~!~! Loaded/Cooked SDF triangle mesh 15 @ 0x1d150330, resolution=256, spacing=0.000293
+  ~!~! Bounds:  (-0.037500, 0.037500) (-0.037500, 0.037500) (0.000000, 0.016500)
+  ~!~! Extents: (0.075000, 0.075000, 0.016500)
+  ~!~! Resolution: (256, 256, 57)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.5810546875 | Keypoint Reward: -6.508474349975586 | Keypoint Dist: 0.006508474238216877 | Deviation: 0.001953125
+reward: -1292.48 steps: 127.0
+-1323495.625
+av reward: -1292.4761962890625 av steps: 127.0
+=== Finished evaluating stool_circular ===
+=== Evaluating Assembly socket_set in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['socket_set']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0xdc114e0, resolution=256, spacing=0.000094
+  ~!~! Bounds:  (0.044000, 0.066000) (0.019038, 0.040962) (0.008000, 0.032000)
+  ~!~! Extents: (0.022000, 0.021925, 0.024000)
+  ~!~! Resolution: (235, 234, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0xe995e30, resolution=256, spacing=0.000094
+  ~!~! Bounds:  (0.021500, 0.038500) (0.021500, 0.038500) (0.008000, 0.032000)
+  ~!~! Extents: (0.017000, 0.017000, 0.024000)
+  ~!~! Resolution: (182, 182, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0xdc00ed0, resolution=256, spacing=0.000117
+  ~!~! Bounds:  (0.105049, 0.135000) (0.015012, 0.044988) (0.008000, 0.032000)
+  ~!~! Extents: (0.029951, 0.029976, 0.024000)
+  ~!~! Resolution: (256, 256, 205)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x11091160, resolution=256, spacing=0.000094
+  ~!~! Bounds:  (0.003000, 0.017000) (0.023025, 0.036975) (0.008000, 0.032000)
+  ~!~! Extents: (0.014000, 0.013949, 0.024000)
+  ~!~! Resolution: (150, 149, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0xdc03020, resolution=256, spacing=0.000094
+  ~!~! Bounds:  (0.073000, 0.097000) (0.018041, 0.041959) (0.008000, 0.032000)
+  ~!~! Extents: (0.024000, 0.023918, 0.024000)
+  ~!~! Resolution: (256, 256, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0xd918520, resolution=256, spacing=0.000547
+  ~!~! Bounds:  (0.000000, 0.140000) (0.000000, 0.060000) (0.000000, 0.020000)
+  ~!~! Extents: (0.140000, 0.060000, 0.020000)
+  ~!~! Resolution: (256, 110, 37)
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x1108f270, resolution=256, spacing=0.000547
+  ~!~! Bounds:  (0.000000, 0.140000) (0.000000, 0.060000) (0.000000, 0.020000)
+  ~!~! Extents: (0.140000, 0.060000, 0.020000)
+  ~!~! Resolution: (256, 110, 37)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0xdadaa70, resolution=256, spacing=0.000547
+  ~!~! Bounds:  (0.000000, 0.140000) (0.000000, 0.060000) (0.000000, 0.020000)
+  ~!~! Extents: (0.140000, 0.060000, 0.020000)
+  ~!~! Resolution: (256, 110, 37)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0xfb526d0, resolution=256, spacing=0.000547
+  ~!~! Bounds:  (0.000000, 0.140000) (0.000000, 0.060000) (0.000000, 0.020000)
+  ~!~! Extents: (0.140000, 0.060000, 0.020000)
+  ~!~! Resolution: (256, 110, 37)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0xdf90c80, resolution=256, spacing=0.000547
+  ~!~! Bounds:  (0.000000, 0.140000) (0.000000, 0.060000) (0.000000, 0.020000)
+  ~!~! Extents: (0.140000, 0.060000, 0.020000)
+  ~!~! Resolution: (256, 110, 37)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.826171875 | Keypoint Reward: -3.69942569732666 | Keypoint Dist: 0.003699425607919693 | Deviation: 0.0087890625
+reward: -740.90 steps: 127.0
+-758684.0
+av reward: -740.90234375 av steps: 127.0
+=== Finished evaluating socket_set ===
+=== Evaluating Assembly human_normal in Checkpoint runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth ===
+train.py:70: Hydra14MigrationWarning:
+version_base="1.1" selects Hydra 1.1 compatibility behavior.
+Hydra 1.4 will remove this compatibility behavior.
+Before upgrading to Hydra 1.4, set version_base="1.3" and test your application.
+See https://hydra.cc/docs/upgrades/1.3_to_1.4/prepare_for_1_4/ for preparation instructions.
+  @hydra.main(version_base="1.1", config_name="config", config_path="./cfg")
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/hydra/_internal/hydra.py:119: UserWarning: Future Hydra versions will no longer change working directory at job runtime by default.
+See https://hydra.cc/docs/1.2/upgrades/1.1_to_1.2/changes_to_job_working_dir/ for more information.
+  ret = run_job(
+Importing module 'gym_38' (/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/gym_38.so)
+Setting GYM_USD_PLUG_INFO_PATH to /home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/linux-x86_64/usd/plugInfo.json
+Gym has been unmaintained since 2022 and does not support NumPy 2.0 amongst other critical functionality.
+Please upgrade to Gymnasium, the maintained drop-in replacement of Gym, or contact the authors of your software and request that they upgrade.
+See the migration guide at https://gymnasium.farama.org/introduction/migration_guide/ for additional information.
+PyTorch version 2.4.1+cu121
+Device count 1
+/home/tobi/isaacgym_extract/isaacgym/python/isaacgym/_bindings/src/gymtorch
+Using /home/tobi/.cache/torch_extensions/py38_cu121 as PyTorch extensions root...
+Emitting ninja build file /home/tobi/.cache/torch_extensions/py38_cu121/gymtorch/build.ninja...
+Building extension module gymtorch...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module gymtorch...
+task:
+    mode:
+        export_scene: False
+        export_states: False
+    sim:
+        dt: 0.016667
+        substeps: 2
+        up_axis: z
+        use_gpu_pipeline: True
+        gravity: [0.0, 0.0, -9.81]
+        add_damping: False
+        physx:
+            solver_type: 1
+            num_threads: 4
+            num_subscenes: 4
+            use_gpu: True
+            num_position_iterations: 16
+            num_velocity_iterations: 0
+            contact_offset: 0.005
+            rest_offset: 0.0
+            bounce_threshold_velocity: 0.2
+            max_depenetration_velocity: 5.0
+            friction_offset_threshold: 0.01
+            friction_correlation_distance: 0.00625
+            max_gpu_contact_pairs: 1048576
+            default_buffer_size_multiplier: 8.0
+            contact_collection: 1
+    env:
+        env_spacing: 0.5
+        assembly_center: [0, -0.15, 0]
+        franka_pos: [0.454, 0.1975, -0.00495]
+        franka_euler: [0, 0, -1.559615883383144]
+        franka_rest_dof_pos: [0, -0.7853981633974483, 0, -2.356194490192345, 0, 1.5707963267948966, 0.7853981633974483]
+        table_height: 0.4
+        franka_friction: 1
+        table_friction: 0.3
+        numEnvs: 1024
+        numObservations: 3
+        numStates: 6
+        numActions: 3
+        controlFrequencyInv: 2
+        assemblies: ['human_normal']
+        part_plug: None
+        part_socket: None
+        data_dir: tasks/fabrica/data/
+        palm_to_finger_dist: 0.1034
+        if_eval: False
+        path_transform: True
+        residual_action: True
+        openloop: False
+    name: FabricaFixPlugTaskAssemble
+    physics_engine: physx
+    randomize:
+        fingertip_centered_pos_noise: [0.0, 0.0, 0.0]
+        fingertip_centered_rot_noise: [0.0, 0.0, 0.0]
+        socket_pos_noise: [0.003, 0.003, 0.003]
+        socket_rot_noise: [0.0, 0.0, 0.0]
+    rl:
+        clamp_rot: True
+        clamp_rot_thresh: 1e-06
+        pos_action_scale: [0.005, 0.005, 0.005]
+        force_action_scale: [1.0, 1.0, 1.0]
+        torque_action_scale: [1.0, 1.0, 1.0]
+        max_episode_length: 128
+        num_keypoints: 4
+        keypoint_scale: 0.05
+        keypoint_reward_scale: 1000.0
+        close_error_thresh: 0.005
+        deviation_thresh: 0.008
+    ctrl:
+        ctrl_type: task_space_nullspace
+        all:
+            jacobian_type: geometric
+            gripper_prop_gains: [250, 250]
+            gripper_deriv_gains: [2, 2]
+        gym_default:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+            gripper_prop_gains: [500, 500]
+            gripper_deriv_gains: [20, 20]
+        joint_space_ik:
+            ik_method: dls
+            joint_prop_gains: [1, 1, 1, 1, 1, 1, 1]
+            joint_deriv_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        joint_space_id:
+            ik_method: dls
+            joint_prop_gains: [40, 40, 40, 40, 40, 40, 40]
+            joint_deriv_gains: [8, 8, 8, 8, 8, 8, 8]
+        task_space_impedance:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+        task_space_nullspace:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [1000, 1000, 1000, 50, 50, 50]
+            task_deriv_gains: [63.2, 63.2, 63.2, 1.41, 1.41, 1.41]
+            default_dof_pos_tensor: [0.0, 0.0, 0.0, -1.87, 0.0, 1.8675, 0.785398]
+            kp_null: 1.0
+            kd_null: 2.0
+        operational_space_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [60, 60, 60, 5, 5, 5]
+            task_deriv_gains: [15.5, 15.5, 15.5, 4.5, 4.5, 4.5]
+        open_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+        closed_loop_force:
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+        hybrid_force_motion:
+            motion_ctrl_axes: [1, 1, 1, 1, 1, 1]
+            task_prop_gains: [40, 40, 40, 40, 40, 40]
+            task_deriv_gains: [8, 8, 8, 8, 8, 8]
+            force_ctrl_axes: [0, 0, 1, 0, 0, 0]
+            wrench_prop_gains: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+train:
+    params:
+        seed: 42
+        algo:
+            name: a2c_continuous
+        model:
+            name: continuous_a2c_logstd
+        network:
+            name: actor_critic
+            separate: False
+            space:
+                continuous:
+                    mu_activation: None
+                    sigma_activation: None
+                    mu_init:
+                        name: default
+                    sigma_init:
+                        name: const_initializer
+                        val: 0
+                    fixed_sigma: True
+            mlp:
+                units: [256, 128, 64]
+                activation: elu
+                d2rl: False
+                initializer:
+                    name: default
+                regularizer:
+                    name: None
+        load_checkpoint: True
+        load_path: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+        config:
+            name: FabricaFixPlugTaskAssemble
+            full_experiment_name: FabricaFixPlugTaskAssemble
+            env_name: rlgpu
+            multi_gpu: False
+            ppo: True
+            mixed_precision: True
+            normalize_input: True
+            normalize_value: True
+            value_bootstrap: True
+            num_actors: 1024
+            reward_shaper:
+                scale_value: 1.0
+            normalize_advantage: True
+            gamma: 0.99
+            tau: 0.95
+            learning_rate: 0.0001
+            lr_schedule: fixed
+            schedule_type: standard
+            kl_threshold: 0.016
+            score_to_win: 20000
+            max_epochs: 1
+            save_best_after: 50
+            save_frequency: 100
+            print_stats: True
+            grad_norm: 1.0
+            entropy_coef: 0.003
+            truncate_grads: False
+            e_clip: 0.2
+            horizon_length: 32
+            minibatch_size: 512
+            mini_epochs: 8
+            critic_coef: 2
+            clip_value: True
+            seq_length: 4
+            bounds_loss_coef: 0.0001
+            central_value_config:
+                minibatch_size: 256
+                mini_epochs: 4
+                learning_rate: 0.0003
+                lr_schedule: linear
+                kl_threshold: 0.016
+                clip_value: True
+                normalize_input: True
+                truncate_grads: True
+                network:
+                    name: actor_critic
+                    central_value: True
+                    mlp:
+                        units: [256, 128, 64]
+                        activation: elu
+                        d2rl: False
+                        initializer:
+                            name: default
+                        regularizer:
+                            name: None
+            player:
+                deterministic: False
+                games_num: 1024
+pbt:
+    enabled: False
+task_name: FabricaFixPlugTaskAssemble
+experiment:
+num_envs:
+seed: 42
+torch_deterministic: False
+max_iterations: 1
+physics_engine: physx
+pipeline: gpu
+sim_device: cuda:0
+rl_device: cuda:0
+graphics_device_id: 0
+num_threads: 4
+solver_type: 1
+num_subscenes: 4
+test: True
+checkpoint: /home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth
+sigma:
+multi_gpu: False
+wandb_activate: False
+wandb_group:
+wandb_name: FabricaFixPlugTaskAssemble
+wandb_entity:
+wandb_project: isaacgymenvs
+wandb_tags: []
+wandb_logcode_dir:
+capture_video: False
+capture_video_freq: 1464
+capture_video_len: 100
+force_render: True
+headless: True
+Setting seed: 42
+Using rl_device: cuda:0
+Using sim_device: cuda:0
+{'name': 'FabricaFixPlugTaskAssemble', 'full_experiment_name': None, 'env_name': 'rlgpu', 'multi_gpu': False, 'ppo': True, 'mixed_precision': True, 'normalize_input': True, 'normalize_value': True, 'value_bootstrap': True, 'num_actors': 1024, 'reward_shaper': {'scale_value': 1.0}, 'normalize_advantage': True, 'gamma': 0.99, 'tau': 0.95, 'learning_rate': 0.0001, 'lr_schedule': 'fixed', 'schedule_type': 'standard', 'kl_threshold': 0.016, 'score_to_win': 20000, 'max_epochs': 1, 'save_best_after': 50, 'save_frequency': 100, 'print_stats': True, 'grad_norm': 1.0, 'entropy_coef': 0.003, 'truncate_grads': False, 'e_clip': 0.2, 'horizon_length': 32, 'minibatch_size': 512, 'mini_epochs': 8, 'critic_coef': 2, 'clip_value': True, 'seq_length': 4, 'bounds_loss_coef': 0.0001, 'central_value_config': {'minibatch_size': 256, 'mini_epochs': 4, 'learning_rate': 0.0003, 'lr_schedule': 'linear', 'kl_threshold': 0.016, 'clip_value': True, 'normalize_input': True, 'truncate_grads': True, 'network': {'name': 'actor_critic', 'central_value': True, 'mlp': {'units': [256, 128, 64], 'activation': 'elu', 'd2rl': False, 'initializer': {'name': 'default'}, 'regularizer': {'name': 'None'}}}}, 'player': {'deterministic': False, 'games_num': 1024}, 'device': 'cuda:0', 'population_based_training': False, 'pbt_idx': None}
+self.seed = 42
+Started to play
+[BasePlayer] Creating regular env:  rlgpu
+/home/tobi/miniconda3/envs/isaacgym/lib/python3.8/site-packages/gym/spaces/box.py:84: UserWarning: WARN: Box bound precision lowered by casting to float32
+  logger.warn(f"Box bound precision lowered by casting to {self.dtype}")
+[Warning] [carb.gym.plugin] useGpu is set, forcing single scene (0 subscenes)
+Not connected to PVD
++++ Using GPU PhysX
+Physics Engine: PhysX
+Physics Device: cuda:0
+GPU Pipeline: enabled
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/factory/factory_base.py:509: UserWarning: WARN: Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.
+  logger.warn('Please be patient: SDFs may be generating, which may take a few minutes. Terminating prematurely may result in a corrupted SDF cache.')
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_env.py:75: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  franka_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+Using SDF cache directory '/home/tobi/.isaacgym/sdf_V100'
+~!~!~! Loaded/Cooked SDF triangle mesh 0 @ 0x2130c900, resolution=256, spacing=0.000168
+  ~!~! Bounds:  (-0.063000, -0.020000) (-0.004000, 0.034000) (0.088500, 0.118500)
+  ~!~! Extents: (0.043000, 0.038000, 0.030000)
+  ~!~! Resolution: (256, 227, 179)
+~!~!~! Loaded/Cooked SDF triangle mesh 1 @ 0x20ea0c60, resolution=256, spacing=0.000254
+  ~!~! Bounds:  (-0.030000, 0.030000) (-0.027500, 0.032500) (0.115000, 0.180000)
+  ~!~! Extents: (0.060000, 0.060000, 0.065000)
+  ~!~! Resolution: (237, 237, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 2 @ 0x20eaffb0, resolution=256, spacing=0.000168
+  ~!~! Bounds:  (0.020000, 0.063000) (-0.004000, 0.034000) (0.088500, 0.118500)
+  ~!~! Extents: (0.043000, 0.038000, 0.030000)
+  ~!~! Resolution: (256, 227, 179)
+~!~!~! Loaded/Cooked SDF triangle mesh 3 @ 0x22de6070, resolution=256, spacing=0.000312
+  ~!~! Bounds:  (-0.040000, 0.040000) (-0.020000, 0.025000) (0.080000, 0.130000)
+  ~!~! Extents: (0.080000, 0.045000, 0.050000)
+  ~!~! Resolution: (256, 145, 160)
+~!~!~! Loaded/Cooked SDF triangle mesh 4 @ 0x262d3b20, resolution=256, spacing=0.000313
+  ~!~! Bounds:  (0.010500, 0.034500) (-0.009500, 0.015500) (0.010000, 0.090000)
+  ~!~! Extents: (0.024000, 0.025000, 0.080000)
+  ~!~! Resolution: (77, 80, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 5 @ 0x2273e800, resolution=256, spacing=0.000313
+  ~!~! Bounds:  (-0.034500, -0.010500) (-0.009500, 0.015500) (0.010000, 0.090000)
+  ~!~! Extents: (0.024000, 0.025000, 0.080000)
+  ~!~! Resolution: (77, 80, 256)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_fixplug_base.py:29: DeprecationWarning: an integer is required (got type isaacgym._bindings.linux-x86_64.gym_38.DofDriveMode).  Implicit conversion to integers using __int__ is deprecated, and may be removed in a future version of Python.
+  table_options.default_dof_drive_mode = gymapi.DOF_MODE_NONE
+~!~!~! Loaded/Cooked SDF triangle mesh 6 @ 0x23c87d20, resolution=256, spacing=0.000430
+  ~!~! Bounds:  (-0.055000, 0.055000) (-0.040000, 0.040000) (0.000000, 0.040000)
+  ~!~! Extents: (0.110000, 0.080000, 0.040000)
+  ~!~! Resolution: (256, 187, 94)
+~!~!~! Loaded/Cooked SDF triangle mesh 7 @ 0x28034cf0, resolution=256, spacing=0.000312
+  ~!~! Bounds:  (-0.040000, 0.040000) (-0.020000, 0.025000) (0.080000, 0.130000)
+  ~!~! Extents: (0.080000, 0.045000, 0.050000)
+  ~!~! Resolution: (256, 145, 160)
+~!~!~! Loaded/Cooked SDF triangle mesh 8 @ 0x20e7b760, resolution=256, spacing=0.000312
+  ~!~! Bounds:  (-0.040000, 0.040000) (-0.020000, 0.025000) (0.080000, 0.130000)
+  ~!~! Extents: (0.080000, 0.045000, 0.050000)
+  ~!~! Resolution: (256, 145, 160)
+~!~!~! Loaded/Cooked SDF triangle mesh 9 @ 0x20f186a0, resolution=256, spacing=0.000313
+  ~!~! Bounds:  (-0.034500, -0.010500) (-0.009500, 0.015500) (0.010000, 0.090000)
+  ~!~! Extents: (0.024000, 0.025000, 0.080000)
+  ~!~! Resolution: (77, 80, 256)
+~!~!~! Loaded/Cooked SDF triangle mesh 10 @ 0x213bb6f0, resolution=256, spacing=0.000430
+  ~!~! Bounds:  (-0.055000, 0.055000) (-0.040000, 0.040000) (0.000000, 0.040000)
+  ~!~! Extents: (0.110000, 0.080000, 0.040000)
+  ~!~! Resolution: (256, 187, 94)
+~!~!~! Loaded/Cooked SDF triangle mesh 11 @ 0x21acc780, resolution=256, spacing=0.000430
+  ~!~! Bounds:  (-0.055000, 0.055000) (-0.040000, 0.040000) (0.000000, 0.040000)
+  ~!~! Extents: (0.110000, 0.080000, 0.040000)
+  ~!~! Resolution: (256, 187, 94)
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/fabrica_task_assemble.py:128: UserWarning: Creating a tensor from a list of numpy.ndarrays is extremely slow. Please consider converting the list to a single numpy.ndarray with numpy.array() before converting to a tensor. (Triggered internally at ../torch/csrc/utils/tensor_new.cpp:278.)
+  return torch.as_tensor(arm_dof_pos_preassembly, dtype=torch.float32).to(self.device), \
+{'observation_space': Box(-inf, inf, (3,), float32), 'action_space': Box(-1.0, 1.0, (3,), float32), 'agents': 1, 'value_size': 1}
+build mlp: 3
+RunningMeanStd:  (1,)
+RunningMeanStd:  (3,)
+=> loading checkpoint '/home/tobi/Fabrica/learning/isaacgymenvs/runs/env_generalist_own_fabrica_22-08-34-15/nn/env_generalist_own_fabrica.pth'
+/home/tobi/Fabrica/learning/isaacgymenvs/tasks/fabrica/factory_control_fixplug.py:109: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.clone().detach() or sourceTensor.clone().detach().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  task_wrench = task_wrench + torch.tensor(cfg_ctrl['motion_ctrl_axes'], device=device).unsqueeze(0) * task_wrench_motion
+Insertion Success: 0.83203125 | Keypoint Reward: -3.177800178527832 | Keypoint Dist: 0.003177800215780735 | Deviation: 0.056640625
+reward: -641.14 steps: 127.0
+-656530.625
+av reward: -641.1431884765625 av steps: 127.0
+=== Finished evaluating human_normal ===

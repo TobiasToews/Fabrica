@@ -32,7 +32,12 @@ _doxygen
 /isaacgymenvs/ingenuity.xml
 logs*
 nn/
-runs/
+
+# Track training run outputs (evaluations, configs, checkpoints, tensorboard summaries)
+!isaacgymenvs/runs/
+!isaacgymenvs/runs/**/
+!isaacgymenvs/runs/**
+
 .idea
 outputs/
 *.hydra*
