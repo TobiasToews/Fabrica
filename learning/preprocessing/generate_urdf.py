@@ -20,7 +20,8 @@ def generate_urdf(obj_path, output_dir):
                 <mesh filename="../../../mesh/fabrica/{subfolder}/{parts[-1]}"/>
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
-            <! Normal resolution is 512 -->
+            <! Changed Resolution to 200 for generalist Assembly Policy with all 9 assemblies -->
+            <! Standard resolution is 512 -->
             <sdf resolution="200"/>
         </collision>
     </link>

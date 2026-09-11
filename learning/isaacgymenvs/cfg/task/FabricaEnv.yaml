@@ -21,8 +21,8 @@ env:
         "stool_circular",
         # after running the training for all 9 assenblies,
         #remove socket_set and human_normal from the list of assemblies to avoid errors 
-        "socket_set",
-        "human_normal",        
+        # "socket_set",
+        # "human_normal",        
     ]
     assemblies_exclude: []
 

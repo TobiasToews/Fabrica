@@ -53,3 +53,6 @@ do
 
     echo "=== Finished $ASSEMBLY (experiment: ${EXP_NAME}_${ASSEMBLY}) ==="
 done
+
+
+

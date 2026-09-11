@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Insertion Success</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+  }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'IBM Plex Sans', Arial, sans-serif;
+  }
+
+  .card {
+    width: 760px;
+    max-width: 92vw;
+    background: #ffffff;
+    border: 1px solid #e6e9ec;
+    border-radius: 18px;
+    padding: 34px 40px 28px;
+    box-shadow: 0 1px 2px rgba(16,24,32,0.04), 0 12px 32px rgba(16,24,32,0.06);
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #8a97a1;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    margin: 0 0 22px;
+    font-size: 21px;
+    font-weight: 600;
+    color: #16202a;
+    letter-spacing: -0.01em;
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    background: #f7f8f9;
+  }
+
+  .row .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #71828d;
+  }
+
+  .row .formula {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 17px;
+    color: #16202a;
+    letter-spacing: 0.005em;
+  }
+
+  .row.result {
+    background: #eef8f3;
+    border: 1px solid #cdeadd;
+  }
+  .row.result .tag { color: #1f7a52; }
+  .row.result .formula { color: #1f7a52; font-weight: 600; }
+
+  .divider {
+    height: 1px;
+    background: #edeff1;
+    margin: 22px 0 16px;
+  }
+
+  .consts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 28px;
+  }
+
+  .const {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 12.5px;
+  }
+
+  .const .sym {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    color: #16202a;
+  }
+
+  .const .def {
+    color: #8a97a1;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="eyebrow">Metric definition</div>
+    <h1>Insertion Success</h1>
+
+    <div class="rows">
+      <div class="row">
+        <div class="tag">Distance</div>
+        <div class="formula">d(t) = ‖ p<sub>part</sub>(t) − p<sub>goal</sub> ‖<sub>2</sub></div>
+      </div>
+
+      <div class="row">
+        <div class="tag">Success latch</div>
+        <div class="formula">S<sub>i</sub> = ⋁<sub>t=0..T−1</sub> &nbsp;[ d(t) &lt; ε ]</div>
+      </div>
+
+      <div class="row result">
+        <div class="tag">Metric</div>
+        <div class="formula">Insertion Success = (1/N) · Σ<sub>i=1..N</sub> S<sub>i</sub></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="consts">
+      <div class="const"><span class="sym">ε</span><span class="def">= close_error_thresh = 0.005 m</span></div>
+      <div class="const"><span class="sym">T</span><span class="def">= max_episode_length = 128 steps @ 30 Hz</span></div>
+      <div class="const"><span class="sym">N</span><span class="def">= numEnvs = 1024</span></div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -235,13 +235,13 @@
   <joint name="panda_finger_joint1" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_leftfinger"/>
-    <origin xyz="0.0 0.009751450230507426 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 0.009751450252081472 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
 
   <joint name="panda_finger_joint2" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_rightfinger"/>
-    <origin xyz="0.0 -0.009751450230507426 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 -0.009751450252081472 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
   
   <link name="panda_leftfinger">
@@ -327,7 +327,8 @@
                 <mesh filename="../../mesh/fabrica/beam/3.obj"/>
             </geometry>
             <! Change Resolution to 420 for experiments "duct" and "gamepad" -->
-            <! Normal resolution is 512 -->
+            <! Changed Resolution to 200 for generalist Assembly Policy with all 9 assemblies -->
+            <! Standard resolution is 512 -->
             <sdf resolution="200"/>
         </collision>
     </link>
@@ -335,7 +336,7 @@
     <joint name="3_joint" type="fixed">
         <parent link="panda_hand"/>
         <child link="3"/>
-        <origin xyz="0.02643803244645132 -0.05230804431085274 0.1383961336368344" rpy="-2.6175285601251987 -0.005595054343153105 1.5804765091716433" />
+        <origin xyz="-0.01370998887264216 0.05230804511552337 0.14884410976169354" rpy="-2.913107054527848 -0.002532577582831985 -1.5599061686748141" />
     </joint>
     
 </robot>
