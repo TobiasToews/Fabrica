@@ -404,8 +404,6 @@ class RobotInterface:
         return action
 
     def execute_rl_policy(self, policy, real_config, goal_joints, global_pos_shift=np.zeros(3)):
-        assert self.robot_num == 2
-
         rate_ctrl = rospy.Rate(real_config['control']['freq'])
         duration = real_config['control']['duration']
 
@@ -493,8 +491,6 @@ class RobotInterface:
         return actions
 
     def execute_openloop_policy(self, real_config, goal_joints):
-        assert self.robot_num == 2
-
         rate_ctrl = rospy.Rate(real_config['control']['freq'])
         duration = real_config['control']['duration']
 

@@ -112,4 +112,11 @@ For a first pass, Assemble-Them-All is the most practical choice because it is c
 - Socket tool box
 
 
-## Requierments to 
+## Real Robot Deployment
+### Example for exper:
+'''bash
+conda activate isaacgym
+source /opt/ros/noetic/setup.bash
+source ~/frankapy/catkin_ws/devel/setup.bash --extend
+python real_robot/run.py --single-arm --residual --fn logs/exp_generalist_own_fixed/socket_set/motion.pkl --checkpoint-path learning/isaacgymenvs/runs/_generalist_own_and_fabrica_fixed_2000_iterations/env_generalist_own_fixed_23-17-40-38/nn/env_generalist_own_fixed.pth
+'''

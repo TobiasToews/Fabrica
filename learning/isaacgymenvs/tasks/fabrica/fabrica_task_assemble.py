@@ -262,6 +262,7 @@ class FabricaTaskAssemble(FabricaEnv, FactoryABCTask):
         # Deviation
         deviation_dist = torch.linalg.norm(self.plug_pos.unsqueeze(1) - self.disassembly_path[:, :, :3], dim=-1).min(dim=-1).values
         self.deviations = torch.logical_or(self.deviations, deviation_dist > self.cfg_task.rl.deviation_thresh)
+        print("Deviation:", self.deviations.shape)
 
         is_last_step = self.progress_buf[0] == self.max_episode_length - 1
         if is_last_step:
@@ -417,6 +418,33 @@ class FabricaTaskAssemble(FabricaEnv, FactoryABCTask):
         self.reset_buf[env_ids] = 0
         self.progress_buf[env_ids] = 0
 
+    # TODO: Continue on a viewer that changes the camera to the environment that is failing (aka deviation gets too big)
+    # def _set_viewer_params(self, cam_pos= gymapi.Vec3(-1.0, -1.0, 1.0), cam_target= gymapi.Vec3(0.0, 0.0, 0.5)):
+    #     """Set viewer parameters."""
+
+
+    #     nx = 2
+    #     ny = 1
+    #     n_vec = gymapi.Vec3(nx, ny, 0.0)
+
+    #     cam_pos_standard = gymapi.Vec3(-1.0, -1.0, 1.0)
+    #     cam_target_standard = gymapi.Vec3(0.0, 0.0, 0.5)
+
+    #     # table_depth: 1.28  # depth of table
+    #     # table_width: 0.91  # width of table
+    #     # table_height: 1.04  # height of table
+
+
+    #     cam_pos_table_dim = gymapi.Vec3(2.0, 1.5, 0.0)
+    #     cam_pos_table_dim = gymapi.Vec3(1.28, 0.91, 0.0)
+    #     cam_target_table_dim = gymapi.Vec3(2.0, 1.5, 0.0)
+
+    #     cam_pos = cam_pos_standard + gymapi.Vec3(n_vec.x * cam_pos_table_dim.x, n_vec.y * cam_pos_table_dim.y, cam_pos_table_dim.z)
+    #     #cam_target = cam_target_standard + gymapi.Vec3(1,0,0)
+    #     # cam_target= cam_pos + gymapi.Vec3(n_vec.x * cam_target_table_dim.x, n_vec.y * cam_target_table_dim.y, cam_target_table_dim.z)
+    #     self.gym.viewer_camera_look_at(self.viewer, None, cam_pos, cam_target)
+
+
     def _set_viewer_params(self):
         """Set viewer parameters."""
 
@@ -485,7 +513,16 @@ class FabricaTaskAssemble(FabricaEnv, FactoryABCTask):
                                                                        quat,
                                                                        pos)
         return pos_in_robot_base, quat_in_robot_base
-        
+
+
+    # TODO: Maybe continue here aswell
+    # def _record_deviating_environments(self, env_ids):
+    #     """Record environments that have deviated from the disassembly path."""
+    # pass
+
+
+
+    
     def step(self, actions: torch.Tensor):
         """Step the physics of the environment.
 

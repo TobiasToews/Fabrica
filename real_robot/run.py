@@ -36,8 +36,24 @@ What is the best action to move the part to align with the hole?
 '''
 
 
+def human_hold_step(d, i):
+    """Emulate the hold arm in single-arm mode: tell the human what the hold arm would do and wait."""
+    _, body_type, _, active_part, task = d[i]
+    if body_type != 'arm' or task == 'init':
+        return # gripper and init steps are covered by the arm instructions
+    if task == 'transport' and active_part is not None:
+        msg = f'Place part {active_part} from the fixture at the assembly spot in its final pose and hold it steady.'
+    elif task == 'switch':
+        msg = 'Re-grip the assembly where the hold gripper grasps next and keep holding it steady.'
+    elif any(s[0] == 'hold' and s[3] is not None for s in d[:i]): # transport to rest after holding
+        msg = 'Release the assembly and take your hand out of the workspace.'
+    else:
+        return # transport to pickup, nothing to do before placing the part
+    input(f'[Human hold arm] {msg} Press Enter when done.')
+
+
 def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residual=False,
-             auto=False, force=60, vlm=False, video_dir=None):
+             auto=False, force=60, vlm=False, video_dir=None, single_arm=False):
 
     if vlm:
         from real_robot.vision.camera import Camera
@@ -48,11 +64,16 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
         assert os.path.exists(video_dir)
 
     d = pkl.load(open(fn, 'rb')) # list of ['move/hold', 'arm/gripper', path, active_part, task]
-    robot_left = RobotInterface(robot_num=1)
-    robot_right = RobotInterface(robot_num=2, residual=residual)
+    if single_arm:
+        robot_left = None # hold arm is emulated by a human
+        robot_right = RobotInterface(robot_num=1, residual=residual)
+    else:
+        robot_left = RobotInterface(robot_num=1)
+        robot_right = RobotInterface(robot_num=2, residual=residual)
+    robots = [robot for robot in [robot_left, robot_right] if robot is not None]
     if reset:
-        robot_left.reset_arm(home_gripper=True)
-        robot_right.reset_arm(home_gripper=True)
+        for robot in robots:
+            robot.reset_arm(home_gripper=True)
 
     if checkpoint_path is None:
         policy = None
@@ -66,8 +87,13 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
     global_pos_shift = np.zeros(3)
 
     for i in range(start_from, len(d)):
-        print(f"========= Step {i+1}/{len(d)}, {'left' if d[i][0] == 'hold' else 'right'} arm, {d[i][1]} =========")
+        print(f"========= Step {i+1}/{len(d)}, {('human' if single_arm else 'left') if d[i][0] == 'hold' else 'right'} arm, {d[i][1]} =========")
         new_dt = dt
+
+        # NOTE: This kind of looks sus, maybe needs revisiting while testing
+        if single_arm and d[i][0] == "hold":
+            human_hold_step(d, i)
+            continue
 
         if d[i][1] == "arm":
             if not auto:
@@ -201,12 +227,11 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
                 global_pos_shift[2] = 0 # only consider horizontal shift
                 print(f"global pos shift: {global_pos_shift}")
 
-    robot_left.fa.goto_gripper(0.08, grasp=False)
-    robot_left.fa.home_gripper()
-    robot_right.fa.goto_gripper(0.08, grasp=False)
-    robot_right.fa.home_gripper()
-    robot_left.stop_skill()
-    robot_right.stop_skill()
+    for robot in robots:
+        robot.fa.goto_gripper(0.08, grasp=False)
+        robot.fa.home_gripper()
+    for robot in robots:
+        robot.stop_skill()
 
 
 if __name__ == "__main__":
@@ -221,6 +246,7 @@ if __name__ == "__main__":
     parser.add_argument('--force', type=int, default=60, help='grasping force')
     parser.add_argument('--vlm', default=False, action='store_true')
     parser.add_argument('--video-dir', type=str, default=None)
+    parser.add_argument('--single-arm', default=False, action='store_true', help='only the move arm is a real robot (robot 1), the hold arm is emulated by a human')
     args = parser.parse_args()
 
     if args.no_reset:
@@ -232,4 +258,4 @@ if __name__ == "__main__":
                 exit()
 
     run_traj(fn=args.fn, dt=args.dt, reset=not args.no_reset, start_from=args.start_from, checkpoint_path=args.checkpoint_path,
-        residual=args.residual, auto=args.auto, force=args.force, vlm=args.vlm, video_dir=args.video_dir)
+        residual=args.residual, auto=args.auto, force=args.force, vlm=args.vlm, video_dir=args.video_dir, single_arm=args.single_arm)
