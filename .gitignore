@@ -214,3 +214,8 @@ __marimo__/
 
 # template
 /_template
+# replication media, too large for GitHub (>100 MB)
+replication_documentation/fabrica_replication_deck.pptx
+replication_documentation/rl_eval_videos/
+replication_documentation/rl_training_videos/
+replication_documentation/_archiv/
