@@ -4,6 +4,7 @@ GPU=${3:-0}
 FRICTION=${4:-1}
 
 export CUDA_VISIBLE_DEVICES="$GPU"
+export LD_LIBRARY_PATH=/usr/lib/wsl/lib:$LD_LIBRARY_PATH
 export NUM_ENVS=1024
 export MAX_ITER=1500
 

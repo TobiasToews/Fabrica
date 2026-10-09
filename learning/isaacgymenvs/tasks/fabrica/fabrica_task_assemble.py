@@ -262,7 +262,7 @@ class FabricaTaskAssemble(FabricaEnv, FactoryABCTask):
         # Deviation
         deviation_dist = torch.linalg.norm(self.plug_pos.unsqueeze(1) - self.disassembly_path[:, :, :3], dim=-1).min(dim=-1).values
         self.deviations = torch.logical_or(self.deviations, deviation_dist > self.cfg_task.rl.deviation_thresh)
-        print("Deviation:", self.deviations.shape)
+        # print("Deviation:", self.deviations.shape)
 
         is_last_step = self.progress_buf[0] == self.max_episode_length - 1
         if is_last_step:

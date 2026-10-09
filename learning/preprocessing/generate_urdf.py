@@ -23,7 +23,7 @@ def generate_urdf(obj_path, output_dir):
             <! Changed Resolution to 200 for generalist Assembly Policy with all 9 assemblies -->
             <! Maybe reduce this even further for the failure cases recording -->
             <! Standard resolution is 512 -->
-            <sdf resolution="20"/>
+            <sdf resolution="512"/>
         </collision>
     </link>
 </robot>

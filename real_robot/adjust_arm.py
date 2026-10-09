@@ -30,7 +30,7 @@ def adjust_arm(robot, direction, amount=0.002, duration=1):
     target_pose = RigidTransform(translation=new_translation, rotation=curr_pose.rotation, from_frame='franka_tool', to_frame='world')
 
     fa = robot.fa
-    fa: FrankaArm
+    fa: FrankaArm # type annotation
     fa.goto_pose(tool_pose=target_pose, duration=duration, use_impedance=False)
     robot.stop_skill()
     print(f"Target pose: {target_pose}")

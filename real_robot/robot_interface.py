@@ -463,7 +463,7 @@ class RobotInterface:
 
                 # If current pose is close enough to goal pose, terminate early
                 pos_err, _ = self.get_pose_error(pose_curr, pose_goal)
-                if obs_raw[-1].cpu().numpy() > -0.003:
+                if obs_raw[-1].cpu().numpy() > -0.003: # NOTE: This is kind of cheating
                     print("Near goal, early termination")
                     success = True
                     break

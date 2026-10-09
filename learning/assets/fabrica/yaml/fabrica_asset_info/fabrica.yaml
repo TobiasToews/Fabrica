@@ -211,6 +211,19 @@ socket_set:
     density: 1250.0
     friction: 0.5
     urdf_path: socket_set/human_smaller
+socket_set_small:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small/2
 stool_circular:
   '0':
     density: 1250.0
