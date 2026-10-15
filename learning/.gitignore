@@ -8,6 +8,7 @@ videos
 /isaacgymenvs/logs
 *train_dir*
 *wandb*
+!/isaacgymenvs/utils/wandb_utils.py
 *ige_logs*
 *.egg-info
 /.vs

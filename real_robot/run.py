@@ -55,6 +55,8 @@ def human_hold_step(d, i):
 def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residual=False,
              auto=False, force=60, vlm=False, video_dir=None, single_arm=False):
 
+
+    # TODO: add a user selection for the assembly sequence 
     if vlm:
         from real_robot.vision.camera import Camera
         from real_robot.vision.gemini import GeminiVLM
@@ -123,7 +125,7 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
             past_actions = []
             while repeat:
                 repeat_idx += 1
-                record_path = os.path.join(video_dir, f"step_{i+1}", f"trial_{repeat_idx}_{last_action}.mp4")
+                record_path = os.path.join(video_dir, f"step_{i+1}", f"trial_{repeat_idx}_{last_action}.mp4") if vlm else None
 
                 if not done_init_left and d[i][0] == "hold":
                     # go to the first joint pose in a trajectory
