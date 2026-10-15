@@ -6,6 +6,6 @@
  */
  
 /// Configured libraries
-/* #undef HAVE_VTK */
+#define HAVE_VTK
 
 #endif //SDFGEN_CONFIG_H

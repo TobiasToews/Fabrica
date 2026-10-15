@@ -15,6 +15,7 @@ from autolab_core import RigidTransform
 from isaacgym import torch_utils
 import isaacgymenvs
 from isaacgymenvs.learning import common_player
+from rl_games.algos_torch import torch_ext
 from real_robot.algo_utils import closest_point_on_path, do_deltapos_path_transform, undo_deltapos_path_transform
 
 import time
@@ -71,7 +72,12 @@ def load_rl_policy(checkpoint_path, device='cuda'):
 
     # Restore policy from checkpoint
     policy = common_player.CommonPlayer(sim_config["train"]["params"])
-    policy.restore(checkpoint_path)
+    # Checkpoints from newer rl-games (torch.compile) prefix keys with '_orig_mod.', which older rl-games can't load
+    checkpoint = torch_ext.load_checkpoint(checkpoint_path)
+    checkpoint['model'] = {k.replace('_orig_mod.', '', 1): v for k, v in checkpoint['model'].items()}
+    policy.model.load_state_dict(checkpoint['model'])
+    if policy.normalize_input and 'running_mean_std' in checkpoint:
+        policy.model.running_mean_std.load_state_dict(checkpoint['running_mean_std'])
     policy.reset()
 
     return policy

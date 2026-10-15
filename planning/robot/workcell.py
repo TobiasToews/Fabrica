@@ -10,11 +10,16 @@ def get_move_arm_pos(arm_type):
     if arm_type == 'xarm7':
         return np.array([14.5 * dx, 10 * dx, 0])
     elif arm_type == 'panda':
-        return np.array([18 * dx, 8 * dx, 0])
+        return np.array([18 * dx, 8 * dx, get_panda_base_z()])
     elif arm_type == 'ur5e':
         return np.array([18 * dx, 10 * dx, 0])
     else:
         raise NotImplementedError
+
+
+def get_panda_base_z():
+    # height of the robot base relative to the board surface (cm); ICS lab: base sits 32 mm below the board
+    return -3.7
 
 
 def get_hold_arm_pos(arm_type):
@@ -22,7 +27,7 @@ def get_hold_arm_pos(arm_type):
     if arm_type == 'xarm7':
         return np.array([-14.5 * dx, 10 * dx, 0])
     elif arm_type == 'panda':
-        return np.array([-18 * dx, 8 * dx, 0])
+        return np.array([-18 * dx, 8 * dx, get_panda_base_z()])
     elif arm_type == 'ur5e':
         return np.array([-18 * dx, 10 * dx, 0])
     else:
