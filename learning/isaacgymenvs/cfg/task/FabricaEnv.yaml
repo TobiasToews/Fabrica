@@ -22,7 +22,13 @@ env:
         # after running the training for all 9 assenblies,
         #remove socket_set and human_normal from the list of assemblies to avoid errors 
         # "socket_set",
+        # added all socket_set_small variants 
         "socket_set_small",
+        "socket_set_small__v0",
+        "socket_set_small__v1",
+        "socket_set_small__v2",
+        "socket_set_small__v3",
+        "socket_set_small__v4",
         # "human_normal",        
     ]
     assemblies_exclude: []

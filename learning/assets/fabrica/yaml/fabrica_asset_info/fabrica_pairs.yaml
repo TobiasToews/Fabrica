@@ -1,7 +1,35 @@
-socket_set_small:
+socket_set_small__v0:
   0:
     plug: '2'
     socket: '0'
   1:
     plug: '1'
+    socket: '0'
+socket_set_small__v1:
+  0:
+    plug: '2'
+    socket: '0'
+  1:
+    plug: '1'
+    socket: '0'
+socket_set_small__v2:
+  0:
+    plug: '2'
+    socket: '0'
+  1:
+    plug: '1'
+    socket: '0'
+socket_set_small__v3:
+  0:
+    plug: '1'
+    socket: '0'
+  1:
+    plug: '2'
+    socket: '0'
+socket_set_small__v4:
+  0:
+    plug: '1'
+    socket: '0'
+  1:
+    plug: '2'
     socket: '0'

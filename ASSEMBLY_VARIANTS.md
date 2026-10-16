@@ -36,6 +36,8 @@ Options for `select_variant.py`:
 ```bash
 conda activate isaacgym
 bash ./learning/preprocessing/prepare_isaac.sh exp_socket_set_small_var
+# lower the SDF resolution of the variant URDFs (512 -> 384), otherwise the 8 GB GPU runs out of memory
+sed -i 's/<sdf resolution="512"\/>/<sdf resolution="384"\/>/' learning/assets/fabrica/urdf/fabrica/*__v*/*.urdf learning/assets/fabrica/urdf/fabrica_franka/*__v*_*.urdf
 cd learning/isaacgymenvs
 python train.py task=FabricaFixPlugTaskAssemble "task.env.assemblies=[socket_set_small__v0,socket_set_small__v1,socket_set_small__v2,socket_set_small__v3,socket_set_small__v4]" experiment=exp_socket_set_small_var task.env.numEnvs=1024 max_iterations=1500 headless=True task.env.franka_friction=1
 ```
@@ -52,6 +54,7 @@ Use the `motion.pkl` of the variant whose fixture is mounted.
 - **Fixtures**: each variant needs its own printed fixture: `logs/<exp>/<assembly>__v<i>/fixture/fixture.obj`. Only `v0` matches the existing one.
 - **`DISPLAY=`** before `run_fixture_gen.py`: without it the `fixture.png` preview crashes with an X11 error (`xcb ... Aborting`) on this PC. The files are still saved, but the exit code is 134.
 - **`prepare_isaac.sh` overwrites** `fabrica_pairs.yaml`, `plan_info/` and the Franka URDFs with the experiment you pass it. Prepare and start trainings one after another. Checkpoints and `run.py` don't depend on these files afterwards.
+- **GPU memory (RTX 2060 SUPER, 8 GB)**: every pseudo-assembly loads its own SDFs. With 5 variants at resolution 512, PhysX fails with `PxgCudaDeviceMemoryAllocator fail to allocate memory` followed by a segfault, even with 512 envs. That's why the `sed` step above is needed. Measured with 5 variants and 1024 envs: 384 → 5.1 GB peak, 256 → 3.3 GB. Rerun the `sed` after every `prepare_isaac.sh`, because it regenerates the URDFs at 512. With more variants or assemblies, use 256 (the generalist used 200).
 - **`numEnvs × 32` must be divisible by 512** (rl-games assertion). 1024 works.
 - **Re-planning the source** (e.g. after changing the robot base height in `planning/robot/workcell.py`) invalidates its variants. Rerun `select_variant.py` and everything after it.
 - **Base height**: the motion plans use `get_panda_base_z()` from `workcell.py`. It must match the real setup.

@@ -223,6 +223,71 @@ socket_set_small:
     density: 1250.0
     friction: 0.5
     urdf_path: socket_set_small/2
+socket_set_small__v0:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v0/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v0/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v0/2
+socket_set_small__v1:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v1/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v1/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v1/2
+socket_set_small__v2:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v2/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v2/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v2/2
+socket_set_small__v3:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v3/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v3/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v3/2
+socket_set_small__v4:
+  '0':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v4/0
+  '1':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v4/1
+  '2':
+    density: 1250.0
+    friction: 0.5
+    urdf_path: socket_set_small__v4/2
 stool_circular:
   '0':
     density: 1250.0
