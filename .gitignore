@@ -219,3 +219,7 @@ replication_documentation/fabrica_replication_deck.pptx
 replication_documentation/rl_eval_videos/
 replication_documentation/rl_training_videos/
 replication_documentation/_archiv/
+
+# assembly variants from planning/select_variant.py (symlinks + generated Isaac assets)
+assets/fabrica/*__v*
+learning/assets/fabrica/**/*__v*

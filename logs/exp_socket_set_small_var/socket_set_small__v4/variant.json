@@ -1,0 +1,23 @@
+{
+    "assembly": "socket_set_small",
+    "variant": "socket_set_small__v4",
+    "source": "logs/exp_socket_set_small/socket_set_small",
+    "assembly_order": [
+        "2",
+        "1"
+    ],
+    "steps": [
+        {
+            "move_part": "2",
+            "hold_part": "0",
+            "move_grasp_id": 1086,
+            "hold_grasp_id": 1085
+        },
+        {
+            "move_part": "1",
+            "hold_part": "0",
+            "move_grasp_id": 422,
+            "hold_grasp_id": 1085
+        }
+    ]
+}
