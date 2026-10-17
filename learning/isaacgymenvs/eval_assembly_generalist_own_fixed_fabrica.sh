@@ -28,3 +28,7 @@ for ASSEMBLY in "${ASSEMBLIES[@]}"; do
         checkpoint="$CHECKPOINT"
     echo "=== Finished $ASSEMBLY ==="
 done
+
+
+# command for evaluating the general policy of all socket_set_small__vN 
+# python train.py task=FabricaFixPlugTaskAssemble task.env.assemblies=["socket_set_small__v0" "socket_set_small__v1" "socket_set_small__v2" "socket_set_small__v3" "socket_set_small__v4"] task.env.numEnvs=1024 max_iterations=1 headless=True test=True task.env.if_eval=True task.env.franka_friction=1 Checkpoint="runs/exp_socket_set_small_var_16-18-37-15/nn/exp_socket_set_small_var.pth"
