@@ -2,6 +2,77 @@ import cv2
 import time
 import os
 import threading
+import base64
+import json
+
+import numpy as np
+
+
+class ZmqVideoCapture:
+    """cv2.VideoCapture look-alike for a camera shared over ZMQ (lerobot_franka/cameras/realsense_server.py),
+    so Fabrica and LeRobot can use the same camera at the same time.
+
+    Frames arrive as RGB JPEGs in LeRobot's ZMQ camera format. read() blocks for the next frame like
+    cv2.VideoCapture and returns it as BGR, resized to the width/height passed to set().
+    """
+
+    def __init__(self, url, timeout=1.0):
+        import zmq
+        self._zmq = zmq
+        self._timeout = timeout
+        self._size = {}
+        self._lock = threading.Lock()
+        self._frame = None
+        self._new_frame = threading.Event()
+        self._stop = threading.Event()
+
+        self._ctx = zmq.Context()
+        self._sock = self._ctx.socket(zmq.SUB)
+        self._sock.setsockopt(zmq.CONFLATE, 1)
+        self._sock.setsockopt_string(zmq.SUBSCRIBE, "")
+        self._sock.connect(url)
+        self._thread = threading.Thread(target=self._recv_loop, daemon=True)
+        self._thread.start()
+
+    def _recv_loop(self):
+        poller = self._zmq.Poller()
+        poller.register(self._sock, self._zmq.POLLIN)
+        while not self._stop.is_set():
+            if not poller.poll(100):
+                continue
+            images = json.loads(self._sock.recv_string()).get("images", {})
+            if not images:
+                continue
+            jpg = np.frombuffer(base64.b64decode(next(iter(images.values()))), np.uint8)
+            frame = cv2.cvtColor(cv2.imdecode(jpg, cv2.IMREAD_COLOR), cv2.COLOR_RGB2BGR)
+            with self._lock:
+                self._frame = frame
+            self._new_frame.set()
+
+    def isOpened(self):
+        return not self._stop.is_set()
+
+    def set(self, prop, value):
+        self._size[prop] = int(value)
+        return True
+
+    def read(self):
+        if not self._new_frame.wait(self._timeout):
+            return False, None
+        with self._lock:
+            frame = self._frame
+            self._new_frame.clear()
+        width = self._size.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = self._size.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        if width and height and frame.shape[:2] != (height, width):
+            frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+        return True, frame
+
+    def release(self):
+        self._stop.set()
+        self._thread.join()
+        self._sock.close(linger=0)
+        self._ctx.term()
 
 
 class Camera:
@@ -33,7 +104,10 @@ class Camera:
             if self.cap:
                 self.cap.release()
 
-            self.cap = cv2.VideoCapture(self.camera_index)
+            if isinstance(self.camera_index, str) and self.camera_index.startswith("tcp://"):
+                self.cap = ZmqVideoCapture(self.camera_index)
+            else:
+                self.cap = cv2.VideoCapture(self.camera_index)
             self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
             self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 

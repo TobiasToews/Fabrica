@@ -53,7 +53,7 @@ def human_hold_step(d, i):
 
 
 def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residual=False,
-             auto=False, force=60, vlm=False, video_dir=None, single_arm=False):
+             auto=False, force=60, vlm=False, video_dir=None, single_arm=False, camera_source=0):
 
 
     # TODO: add a user selection for the assembly sequence 
@@ -61,7 +61,7 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
         from real_robot.vision.camera import Camera
         from real_robot.vision.gemini import GeminiVLM
         from real_robot.adjust_arm import adjust_arm
-        camera = Camera()
+        camera = Camera(camera_index=camera_source)
         gemini = GeminiVLM(json_output=True)
         assert os.path.exists(video_dir)
 
@@ -249,6 +249,7 @@ if __name__ == "__main__":
     parser.add_argument('--vlm', default=False, action='store_true')
     parser.add_argument('--video-dir', type=str, default=None)
     parser.add_argument('--single-arm', default=False, action='store_true', help='only the move arm is a real robot (robot 1), the hold arm is emulated by a human')
+    parser.add_argument('--camera', type=str, default='0', help='VLM camera: device index, or tcp://host:port of a shared camera stream')
     args = parser.parse_args()
 
     if args.no_reset:
@@ -260,4 +261,5 @@ if __name__ == "__main__":
                 exit()
 
     run_traj(fn=args.fn, dt=args.dt, reset=not args.no_reset, start_from=args.start_from, checkpoint_path=args.checkpoint_path,
-        residual=args.residual, auto=args.auto, force=args.force, vlm=args.vlm, video_dir=args.video_dir, single_arm=args.single_arm)
+        residual=args.residual, auto=args.auto, force=args.force, vlm=args.vlm, video_dir=args.video_dir, single_arm=args.single_arm,
+        camera_source=int(args.camera) if args.camera.isdigit() else args.camera)
