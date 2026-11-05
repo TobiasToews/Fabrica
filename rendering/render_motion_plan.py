@@ -57,7 +57,8 @@ def create_assembly_dualarm_fixture_xml(assembly_dir, fixture_dir, arm_chain_mov
     </link>
 </robot>
 '''
-    string += f'''
+    if os.path.exists(os.path.join(fixture_dir, 'fixture.obj')): # no fixture: parts lie flat on the board (run_pickup_gen.py)
+        string += f'''
 <robot>
     <link name="fixture">
         <joint name="fixture" type="fixed" axis="0. 0. 0." pos="0 0 0" quat="1 0 0 0" frame="WORLD" damping="0"/>
@@ -87,7 +88,7 @@ def get_camera_option(option):
     return camera_lookat, camera_pos
 
 
-def render_motion_plan(assembly_dir, log_dir, record_path=None, make_gif=False, camera_lookat=None, camera_pos=None, body_color_map=None, seed=0, fps=None):
+def render_motion_plan(assembly_dir, log_dir, record_path=None, make_gif=False, camera_lookat=None, camera_pos=None, body_color_map=None, seed=0, fps=None, speed=1.0):
 
     grasps_path = os.path.join(log_dir, 'grasps.pkl')
     if not os.path.exists(grasps_path):
@@ -209,6 +210,7 @@ def render_motion_plan(assembly_dir, log_dir, record_path=None, make_gif=False, 
     else:
         sim.viewer_options.loop = False
         sim.viewer_options.infinite = False
+        sim.viewer_options.speed = speed # in the viewer: F = faster, S = slower, space = pause
         sim.replay()
 
     sim_matrices = sim.export_replay_matrices()
@@ -228,6 +230,7 @@ if __name__ == '__main__':
     parser.add_argument('--camera-pos', type=float, nargs=3, default=None)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--fps', type=int, default=30)
+    parser.add_argument('--speed', type=float, default=1.0, help='initial playback speed of the interactive viewer')
     args = parser.parse_args()
     
     camera_lookat, camera_pos = get_camera_option(args.camera_option)
@@ -237,4 +240,4 @@ if __name__ == '__main__':
         camera_pos = args.camera_pos
     
     render_motion_plan(args.assembly_dir, args.log_dir, 
-        record_path=args.record_path, make_gif=args.make_gif, camera_lookat=camera_lookat, camera_pos=camera_pos, seed=args.seed, fps=args.fps)
+        record_path=args.record_path, make_gif=args.make_gif, camera_lookat=camera_lookat, camera_pos=camera_pos, seed=args.seed, fps=args.fps, speed=args.speed)

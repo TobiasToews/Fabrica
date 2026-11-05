@@ -14,7 +14,7 @@ from planning.path.rrt_connect import rrt_connect
 from planning.path.rrt_star import rrt_star
 from planning.path.meta import direct_path
 from planning.path.smoothing import smooth_path
-from planning.robot.util_arm import get_gripper_pos_quat_from_arm_q, get_ik_target_orientation, get_gripper_basis_directions
+from planning.robot.util_arm import get_gripper_pos_quat_from_arm_q, get_ik_target_orientation, get_gripper_basis_directions, get_virtual_wall_margin
 from planning.robot.geometry import load_arm_meshes, load_gripper_meshes, transform_arm_meshes, transform_gripper_meshes, get_arm_meshes_transforms, get_gripper_meshes_transforms, get_buffered_arm_meshes, get_buffered_gripper_meshes, get_buffered_meshes, get_gripper_grasp_base_offset
 from utils.common import TimeStamp
 
@@ -24,6 +24,7 @@ SELF_ARM_INTERSECT_CHECK = True
 MAX_LIN_SPEED = 5 # cm/s
 MAX_ANG_SPEED = 1 # rad/s
 N_IK_RESTART = 20 # chain's default is 3
+VIRTUAL_WALL_SAFETY = 1.0 # cm, extra distance to franka-interface's virtual walls (tracking error)
 
 
 def interpolate_angles(start_angle, end_angle, num_steps, bidirectional):
@@ -111,7 +112,7 @@ def interpolate_transformations(T1, T2, num_steps):
 
 class ArmMotionPlanner: # NOTE: all input/output q is full unless specified active
 
-    def __init__(self, arm_chain, gripper_type, has_ft_sensor=False, arm_box=None, optimizer=None, stamp=None):
+    def __init__(self, arm_chain, gripper_type, has_ft_sensor=False, arm_box=None, optimizer=None, stamp=None, virtual_walls=False):
         self.arm_chain = arm_chain
         self.arm_type = arm_chain.arm_type
         self.arm_rest_q_active = arm_chain.rest_q
@@ -126,6 +127,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         self.gripper_meshes = load_gripper_meshes(gripper_type, asset_folder, has_ft_sensor=has_ft_sensor, visual=False) # NOTE: has_ft_sensor may have issue if other arm is different
         self.gripper_meshes_buffered = get_buffered_gripper_meshes(self.gripper_type, self.gripper_meshes)
         self.arm_box = arm_box
+        self.virtual_walls = virtual_walls # stay inside franka-interface's virtual walls (real robot arm, panda only)
         self.optimizer = optimizer
         if stamp is None:
             self.stamp = TimeStamp()
@@ -294,6 +296,12 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
 
         def collision_fn(q, buffered=buffered, move_ground_buffer=True):
 
+            # the real robot stops at franka-interface's virtual walls
+            if self.virtual_walls and not self.check_virtual_walls(self.arm_chain.active_to_full(q)):
+                if verbose:
+                    print('collision detected: virtual wall')
+                return True
+
             # transform arm and gripper meshes
             arm_transforms_i, gripper_transforms_i, move_transform_global = self.get_meshes_transforms_active(q, open_ratio, move_pickup_mesh, gripper_pickup_transform)
             self.apply_transforms_to_col_manager(self.arm_col_manager_buffered, arm_transforms_i)
@@ -395,6 +403,10 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         
         return distance_fn, sample_fn, extend_fn, collision_fn
 
+    def check_virtual_walls(self, q):
+        '''q: full, True if q is inside the virtual walls (always True without virtual walls)'''
+        return not self.virtual_walls or get_virtual_wall_margin(self.arm_chain, q) >= VIRTUAL_WALL_SAFETY
+
     def inverse_kinematics(self, pos, ori, q_init=None, n_restart=None, optimizer=None, regularization_parameter=None):
         if n_restart is None: n_restart = N_IK_RESTART
         if optimizer is None: optimizer = self.optimizer
@@ -462,7 +474,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 path_start_retract = self.plan_path_retract(q_start, collision_fn, retract_start, retract_delta)
                 if path_start_retract is None:
                     if verbose:
-                        self.stamp.print('[plan_path_with_grasp] failed to plan start retract', retract_start)
+                        self.stamp.print(f'[plan_path_with_grasp] failed to plan start retract {retract_start}')
                         self.visualize_meshes(q_start, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
                     path_start_retract = []
                 else:
@@ -482,7 +494,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 path_goal_retract = self.plan_path_retract(q_goal, collision_fn, retract_goal, retract_delta)
                 if path_goal_retract is None:
                     if verbose:
-                        self.stamp.print('[plan_path_with_grasp] failed to plan goal retract', retract_goal)
+                        self.stamp.print(f'[plan_path_with_grasp] failed to plan goal retract {retract_goal}')
                         self.visualize_meshes(q_goal, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
                     path_goal_retract = []
                 else:

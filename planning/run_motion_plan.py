@@ -155,8 +155,8 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
     with open(pickup_path, 'r') as f:
         part_pickup_pose = json.load(f)
     part_pickup_pose = {part_id: get_transform_matrix(part_pickup_state) for part_id, part_pickup_state in part_pickup_pose.items()}
-    fixture_mesh = trimesh.load_mesh(os.path.join(fixture_dir, 'fixture.obj'))
-    fixture_height = fixture_mesh.bounds[1, 2] - fixture_mesh.bounds[0, 2]
+    fixture_path = os.path.join(fixture_dir, 'fixture.obj')
+    fixture_meshes = [trimesh.load_mesh(fixture_path)] if os.path.exists(fixture_path) else [] # no fixture: parts lie flat on the board (run_pickup_gen.py)
 
     part_meshes_pickup = get_transformed_part_meshes(part_meshes, part_pickup_pose)
     part_meshes_final = get_transformed_part_meshes(part_meshes, part_final_pose)
@@ -190,7 +190,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
     random.seed(seed)
     np.random.seed(seed)
 
-    motion_planner_move = ArmMotionPlanner(arm_chain_move, gripper_type, has_ft_sensor['move'], arm_box_move, stamp=stamp)
+    motion_planner_move = ArmMotionPlanner(arm_chain_move, gripper_type, has_ft_sensor['move'], arm_box_move, stamp=stamp, virtual_walls=arm_type == 'panda') # the move arm is the real robot (also in --single-arm)
     motion_planner_hold = ArmMotionPlanner(arm_chain_hold, gripper_type, has_ft_sensor['hold'], arm_box_hold, stamp=stamp)
 
     '''
@@ -325,14 +325,14 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
                     part_meshes_rest = [v for k, v in part_meshes_curr.items() if k != active_part]
                     path = motion_planner.plan_path_with_grasp(q_start, q_goal,
                         move_pickup_mesh=part_meshes_pickup[active_part], gripper_pickup_transform=gripper_pickup_pose[active_part], 
-                        still_meshes=part_meshes_rest + [fixture_mesh], open_ratio=open_ratio, 
+                        still_meshes=part_meshes_rest + fixture_meshes, open_ratio=open_ratio, 
                         arm_chain_other=arm_chain_other, arm_q_other=arm_q_other, open_ratio_other=open_ratio_other, has_ft_sensor_other=has_ft_sensor[motion_type_other],
                         retract_start=retract_start, retract_goal=retract_goal, retract_delta=RETRACT_DELTA_FAR,
                         max_speed=max_speed[task], verbose=verbose)
                     current_states['parts'][active_part] = 'final'
                 else: # transport without part
                     path = motion_planner.plan_path(q_start, q_goal,
-                        part_meshes=list(part_meshes_curr.values()) + [fixture_mesh], open_ratio=open_ratio, 
+                        part_meshes=list(part_meshes_curr.values()) + fixture_meshes, open_ratio=open_ratio, 
                         arm_chain_other=arm_chain_other, arm_q_other=arm_q_other, open_ratio_other=open_ratio_other, has_ft_sensor_other=has_ft_sensor[motion_type_other],
                         retract_start=retract_start, retract_goal=retract_goal, retract_delta=RETRACT_DELTA_FAR,
                         max_speed=max_speed[task], verbose=verbose)
@@ -350,7 +350,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
 
                 # TODO: update
                 path1, path2 = motion_planner.plan_path_switch(q_start, q_goal,
-                        part_meshes=list(part_meshes_curr.values()) + [fixture_mesh], open_ratio=open_ratio, open_ratio_next=open_ratio_next,
+                        part_meshes=list(part_meshes_curr.values()) + fixture_meshes, open_ratio=open_ratio, open_ratio_next=open_ratio_next,
                         arm_chain_other=arm_chain_other, arm_q_other=arm_q_other, open_ratio_other=open_ratio_other, has_ft_sensor_other=has_ft_sensor[motion_type_other],
                         retract_start=retract_start, retract_goal=retract_goal, retract_delta=RETRACT_DELTA_FAR,
                         max_speed=max_speed[task], verbose=verbose)

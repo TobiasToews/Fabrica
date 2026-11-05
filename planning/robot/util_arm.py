@@ -10,7 +10,7 @@ from .ik.chain import Chain
 
 from assets.transform import get_transform_matrix_quat, get_pos_euler_from_transform_matrix
 from planning.robot.geometry import get_ft_sensor_spec, get_gripper_basis_directions
-from planning.robot.workcell import get_move_arm_pos, get_move_arm_euler, get_hold_arm_pos, get_hold_arm_euler
+from planning.robot.workcell import get_move_arm_pos, get_move_arm_euler, get_hold_arm_pos, get_hold_arm_euler, get_panda_virtual_walls
 
 
 def get_xarm7_arm_chain(base_pos, base_euler, reduced_limit=0.0):
@@ -76,6 +76,23 @@ def get_arm_chain(arm_type, motion_type=None, base_pos=None, base_euler=None, re
     
     return arm_chain
     
+
+def get_virtual_wall_margin(arm_chain, arm_q):
+    '''
+    Smallest distance (cm) by which the arm at arm_q (full) stays inside franka-interface's virtual walls,
+    negative if the real robot would stop (panda only)
+    '''
+    assert arm_chain.arm_type == 'panda'
+    planes, thresholds = get_panda_virtual_walls()
+    fk = arm_chain.forward_kinematics(arm_q, full_kinematics=True) # link0..link8, link2..link8 = frames J2..J7, flange
+    base_rot = R.from_euler('xyz', arm_chain.base_euler).as_matrix()
+    margin = np.inf
+    for T, threshold in zip(fk[2:], thresholds):
+        pos = base_rot.T @ (T[:3, 3] - arm_chain.base_pos) / 100 # world (cm) -> robot base (m)
+        for axis, offset in planes:
+            margin = min(margin, abs(pos[axis] - offset) - threshold)
+    return margin * 100
+
 
 def get_ft_pos_from_gripper_pos_quat(gripper_type, gripper_pos, gripper_quat):
     base_basis_direction, _ = get_gripper_basis_directions(gripper_type)

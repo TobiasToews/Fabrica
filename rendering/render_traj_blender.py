@@ -155,9 +155,7 @@ def render_traj(assembly_dir, log_dir, record_path, interval, keep_img, verbose=
         return
     fixture_dir = os.path.join(log_dir, 'fixture')
     fixture_path = os.path.join(fixture_dir, 'fixture.obj')
-    if not os.path.exists(fixture_path):
-        print(f'[render_traj] {fixture_path} not found')
-        return
+    has_fixture = os.path.exists(fixture_path) # no fixture: parts lie flat on the board (run_pickup_gen.py)
 
     with open(grasps_path, 'rb') as fp:
         grasps = pickle.load(fp)
@@ -168,9 +166,10 @@ def render_traj(assembly_dir, log_dir, record_path, interval, keep_img, verbose=
     gripper_meshes = load_gripper_meshes(gripper_type, asset_dir, has_ft_sensor=True, visual=True, combined=False)
     part_meshes = load_part_meshes(assembly_dir, transform='none', combined=False)
     environment_meshes = {
-        'fixture': trimesh.load_mesh(fixture_path),
         'optical_board': trimesh.load_mesh(os.path.join(asset_dir, 'optical_board.obj'))
     }
+    if has_fixture:
+        environment_meshes['fixture'] = trimesh.load_mesh(fixture_path)
 
     if verbose:
         print('[render_traj] meshes loaded')

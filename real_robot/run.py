@@ -42,7 +42,7 @@ def human_hold_step(d, i):
     if body_type != 'arm' or task == 'init':
         return # gripper and init steps are covered by the arm instructions
     if task == 'transport' and active_part is not None:
-        msg = f'Place part {active_part} from the fixture at the assembly spot in its final pose and hold it steady.'
+        msg = f'Take part {active_part} from its pickup spot (fixture or board) to the assembly spot in its final pose and hold it steady.'
     elif task == 'switch':
         msg = 'Re-grip the assembly where the hold gripper grasps next and keep holding it steady.'
     elif any(s[0] == 'hold' and s[3] is not None for s in d[:i]): # transport to rest after holding
@@ -53,7 +53,7 @@ def human_hold_step(d, i):
 
 
 def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residual=False,
-             auto=False, force=60, vlm=False, video_dir=None, single_arm=False, camera_source=0):
+             auto=False, force=60, vlm=False, video_dir=None, single_arm=False, camera_source=0, place_at_pickup=False):
 
 
     # TODO: add a user selection for the assembly sequence 
@@ -100,6 +100,10 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
         if d[i][1] == "arm":
             if not auto:
                 input("Ready?")
+
+        if place_at_pickup and d[i][0] == "move" and d[i][1] == "gripper" and d[i][4] == "close" and i + 1 < len(d) and d[i + 1][3] is not None:
+            # the gripper waits open at the pickup pose: place the part between the fingers instead of using a fixture/template
+            input(f'[Place part] Put part {d[i + 1][3]} flat on the board between the open fingers, in the resting pose of the plan. Press Enter to grasp.')
             
         # select arm
         if d[i][0] == "hold":
@@ -249,6 +253,7 @@ if __name__ == "__main__":
     parser.add_argument('--vlm', default=False, action='store_true')
     parser.add_argument('--video-dir', type=str, default=None)
     parser.add_argument('--single-arm', default=False, action='store_true', help='only the move arm is a real robot (robot 1), the hold arm is emulated by a human')
+    parser.add_argument('--place-at-pickup', default=False, action='store_true', help='pause with the gripper open at each pickup pose, so the part can be placed between the fingers (no fixture/template needed)')
     parser.add_argument('--camera', type=str, default='0', help='VLM camera: device index, or tcp://host:port of a shared camera stream')
     args = parser.parse_args()
 
@@ -262,4 +267,4 @@ if __name__ == "__main__":
 
     run_traj(fn=args.fn, dt=args.dt, reset=not args.no_reset, start_from=args.start_from, checkpoint_path=args.checkpoint_path,
         residual=args.residual, auto=args.auto, force=args.force, vlm=args.vlm, video_dir=args.video_dir, single_arm=args.single_arm,
-        camera_source=int(args.camera) if args.camera.isdigit() else args.camera)
+        camera_source=int(args.camera) if args.camera.isdigit() else args.camera, place_at_pickup=args.place_at_pickup)

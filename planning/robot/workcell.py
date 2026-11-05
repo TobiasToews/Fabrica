@@ -98,3 +98,18 @@ def get_fixture_min_y(arm_type):
         return 6 * dx
     else:
         raise NotImplementedError
+
+
+def get_panda_desk_z():
+    # height of the desk surface above the robot mounting (cm); the planner's ground (top at the board surface, z = 0) must stay above it
+    return 3.5
+
+
+def get_panda_virtual_walls():
+    '''
+    franka-interface's virtual walls (franka-interface/include/franka-interface/termination_handler/termination_handler.h),
+    in the robot base frame (m): the robot stops when the origin of frame J2..J7 or the flange gets closer to a wall than its threshold
+    '''
+    planes = [(0, 0.75), (1, 0.65), (1, -0.65), (2, -0.05), (2, 1.25), (0, -0.46)] # (axis, offset)
+    thresholds = [0.11, 0.11, 0.08, 0.08, 0.07, 0.07, 0.1] # J2, J3, J4, J5, J6, J7, flange
+    return planes, thresholds

@@ -29,7 +29,7 @@ env:
         "socket_set_small__v2",
         "socket_set_small__v3",
         "socket_set_small__v4",
-        # "human_normal",        
+        "human_normal",        
     ]
     assemblies_exclude: []
 
