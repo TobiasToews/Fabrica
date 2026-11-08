@@ -24,7 +24,7 @@ def adjust_arm(robot, direction, amount=0.002, duration=1):
     assert direction in direction_map, f"Invalid direction: {direction}"
     translation = direction_map[direction]
 
-    curr_pose = robot.fa.get_pose()
+    curr_pose = robot.get_pose()
     translation_in_base = curr_pose.rotation @ np.array(translation)
     new_translation = curr_pose.translation + translation_in_base
     target_pose = RigidTransform(translation=new_translation, rotation=curr_pose.rotation, from_frame='franka_tool', to_frame='world')
@@ -34,7 +34,7 @@ def adjust_arm(robot, direction, amount=0.002, duration=1):
     fa.goto_pose(tool_pose=target_pose, duration=duration, use_impedance=False)
     robot.stop_skill()
     print(f"Target pose: {target_pose}")
-    print(f"Current pose: {robot.fa.get_pose()}")
+    print(f"Current pose: {robot.get_pose()}")
 
 
 if __name__ == "__main__":

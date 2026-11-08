@@ -13,7 +13,8 @@ import rospy
 from franka_interface_msgs.msg import RobotState
 from sensor_msgs.msg import JointState
 from franka_interface_msgs.msg import SensorDataGroup
-from frankapy.proto import JointPositionSensorMessage
+from frankapy.proto import JointPositionSensorMessage, PosePositionSensorMessage
+from frankapy.franka_interface_common_definitions import SensorDataMessageType
 
 
 def main():
@@ -35,9 +36,18 @@ def main():
     rospy.Subscriber(f'/franka_gripper_{args.robot_num}/joint_states', JointState, on_gripper, queue_size=1)
 
     # the joint goals real_robot/run.py streams to franka-interface (robot 1: franka_ros_interface/sensor)
-    commands = {'cmd_t': [], 'cmd_id': [], 'cmd_q': []}
+    commands = {'cmd_t': [], 'cmd_id': [], 'cmd_q': [], 'pose_t': [], 'pose_pos': [], 'pose_quat': []}
     def on_command(msg):
         if not msg.has_trajectory_generator_sensor_data: return
+        if msg.trajectoryGeneratorSensorData.type == SensorDataMessageType.POSE_POSITION: # cartesian goals of the insertion (policy / open loop)
+            pose = PosePositionSensorMessage()
+            try:
+                pose.ParseFromString(bytes(msg.trajectoryGeneratorSensorData.sensorData))
+            except Exception:
+                return
+            with lock:
+                commands['pose_t'].append(rospy.get_time()); commands['pose_pos'].append(list(pose.position)); commands['pose_quat'].append(list(pose.quaternion))
+            return
         proto = JointPositionSensorMessage()
         try:
             proto.ParseFromString(bytes(msg.trajectoryGeneratorSensorData.sensorData))
@@ -71,7 +81,7 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with lock:
         np.savez(args.out, **{k: np.array(v) for k, v in {**data, **commands}.items()})
-    print(f'[record_state] saved {len(data["t"])} samples and {len(commands["cmd_t"])} streamed joint goals to {args.out}')
+    print(f'[record_state] saved {len(data["t"])} samples, {len(commands["cmd_t"])} streamed joint goals and {len(commands["pose_t"])} pose goals to {args.out}')
 
 
 if __name__ == '__main__':

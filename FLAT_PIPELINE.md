@@ -111,6 +111,23 @@ with `real_robot/record_state.py`; this made the leg of human_normal hit the tab
 
 Rebuild with `cd ~/tobi/franka-interface/build && make -j8 franka_interface` and restart the control stack after changing it.
 
+## Tools for the real robot
+
+- `planning/plan_place_part.py --part 0`: the move arm takes a part from its pickup spot and stands it at the assembly spot
+  (e.g. the first part instead of the human; plan it with only this part on the table, then lay out the others). Writes
+  `<log-dir>/place_part<id>/motion.pkl`, run with `real_robot/run.py --single-arm --fn ...`.
+- `real_robot/record_state.py` (record joints, TCP, torques, streamed joint goals and cartesian goals while run.py runs) and
+  `real_robot/compare_recording.py` (compare with the plan).
+
+## Execution fixes in real_robot/
+
+- `run.py` refuses to start when more than one `franka_interface` runs: extra instances share its shared memory and report
+  stale robot states (the arm was pulled 30 cm up during insertions). Stop all and start the control stack once.
+- `robot_interface.py` reads joints, velocities and the pose directly from the robot state: frankapy's getters also convert
+  `O_T_EE_d`, which is invalid right after a skill switch ("Illegal rotation" crash at the start of an insertion).
+- `stop_skill()` waits until franka-interface has accepted a goal before cancelling it, and the insertion skill's buffer time
+  is 5 s instead of 100 s (a lost cancel blocked run.py after an insertion that was near its goal immediately).
+
 ## TODO
 
 - [ ] Fork `iamlab-cmu/franka-interface` to `TobiasToews` (https://github.com/iamlab-cmu/franka-interface/fork) and push the branch

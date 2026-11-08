@@ -115,6 +115,18 @@ class RobotInterface:
 
         self.residual = residual
     
+    def get_joints(self):
+        '''Current joints from the robot state, without frankapy's get_data(): that one also converts O_T_EE_d (desired pose),
+        which franka-interface leaves invalid right after a skill switch (e.g. starting the insertion) -> "Illegal rotation" crash'''
+        return np.array(self.fa._state_client._get_current_robot_state().robot_state.q)
+
+    def get_pose(self):
+        '''Same as frankapy's FrankaArm.get_pose() (O_T_EE with the tool offset, frame franka_tool -> world),
+        without touching O_T_EE_d (see get_joints)'''
+        from frankapy.utils import franka_pose_to_rigid_transform
+        tool_base_pose = franka_pose_to_rigid_transform(self.fa._state_client._get_current_robot_state().robot_state.O_T_EE)
+        return tool_base_pose * self.fa._tool_delta_pose
+
     def reset_arm(self, home_gripper=True):
         self.fa.goto_gripper(0.08, grasp=False)
         self.fa.reset_joints()
@@ -163,11 +175,11 @@ class RobotInterface:
         self.init_time = rospy.Time.now().to_time()
 
         self.fa.goto_pose(
-            tool_pose=self.fa.get_pose(),
+            tool_pose=self.get_pose(),
             duration=T,
             use_impedance=True,
             dynamic=True,
-            buffer_time=T * 10,
+            buffer_time=5, # was T * 10 (100 s): a lost cancel blocked run.py for up to 110 s
             cartesian_impedances=real_config['control']['prop_gains'],
             ignore_virtual_walls=True,
             ignore_errors=True,
@@ -214,6 +226,12 @@ class RobotInterface:
             d_gains=[50.0, 50.0, 50.0, 40.0, 20.0, 15.0, 10.0])
     
     def stop_skill(self):
+        # a cancel sent while franka-interface has not yet accepted the goal is lost, and frankapy then waits for the skill's
+        # own end (an insertion that is near its goal right away stops within milliseconds): wait until the goal is active
+        from actionlib_msgs.msg import GoalStatus
+        t_start = time.time()
+        while self.fa._in_skill and self.fa._client.get_state() == GoalStatus.PENDING and time.time() - t_start < 1.0:
+            time.sleep(0.01)
         if not self.fa.is_skill_done():
             self.fa.stop_skill()
     
@@ -227,8 +245,8 @@ class RobotInterface:
         if not block and print_pose:
             while time.time() - start_t < duration:
                 print("=======================")
-                print(self.fa.get_joints())
-                print(self.fa.get_pose())
+                print(self.get_joints())
+                print(self.get_pose())
 
     def calculate_tool_pose(self, joints):
         return self.fa.get_links_transforms(joints, use_rigid_transforms=True)[-2] * self.tool_to_base
@@ -261,7 +279,7 @@ class RobotInterface:
     
     def calculate_tool_velocity(self, joints):
         J_tool = self.get_tool_jacobian(joints)
-        joint_velocities = self.fa.get_joint_velocities()
+        joint_velocities = np.array(self.fa._state_client._get_current_robot_state().robot_state.dq) # not fa.get_joint_velocities(): it also converts the invalid O_T_EE_d (see get_joints)
         return np.dot(J_tool, joint_velocities)
     
     def send_control_targets(self, pose_curr, actions, real_config, disassembly_path=None):
@@ -413,7 +431,7 @@ class RobotInterface:
         rate_ctrl = rospy.Rate(real_config['control']['freq'])
         duration = real_config['control']['duration']
 
-        curr_joints = self.fa.get_joints()
+        curr_joints = self.get_joints()
         pose_goal = self.calculate_tool_pose(goal_joints)
         pose_goal.translation += global_pos_shift
         pose_curr = self.calculate_tool_pose(curr_joints)
@@ -444,7 +462,7 @@ class RobotInterface:
                     print('Early stopped')
                     break
 
-                curr_joints = self.fa.get_joints()
+                curr_joints = self.get_joints()
                 pose_curr = self.calculate_tool_pose(curr_joints)
 
                 residual_action = None
@@ -500,7 +518,7 @@ class RobotInterface:
         rate_ctrl = rospy.Rate(real_config['control']['freq'])
         duration = real_config['control']['duration']
 
-        curr_joints = self.fa.get_joints()
+        curr_joints = self.get_joints()
         pose_goal = self.calculate_tool_pose(goal_joints)
         pose_curr = self.calculate_tool_pose(curr_joints)
 
@@ -518,7 +536,7 @@ class RobotInterface:
         try:
             while rospy.get_time() - t_start < duration:
 
-                pose_curr = self.calculate_tool_pose(self.fa.get_joints())
+                pose_curr = self.calculate_tool_pose(self.get_joints())
 
                 obs = self.get_rl_obs(pose_curr, pose_goal, disassembly_path) # only needed for success detection
                 

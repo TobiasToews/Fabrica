@@ -52,6 +52,17 @@ def human_hold_step(d, i):
     input(f'[Human hold arm] {msg} Press Enter when done.')
 
 
+def check_control_stack():
+    """Exactly one franka_interface may run: extra instances share its shared memory and feed stale robot states (wrong poses)."""
+    import subprocess
+    pids = subprocess.run(['pgrep', '-f', '^./franka_interface'], capture_output=True, text=True).stdout.split()
+    if len(pids) > 1:
+        print(f'[check_control_stack] {len(pids)} franka_interface processes are running ({", ".join(pids)}): they share memory and report stale robot states.\n'
+              '  Stop all (pkill -f start_franka_interface_on_control_pc.sh; pkill -f start_franka_ros_interface_on_control_pc.sh; '
+              'pkill -f franka_interface; pkill -f franka_ros_interface; pkill -f franka_gripper) and start the control stack once.')
+        sys.exit(1)
+
+
 def check_plan(fn):
     """Refuse plans made for another robot height, ask before running plans that were not verified (planning/run_planning_flat.py)."""
     from planning.robot.workcell import get_panda_base_z
@@ -84,6 +95,7 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
         gemini = GeminiVLM(json_output=True)
         assert os.path.exists(video_dir)
 
+    check_control_stack()
     check_plan(fn)
     d = pkl.load(open(fn, 'rb')) # list of ['move/hold', 'arm/gripper', path, active_part, task]
     if single_arm:
@@ -244,7 +256,7 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
             desired_joint = d[i][2][-1]
             robot.stop_skill()
             robot.goto_joints(desired_joint, duration=1, ignore_virtual_walls=True)
-            gt_joint = robot.fa.get_joints()
+            gt_joint = robot.get_joints()
 
             if d[i][4] == 'assembly' and d[i][0] == 'move':
                 pose_desired = robot.calculate_tool_pose(desired_joint)
