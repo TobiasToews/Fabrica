@@ -18,8 +18,8 @@ def get_move_arm_pos(arm_type):
 
 
 def get_panda_base_z():
-    # height of the robot base relative to the board surface (cm); ICS lab: base sits 32 mm below the board
-    return -3.7
+    # height of the robot base relative to the board/table surface (cm); ICS lab: the robot mounting is 3.0 cm below the table (measured 2026-11-06)
+    return -3.0
 
 
 def get_hold_arm_pos(arm_type):
@@ -101,8 +101,8 @@ def get_fixture_min_y(arm_type):
 
 
 def get_panda_desk_z():
-    # height of the desk surface above the robot mounting (cm); the planner's ground (top at the board surface, z = 0) must stay above it
-    return 3.5
+    # height of the desk surface above the robot mounting (cm); parts lie on it, so it is the board surface z = 0: -get_panda_base_z()
+    return -get_panda_base_z()
 
 
 def get_panda_virtual_walls():

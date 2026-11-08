@@ -1,6 +1,7 @@
 '''
 Poses for real_robot/place_parts.py: the robot shows where each part it picks has to lie (no fixture, no template).
-For every part the move arm picks from the board, in the order of the plan:
+For every part the move arm picks from the board, in REVERSE pick order (the part picked last is placed first, so whenever a
+part is shown exactly the parts lie on the board that also lie there when the robot picks it during the run):
     q_above: gripper LIFT cm above the pickup pose, same orientation
     q_pick:  the planned pickup pose (gripper open as before the grasp, opened wider before lifting off the part where needed)
 The robot moves between these with joint-space moves (frankapy goto_joints), so every move is checked here for collisions
@@ -75,7 +76,7 @@ def run_place_poses(log_dir, lift=LIFT):
     placed = []
     q_prev = rest_q
     ok = True
-    for part_id, q_pick, open_ratio in get_pickups(motion):
+    for part_id, q_pick, open_ratio in reversed(get_pickups(motion)): # placed already = picked later in the run
         fk = arm_chain.forward_kinematics(arm_chain.active_to_full(q_pick))
         q_above_full = planner.inverse_kinematics(fk[:3, 3] + np.array([0, 0, lift]), fk[:3, :3], q_init=arm_chain.active_to_full(q_pick))
         if q_above_full is None:

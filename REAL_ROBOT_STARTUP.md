@@ -43,9 +43,9 @@ python real_robot/run.py --single-arm --residual --fn logs/exp_socket_set_small/
 - `Ready?` → Enter. `[Human hold arm] ...` → do it by hand, then Enter. `Repeat? (y/n)` after insertion.
 - Resume after an abort: add `--start-from <step>`.
 
-## TODO first: re-plan for the 32 mm base offset
+## Robot height: base 3.0 cm below the table
 
-`planning/robot/workcell.py` now has the robot base 3.2 cm below the board (`get_panda_base_z()`).
+`planning/robot/workcell.py` has the robot base 3.0 cm below the table (`get_panda_base_z() = -3.0`, set 2026-11-06). Plans made with another value must be re-planned.
 The current `motion.pkl` is still from the old height, so re-plan before running on the robot:
 
 ```bash

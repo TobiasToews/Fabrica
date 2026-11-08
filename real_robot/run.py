@@ -52,6 +52,25 @@ def human_hold_step(d, i):
     input(f'[Human hold arm] {msg} Press Enter when done.')
 
 
+def check_plan(fn):
+    """Refuse plans made for another robot height, ask before running plans that were not verified (planning/run_planning_flat.py)."""
+    from planning.robot.workcell import get_panda_base_z
+    workcell_path = os.path.join(os.path.dirname(os.path.abspath(fn)), 'workcell.json')
+    if not os.path.exists(workcell_path):
+        answer = input(f'[check_plan] {workcell_path} not found: this plan was not made and verified by planning/run_planning_flat.py. Run it anyway? (y/n) ')
+        if answer.strip().lower() != 'y': sys.exit(1)
+        return
+    with open(workcell_path, 'r') as fp:
+        workcell = json.load(fp)
+    if abs(workcell['robot_base_z_cm'] - get_panda_base_z()) > 1e-3:
+        print(f"[check_plan] plan made for robot base z {workcell['robot_base_z_cm']} cm, planning/robot/workcell.py says {get_panda_base_z()} cm: re-plan first")
+        sys.exit(1)
+    if not workcell.get('verified', False):
+        print('[check_plan] plan did not pass planning/verify_plan.py: re-plan first')
+        sys.exit(1)
+    print(f"[check_plan] plan verified for robot base z {workcell['robot_base_z_cm']} cm (planned {workcell.get('planned')})")
+
+
 def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residual=False,
              auto=False, force=60, vlm=False, video_dir=None, single_arm=False, camera_source=0, place_at_pickup=False):
 
@@ -65,6 +84,7 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
         gemini = GeminiVLM(json_output=True)
         assert os.path.exists(video_dir)
 
+    check_plan(fn)
     d = pkl.load(open(fn, 'rb')) # list of ['move/hold', 'arm/gripper', path, active_part, task]
     if single_arm:
         robot_left = None # hold arm is emulated by a human

@@ -1,6 +1,6 @@
 '''
 Lay out the parts without a fixture or template: the robot shows where each part goes.
-For every part the robot picks (in the order of the plan) it moves above the pickup spot, lowers the open gripper to the
+For every part the robot picks (in reverse pick order, as stored in place_poses.json) it moves above the pickup spot, lowers the open gripper to the
 pickup pose and waits; put the part flat on the board between the fingers in its planned resting pose, press Enter, and the
 robot lifts off and moves on. Afterwards run real_robot/run.py without --place-at-pickup.
 Needs <log-dir>/fixture/place_poses.json from planning/run_place_poses.py (fabrica env).
