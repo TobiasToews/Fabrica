@@ -97,3 +97,22 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`:
 - Transfer paths are sampled (RRT) without knowing the singularity / joint-limit rules; a path that violates them is re-planned
   (up to `MAX_PLAN_ATTEMPTS`), then the grasp is dropped.
 - A plan matches reality only as well as the robot height, the printed parts and the placement of the first part do.
+
+## Required change in franka-interface
+
+`run.py` streams every transfer path to franka-interface's joint impedance skill. Upstream franka-interface (iamlab-cmu,
+commit `f83bc2a`) limits that skill to 10 % of the rated joint torques (`safety_factor = 0.1`: 1.2 Nm on joints 5-7), too
+little to follow larger wrist rotations: the wrist stalls, the other joints follow, and the arm sags off the plan (measured
+with `real_robot/record_state.py`; this made the leg of human_normal hit the table). On this PC the change is committed in
+`~/tobi/franka-interface`, local branch `fabrica-ics` (commit `4e8c68d`):
+
+- `franka-interface/include/franka-interface/skills/impedance_control_skill.h`: `safety_factor = 0.5` (6 Nm on joints 5-7, 43.5 Nm on joints 1-4)
+- `franka-interface/include/franka-interface/termination_handler/termination_handler.h`: virtual walls sides ±0.65 m, floor −0.05 m (the planning checks against these)
+
+Rebuild with `cd ~/tobi/franka-interface/build && make -j8 franka_interface` and restart the control stack after changing it.
+
+## TODO
+
+- [ ] Fork `iamlab-cmu/franka-interface` to `TobiasToews` (https://github.com/iamlab-cmu/franka-interface/fork) and push the branch
+      `fabrica-ics`, so the change is not only on this PC:
+      `cd ~/tobi/franka-interface && git remote add fork git@github.com:TobiasToews/franka-interface.git && git push -u fork fabrica-ics`
