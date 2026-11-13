@@ -1,0 +1,53 @@
+# Style of the Python files written for the flat pipeline: PEP 8 and
+# Google-style docstrings. Check with `ruff check` and `ruff format --check`
+# from the repository root (fabrica env).
+#
+# Only the files listed under `include` are checked. The files of the
+# original Fabrica release keep their own style.
+
+line-length = 79
+# real_robot/ and learning/ run in the isaacgym env (Python 3.8).
+target-version = "py38"
+
+include = [
+    "planning/flat_grasp.py",
+    "planning/plan_checks.py",
+    "planning/plan_place_part.py",
+    "planning/restore_hold_grasp.py",
+    "planning/retarget_robot_height.py",
+    "planning/robot/panda_condition.py",
+    "planning/run_pickup_gen.py",
+    "planning/run_place_poses.py",
+    "planning/run_planning_flat.py",
+    "planning/run_position_test.py",
+    "planning/run_workspace_search.py",
+    "planning/select_variant.py",
+    "planning/test_flat_grasp.py",
+    "planning/test_plan_rules.py",
+    "planning/test_workspace_search.py",
+    "planning/verify_plan.py",
+    "real_robot/bag_senders.py",
+    "real_robot/compare_recording.py",
+    "real_robot/place_parts.py",
+    "real_robot/record_state.py",
+    "rendering/show_initial_setup.py",
+]
+
+[lint]
+# E, W: PEP 8 (pycodestyle). D: docstrings (pydocstyle).
+select = ["E", "W", "D"]
+# E402: the scripts add the repository root to sys.path before they
+# import from it, so those imports cannot stand at the top of the file.
+ignore = ["E402"]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.pycodestyle]
+# PEP 8: comments and docstrings are at most 72 characters wide.
+max-doc-length = 72
+
+[format]
+# The repository writes strings with single quotes. Docstrings still get
+# three double quotes (PEP 257).
+quote-style = "single"

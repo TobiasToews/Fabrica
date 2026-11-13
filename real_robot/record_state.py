@@ -1,10 +1,11 @@
-'''
+"""
 Record what the real robot reports while real_robot/run.py runs (second terminal, isaacgym env + ROS sourced):
 joint angles q, commanded q_d, velocities, measured and external joint torques, the TCP pose O_T_EE (base frame, m), gripper width, time. Ctrl+C saves the file.
 
 python real_robot/record_state.py --out recordings/run.npz
 Compare with the plan: python real_robot/compare_recording.py --rec recordings/run.npz --fn <log-dir>/motion.pkl (fabrica env)
-'''
+"""
+
 import os
 import argparse
 import threading
@@ -13,7 +14,10 @@ import rospy
 from franka_interface_msgs.msg import RobotState
 from sensor_msgs.msg import JointState
 from franka_interface_msgs.msg import SensorDataGroup
-from frankapy.proto import JointPositionSensorMessage, PosePositionSensorMessage
+from frankapy.proto import (
+    JointPositionSensorMessage,
+    PosePositionSensorMessage,
+)
 from frankapy.franka_interface_common_definitions import SensorDataMessageType
 
 
@@ -21,7 +25,9 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--out', type=str, required=True)
     parser.add_argument('--robot-num', type=int, default=1)
-    parser.add_argument('--hz', type=float, default=50.0, help='samples per second')
+    parser.add_argument(
+        '--hz', type=float, default=50.0, help='samples per second'
+    )
     args = parser.parse_args()
 
     rospy.init_node('record_state', anonymous=True)
@@ -29,38 +35,93 @@ def main():
     latest = {'state': None, 'width': np.nan}
 
     def on_state(msg):
-        with lock: latest['state'] = msg
+        with lock:
+            latest['state'] = msg
+
     def on_gripper(msg):
-        with lock: latest['width'] = msg.position[0] + msg.position[1]
-    rospy.Subscriber(f'/robot_state_publisher_node_{args.robot_num}/robot_state', RobotState, on_state, queue_size=1)
-    rospy.Subscriber(f'/franka_gripper_{args.robot_num}/joint_states', JointState, on_gripper, queue_size=1)
+        with lock:
+            latest['width'] = msg.position[0] + msg.position[1]
+
+    rospy.Subscriber(
+        f'/robot_state_publisher_node_{args.robot_num}/robot_state',
+        RobotState,
+        on_state,
+        queue_size=1,
+    )
+    rospy.Subscriber(
+        f'/franka_gripper_{args.robot_num}/joint_states',
+        JointState,
+        on_gripper,
+        queue_size=1,
+    )
 
     # the joint goals real_robot/run.py streams to franka-interface (robot 1: franka_ros_interface/sensor)
-    commands = {'cmd_t': [], 'cmd_id': [], 'cmd_q': [], 'pose_t': [], 'pose_pos': [], 'pose_quat': []}
+    commands = {
+        'cmd_t': [],
+        'cmd_id': [],
+        'cmd_q': [],
+        'pose_t': [],
+        'pose_pos': [],
+        'pose_quat': [],
+    }
+
     def on_command(msg):
-        if not msg.has_trajectory_generator_sensor_data: return
-        if msg.trajectoryGeneratorSensorData.type == SensorDataMessageType.POSE_POSITION: # cartesian goals of the insertion (policy / open loop)
+        if not msg.has_trajectory_generator_sensor_data:
+            return
+        if (
+            msg.trajectoryGeneratorSensorData.type
+            == SensorDataMessageType.POSE_POSITION
+        ):  # cartesian goals of the insertion (policy / open loop)
             pose = PosePositionSensorMessage()
             try:
-                pose.ParseFromString(bytes(msg.trajectoryGeneratorSensorData.sensorData))
+                pose.ParseFromString(
+                    bytes(msg.trajectoryGeneratorSensorData.sensorData)
+                )
             except Exception:
                 return
             with lock:
-                commands['pose_t'].append(rospy.get_time()); commands['pose_pos'].append(list(pose.position)); commands['pose_quat'].append(list(pose.quaternion))
+                commands['pose_t'].append(rospy.get_time())
+                commands['pose_pos'].append(list(pose.position))
+                commands['pose_quat'].append(list(pose.quaternion))
             return
         proto = JointPositionSensorMessage()
         try:
-            proto.ParseFromString(bytes(msg.trajectoryGeneratorSensorData.sensorData))
+            proto.ParseFromString(
+                bytes(msg.trajectoryGeneratorSensorData.sensorData)
+            )
         except Exception:
             return
-        if len(proto.joints) != 7: return
+        if len(proto.joints) != 7:
+            return
         with lock:
-            commands['cmd_t'].append(rospy.get_time()); commands['cmd_id'].append(proto.id); commands['cmd_q'].append(list(proto.joints))
-    rospy.Subscriber('franka_ros_interface/sensor' if args.robot_num == 1 else 'franka_ros_interface/sensor_2', SensorDataGroup, on_command, queue_size=1000)
+            commands['cmd_t'].append(rospy.get_time())
+            commands['cmd_id'].append(proto.id)
+            commands['cmd_q'].append(list(proto.joints))
 
-    data = {'t': [], 'q': [], 'q_d': [], 'dq': [], 'tau_J': [], 'tau_ext': [], 'O_T_EE': [], 'width': [], 'robot_mode': []}
+    rospy.Subscriber(
+        'franka_ros_interface/sensor'
+        if args.robot_num == 1
+        else 'franka_ros_interface/sensor_2',
+        SensorDataGroup,
+        on_command,
+        queue_size=1000,
+    )
+
+    data = {
+        't': [],
+        'q': [],
+        'q_d': [],
+        'dq': [],
+        'tau_J': [],
+        'tau_ext': [],
+        'O_T_EE': [],
+        'width': [],
+        'robot_mode': [],
+    }
     rate = rospy.Rate(args.hz)
-    print(f'[record_state] recording at {args.hz} Hz, Ctrl+C to stop and save {args.out}')
+    print(
+        f'[record_state] recording at {args.hz} Hz, Ctrl+C to stop and save {args.out}'
+    )
     try:
         while not rospy.is_shutdown():
             with lock:
@@ -70,9 +131,15 @@ def main():
                 data['q'].append(list(state.q))
                 data['q_d'].append(list(state.q_d))
                 data['dq'].append(list(state.dq))
-                data['tau_J'].append(list(state.tau_J)) # measured joint torques
-                data['tau_ext'].append(list(state.tau_ext_hat_filtered)) # estimated external torques (contact, cables, ...)
-                data['O_T_EE'].append(np.array(state.O_T_EE).reshape(4, 4).T) # column-major in the message
+                data['tau_J'].append(
+                    list(state.tau_J)
+                )  # measured joint torques
+                data['tau_ext'].append(
+                    list(state.tau_ext_hat_filtered)
+                )  # estimated external torques (contact, cables, ...)
+                data['O_T_EE'].append(
+                    np.array(state.O_T_EE).reshape(4, 4).T
+                )  # column-major in the message
                 data['width'].append(width)
                 data['robot_mode'].append(state.robot_mode)
             rate.sleep()
@@ -80,8 +147,13 @@ def main():
         pass
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with lock:
-        np.savez(args.out, **{k: np.array(v) for k, v in {**data, **commands}.items()})
-    print(f'[record_state] saved {len(data["t"])} samples, {len(commands["cmd_t"])} streamed joint goals and {len(commands["pose_t"])} pose goals to {args.out}')
+        np.savez(
+            args.out,
+            **{k: np.array(v) for k, v in {**data, **commands}.items()},
+        )
+    print(
+        f'[record_state] saved {len(data["t"])} samples, {len(commands["cmd_t"])} streamed joint goals and {len(commands["pose_t"])} pose goals to {args.out}'
+    )
 
 
 if __name__ == '__main__':

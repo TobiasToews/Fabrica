@@ -31,20 +31,47 @@ def add_buffer_to_mesh(mesh, buffer):
 
 
 def offset_mesh(mesh, buffer):
-    '''
-    Mesh grown by at least buffer everywhere: every face moves out by buffer along its own normal (add_buffer_to_mesh moves a
-    vertex along its averaged normal, which moves the faces of a 90 degree edge only 0.71 x buffer and of a box corner 0.58 x).
-    Edges and corners stick out further than buffer, so "no contact with the offset mesh" implies "distance >= buffer".
-    '''
+    """Returns a copy of a mesh grown by at least buffer everywhere.
+
+    The motion planner of the real arm keeps a distance to a part by
+    testing for contact with such a grown ("inflated") copy of the part
+    (ArmMotionPlanner.part_manager). Every face moves out by buffer
+    along its own normal. Edges and corners then stick out further than
+    buffer, so "no contact with the offset mesh" implies
+    "distance >= buffer".
+
+    add_buffer_to_mesh instead moves each vertex along its averaged
+    normal. That moves the faces of a 90 degree edge only 0.71 x buffer
+    and the faces of a box corner only 0.58 x buffer.
+
+    Args:
+        mesh (trimesh.Trimesh): The mesh to grow. It is not changed.
+        buffer (float): How far every face moves out, in the length
+            unit of the mesh (the planner works in cm).
+
+    Returns:
+        trimesh.Trimesh: The grown mesh. Vertices of the input mesh
+        that lie at the same place are merged in it.
+    """
     mesh = mesh.copy()
-    mesh.merge_vertices(merge_tex=True, merge_norm=True) # faces must share their vertices, or the offset faces come apart
+    # Faces must share their vertices, or the offset faces come apart.
+    mesh.merge_vertices(merge_tex=True, merge_norm=True)
     normals = mesh.face_normals
     vertices = mesh.vertices.copy()
     for v, faces in enumerate(mesh.vertex_faces):
-        n = np.unique(np.round(normals[faces[faces >= 0]], 4), axis=0) # the different face directions that meet in this vertex
-        if len(n) == 0: continue
-        # shortest shift that moves every one of them out by buffer (least squares if they cannot all be met, e.g. on a round part)
-        vertices[v] += np.linalg.lstsq(n, np.full(len(n), float(buffer)), rcond=None)[0]
+        # The different face directions that meet in this vertex. The
+        # rows of vertex_faces are filled up with -1, and normals that
+        # agree to 4 decimals count as one direction.
+        n = np.unique(np.round(normals[faces[faces >= 0]], 4), axis=0)
+        if len(n) == 0:
+            continue
+        # A face with normal n_i moves out by n_i . shift. Find the
+        # shortest shift that moves every one of them out by buffer
+        # (least squares if they cannot all be met, e.g. on a round
+        # part).
+        vertices[v] += np.linalg.lstsq(
+            n, np.full(len(n), float(buffer)), rcond=None
+        )[0]
     return trimesh.Trimesh(vertices, mesh.faces, process=False)
 
 

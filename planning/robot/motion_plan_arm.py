@@ -16,12 +16,44 @@ from planning.path.rrt_connect import rrt_connect
 from planning.path.rrt_star import rrt_star
 from planning.path.meta import direct_path
 from planning.path.smoothing import smooth_path
-from planning.robot.util_arm import get_gripper_pos_quat_from_arm_q, get_ik_target_orientation, get_gripper_basis_directions, get_virtual_wall_margin
-from planning.robot.geometry import load_arm_meshes, load_gripper_meshes, transform_arm_meshes, transform_gripper_meshes, get_arm_meshes_transforms, get_gripper_meshes_transforms, get_buffered_arm_meshes, get_buffered_gripper_meshes, get_buffered_meshes, offset_mesh, get_gripper_grasp_base_offset
+from planning.robot.util_arm import (
+    get_gripper_pos_quat_from_arm_q,
+    get_ik_target_orientation,
+    get_gripper_basis_directions,
+    get_virtual_wall_margin,
+)
+from planning.robot.geometry import (
+    load_arm_meshes,
+    load_gripper_meshes,
+    transform_arm_meshes,
+    transform_gripper_meshes,
+    get_arm_meshes_transforms,
+    get_gripper_meshes_transforms,
+    get_buffered_arm_meshes,
+    get_buffered_gripper_meshes,
+    get_buffered_meshes,
+    offset_mesh,
+    get_gripper_grasp_base_offset,
+)
 from utils.common import TimeStamp
-from planning.config import TRANSFER_LIFT_DELTA, ROBOT_PART_CLEARANCE, ASSEMBLY_CLEARANCE, MIN_SIGMA, MIN_JOINT_LIMIT_MARGIN, \
-    PLANNER_MARGIN, PLANNER_JOINT_MARGIN, PLANNER_SIGMA_MARGIN, STRAIGHT_STEP, STRAIGHT_MAX, STRAIGHT_MAX_JOINT_STEP
-from planning.robot.panda_condition import PANDA_JOINT_LIMITS, panda_jacobian, joint_limit_margin
+from planning.config import (
+    TRANSFER_LIFT_DELTA,
+    ROBOT_PART_CLEARANCE,
+    ASSEMBLY_CLEARANCE,
+    MIN_SIGMA,
+    MIN_JOINT_LIMIT_MARGIN,
+    PLANNER_MARGIN,
+    PLANNER_JOINT_MARGIN,
+    PLANNER_SIGMA_MARGIN,
+    STRAIGHT_STEP,
+    STRAIGHT_MAX,
+    STRAIGHT_MAX_JOINT_STEP,
+)
+from planning.robot.panda_condition import (
+    PANDA_JOINT_LIMITS,
+    panda_jacobian,
+    joint_limit_margin,
+)
 
 
 DUAL_ARM_COL_CHECK = True
@@ -29,13 +61,38 @@ SELF_ARM_INTERSECT_CHECK = True
 MAX_LIN_SPEED = 5 # cm/s
 MAX_ANG_SPEED = 1 # rad/s
 N_IK_RESTART = 20 # chain's default is 3
-MAX_RETRACT_JOINT_STEP = 0.5 # rad, largest joint change between two retract poses
-VIRTUAL_WALL_SAFETY = 1.0 # cm, extra distance to franka-interface's virtual walls (tracking error)
-# what the collision test of a pose can find (collision_fn.hit), by who causes it: the arm and the gripper (their pose follows from
-# the grasp), or the part in the gripper (its pose at an insertion start or at its pickup spot does not depend on the grasp)
-HITS_ARM = ['joint limit', 'singularity', 'virtual wall', 'arm and ground', 'gripper and ground', 'arm and gripper', 'arm and part', 'arm and move part',
-            'gripper and part', 'arm self-intersection', 'dual-arm']
-HITS_CARRIED_PART = ['carried part too close to the table', 'move part and ground', 'move part and part']
+# Largest change of a joint angle between two retract poses in rad. With
+# a larger one the arm would flip between the two poses, and the sweep
+# between them is not checked (see plan_path_retract).
+MAX_RETRACT_JOINT_STEP = 0.5
+# Extra distance in cm that the real arm keeps to the virtual walls of
+# franka-interface (safety planes of the robot controller, see
+# get_panda_virtual_walls). It covers the tracking error: the real arm
+# does not follow its path exactly.
+VIRTUAL_WALL_SAFETY = 1.0
+# What the collision test of a pose can find (collision_fn.hit in
+# get_fns), sorted by who causes it.
+# HITS_ARM: the arm and the gripper. Their pose follows from the grasp.
+HITS_ARM = [
+    'joint limit',
+    'singularity',
+    'virtual wall',
+    'arm and ground',
+    'gripper and ground',
+    'arm and gripper',
+    'arm and part',
+    'arm and move part',
+    'gripper and part',
+    'arm self-intersection',
+    'dual-arm',
+]
+# HITS_CARRIED_PART: the part in the gripper. Its pose at an insertion
+# start or at its pickup spot does not depend on the grasp.
+HITS_CARRIED_PART = [
+    'carried part too close to the table',
+    'move part and ground',
+    'move part and part',
+]
 
 
 def interpolate_angles(start_angle, end_angle, num_steps, bidirectional):
@@ -123,7 +180,9 @@ def interpolate_transformations(T1, T2, num_steps):
 
 class ArmMotionPlanner: # NOTE: all input/output q is full unless specified active
 
-    VISUALIZE = True # debug viewers on planning warnings; run_motion_plan.py --no-viz turns them off
+    # Whether debug viewers open on planning warnings.
+    # run_motion_plan.py --no-viz turns them off.
+    VISUALIZE = True
 
     def __init__(self, arm_chain, gripper_type, has_ft_sensor=False, arm_box=None, optimizer=None, stamp=None, virtual_walls=False, table_z=None, part_clearance=None, clearance_exempt_xy=None):
         self.arm_chain = arm_chain

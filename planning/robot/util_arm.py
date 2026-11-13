@@ -10,7 +10,13 @@ from .ik.chain import Chain
 
 from assets.transform import get_transform_matrix_quat, get_pos_euler_from_transform_matrix
 from planning.robot.geometry import get_ft_sensor_spec, get_gripper_basis_directions
-from planning.robot.workcell import get_move_arm_pos, get_move_arm_euler, get_hold_arm_pos, get_hold_arm_euler, get_panda_virtual_walls
+from planning.robot.workcell import (
+    get_move_arm_pos,
+    get_move_arm_euler,
+    get_hold_arm_pos,
+    get_hold_arm_euler,
+    get_panda_virtual_walls,
+)
 
 
 def get_xarm7_arm_chain(base_pos, base_euler, reduced_limit=0.0):
@@ -78,45 +84,102 @@ def get_arm_chain(arm_type, motion_type=None, base_pos=None, base_euler=None, re
     
 
 def get_virtual_wall_margin(arm_chain, arm_q):
-    '''
-    Smallest distance (cm) by which the arm at arm_q (full) stays inside franka-interface's virtual walls,
-    negative if the real robot would stop (panda only)
-    '''
+    """Returns by how much an arm pose stays inside the virtual walls.
+
+    The virtual walls are safety planes of franka-interface, the
+    controller of the real robot. It stops the robot when the origin of
+    one of the frames J2 to J7 or of the flange gets closer to a wall
+    than the threshold of that frame (see get_panda_virtual_walls in
+    planning/robot/workcell.py). Panda only.
+
+    Args:
+        arm_chain (Chain): Kinematic chain of the Panda, standing at
+            its place on the board (see get_arm_chain).
+        arm_q (array-like): Joint angles in rad as a "full" vector:
+            one entry per link of the chain, also for the fixed links
+            at both ends (see Chain.active_to_full).
+
+    Returns:
+        float: The smallest value of (distance of a frame origin to a
+        wall) minus (threshold of that frame) over all frames and
+        walls, in cm. Negative if the real robot would stop.
+    """
     assert arm_chain.arm_type == 'panda'
     planes, thresholds = get_panda_virtual_walls()
-    fk = arm_chain.forward_kinematics(arm_q, full_kinematics=True) # link0..link8, link2..link8 = frames J2..J7, flange
+    # One 4x4 pose per link of the chain, link0..link8. Of these,
+    # link2..link8 = frames J2..J7, flange.
+    fk = arm_chain.forward_kinematics(arm_q, full_kinematics=True)
     base_rot = R.from_euler('xyz', arm_chain.base_euler).as_matrix()
     margin = np.inf
     for T, threshold in zip(fk[2:], thresholds):
-        pos = base_rot.T @ (T[:3, 3] - arm_chain.base_pos) / 100 # world (cm) -> robot base (m)
+        # world (cm) -> robot base (m)
+        pos = base_rot.T @ (T[:3, 3] - arm_chain.base_pos) / 100
         for axis, offset in planes:
             margin = min(margin, abs(pos[axis] - offset) - threshold)
     return margin * 100
 
 
-_HAND_FRAMES = {} # (gripper type, ft sensor): origins of frame J7 and of the flange in the frame of the gripper
+# Filled by get_hand_wall_margin. Key: (gripper type, ft sensor). Value:
+# the origins of frame J7 and of the flange in the frame of the gripper.
+_HAND_FRAMES = {}
 
 
-def get_hand_wall_margin(arm_chain, gripper_type, gripper_pose, has_ft_sensor=False):
-    '''
-    The part of get_virtual_wall_margin that follows from the gripper pose alone (4x4, world, cm): the margin (cm) of the last
-    two frames, J7 and the flange. Their origins move rigidly with the hand (the origin of J7 lies on the axis of joint 7), so
-    every arm pose that reaches this gripper pose has at most this margin, and a gripper pose with too little of it needs
-    no search for an arm pose (panda only).
-    '''
+def get_hand_wall_margin(
+    arm_chain, gripper_type, gripper_pose, has_ft_sensor=False
+):
+    """Returns the virtual wall margin that a gripper pose allows.
+
+    This is the part of get_virtual_wall_margin that follows from the
+    gripper pose alone: the margin of the last two frames, J7 and the
+    flange. Their origins move rigidly with the hand (the origin of J7
+    lies on the axis of joint 7), so every arm pose that reaches this
+    gripper pose has at most this margin, and a gripper pose with too
+    little of it needs no search for an arm pose. Panda only.
+
+    Args:
+        arm_chain (Chain): Kinematic chain of the Panda, standing at
+            its place on the board (see get_arm_chain).
+        gripper_type (str): Type of the gripper, e.g. 'panda'.
+        gripper_pose (np.ndarray): Pose of the gripper as a homogeneous
+            4x4 transform in the world frame in cm.
+        has_ft_sensor (bool): Whether a force-torque sensor sits
+            between the arm and the gripper.
+
+    Returns:
+        float: The margin in cm, computed as in get_virtual_wall_margin
+        but only for frame J7 and the flange.
+    """
     assert arm_chain.arm_type == 'panda'
     planes, thresholds = get_panda_virtual_walls()
     key = (gripper_type, has_ft_sensor)
     if key not in _HAND_FRAMES:
+        # Where the two origins lie relative to the gripper is the same
+        # for every arm pose, so it is computed once, at the rest pose.
         q = arm_chain.active_to_full(arm_chain.rest_q)
         fk = arm_chain.forward_kinematics(q, full_kinematics=True)
-        assert len(fk) - 2 == len(thresholds) # link2..link8 = J2..J7, flange
-        to_gripper = np.linalg.inv(get_transform_matrix_quat(*get_gripper_pos_quat_from_arm_q(arm_chain, q, gripper_type, has_ft_sensor=has_ft_sensor)))
+        # link2..link8 = J2..J7, flange
+        assert len(fk) - 2 == len(thresholds)
+        to_gripper = np.linalg.inv(
+            get_transform_matrix_quat(
+                *get_gripper_pos_quat_from_arm_q(
+                    arm_chain, q, gripper_type, has_ft_sensor=has_ft_sensor
+                )
+            )
+        )
         _HAND_FRAMES[key] = [(to_gripper @ T)[:3, 3] for T in fk[-2:]]
     base_rot = R.from_euler('xyz', arm_chain.base_euler).as_matrix()
     margin = np.inf
     for point, threshold in zip(_HAND_FRAMES[key], thresholds[-2:]):
-        pos = base_rot.T @ (gripper_pose[:3, :3] @ point + gripper_pose[:3, 3] - arm_chain.base_pos) / 100 # world (cm) -> robot base (m)
+        # world (cm) -> robot base (m)
+        pos = (
+            base_rot.T
+            @ (
+                gripper_pose[:3, :3] @ point
+                + gripper_pose[:3, 3]
+                - arm_chain.base_pos
+            )
+            / 100
+        )
         for axis, offset in planes:
             margin = min(margin, abs(pos[axis] - offset) - threshold)
     return margin * 100
