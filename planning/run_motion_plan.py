@@ -26,7 +26,7 @@ from utils.common import TimeStamp
 from planning.run_seq_plan import SequencePlanner
 from planning.run_seq_opt import SequenceOptimizer
 from planning.config import RETRACT_OPEN_RATIO, OPEN_RATIO_REST, RETRACT_DELTA_FAR, TRANSFER_PART_CLEARANCE, MAX_PLAN_ATTEMPTS, ASSEMBLY_ZONE_MARGIN, PLANNER_TABLE_MARGIN
-from planning.plan_checks import SceneChecker, clear_failure, write_failure, CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION, CAUSE_HOLD_GRASP
+from planning.plan_checks import SceneChecker, clear_failure, write_failure, blames_other_arm, CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION, CAUSE_HOLD_GRASP
 
 # Arm pose with which the hold arm picks the first part where the layout
 # put it, chosen and checked by run_pickup_gen.py (file in fixture/).
@@ -314,10 +314,13 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
     # For every arm command of the hold arm: the hold grasp it belongs to,
     # (part id, grasp id). If that path cannot be planned, this is the hold
     # grasp that run_planning_flat.py drops before the next attempt.
-    hold_blame = {}
+    # holds: whether the hold arm holds with that grasp after the path (it
+    # does not on the way to the first part, nor on the way to rest).
+    hold_blame, hold_after = {}, {}
 
-    def add_hold_arm(command, grasp):
+    def add_hold_arm(command, grasp, holds=True):
         hold_blame[len(commands)] = (grasp.part_id, grasp.grasp_id)
+        hold_after[len(commands)] = holds
         commands.append(command)
 
     # fallback for the first part (run_pickup_gen.py, 'arm': 'place'): its hold grasp cannot pick it lying flat, so the move arm
@@ -368,7 +371,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
             gripper_pickup_pose[part_hold] = get_pickup_gripper_pose(grasp_hold, part_pickup_pose[part_hold], part_final_pose[part_hold])
             open_ratio_retract_hold = min(grasp_hold.open_ratio + RETRACT_OPEN_RATIO, 1.0)
             commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-            add_hold_arm(['hold', 'arm', (pickup_q_hold, [None, np.array([0, 0, 1.0])]), None, 'transport'], grasp_hold) # transport with goal retract
+            add_hold_arm(['hold', 'arm', (pickup_q_hold, [None, np.array([0, 0, 1.0])]), None, 'transport'], grasp_hold, holds=False) # transport with goal retract
             commands.append(['hold', 'gripper', grasp_hold.open_ratio, None, 'close'])
             add_hold_arm(['hold', 'arm', (grasp_hold.arm_q, [np.array([0, 0, 1.0]), np.array([0, 0, 1.0])]), part_hold, 'transport'], grasp_hold) # transport with both retract
         
@@ -397,7 +400,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
                 commands.append(['hold', 'gripper', grasp_hold_next.open_ratio, None, 'close'])
         else:
             commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-            add_hold_arm(['hold', 'arm', (rest_q_hold, [None, None]), None, 'transport'], grasp_hold) # transport with start retract
+            add_hold_arm(['hold', 'arm', (rest_q_hold, [None, None]), None, 'transport'], grasp_hold, holds=False) # transport with start retract
             commands.append(['hold', 'gripper', OPEN_RATIO_REST, None, 'close'])
         
         # move (rest)
@@ -438,8 +441,16 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
     def reseed(cid, attempt):
         random.seed(seed * 100003 + cid * 101 + attempt)
         np.random.seed(seed * 100003 + cid * 101 + attempt)
-    def fail(part, reason, cause=CAUSE_GRASP):
-        write_failure(log_dir, 'run_motion_plan', part, move_grasp_id.get(part), reason, cause)
+    holding = None # (part id, hold grasp id) the hold arm holds with at the moment, None: it holds nothing
+
+    def blocked_by_hold_arm(no_path, violations):
+        # was the last attempt of a move-arm path stopped by the hold arm? (the planner's straight move, or the exact check)
+        block = motion_planner_move.last_block
+        return (no_path and block is not None and 'dual-arm' in str(block[0])) or any(blames_other_arm(v) for v in violations)
+
+    def fail(part, reason, cause=CAUSE_GRASP, other_arm=False):
+        # other_arm: the hold arm was in the way; run_planning_flat.py may then change the hold grasp it holds with
+        write_failure(log_dir, 'run_motion_plan', part, move_grasp_id.get(part), reason, cause, other_arm=holding if other_arm else None)
         raise Exception(f'[run_motion_plan] no checked path for part {part}: {reason}')
 
     def fail_hold(cid, reason):
@@ -540,7 +551,10 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
                     if hold_checked:
                         fail_hold(cid, f'hold arm {task} path: ' + '; '.join(violations))
                     fail(blame, f'{task} path: ' + '; '.join(violations),
-                         failure_cause(task, active_part is not None, motion_planner.last_failure if path is None else None, motion_planner.blocked_by_carried_part(), seen))
+                         failure_cause(task, active_part is not None, motion_planner.last_failure if path is None else None, motion_planner.blocked_by_carried_part(), seen),
+                         other_arm=blocked_by_hold_arm(path is None, violations))
+                if motion_type == 'hold':
+                    holding = hold_blame[cid] if hold_after[cid] else None
                 if active_part is not None:
                     current_states['parts'][active_part] = 'final'
                     # a part the move arm carries is inserted next ('assembly' sets last_inserted); the first part in the fallback
@@ -593,9 +607,12 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
                     # spot where it lies if the straight move into its grasp is what fails (or its neighbours are too close), else to its grasp
                     no_path = None in [path1, path2]
                     leaving = (no_path and motion_planner.last_failure == 'start') or any('(just released)' in v for v in violations)
+                    by_hold_arm = blocked_by_hold_arm(no_path, violations)
                     if pick_part is None or (leaving and last_inserted is not None):
-                        fail(last_inserted, f'path away from the released part: ' + '; '.join(violations))
-                    fail(pick_part, f'approach path: ' + '; '.join(violations), failure_cause(task, False, motion_planner.last_failure if no_path else None, False, seen))
+                        fail(last_inserted, f'path away from the released part: ' + '; '.join(violations), other_arm=by_hold_arm)
+                    fail(pick_part, f'approach path: ' + '; '.join(violations), failure_cause(task, False, motion_planner.last_failure if no_path else None, False, seen), other_arm=by_hold_arm)
+                if motion_type == 'hold':
+                    holding = hold_blame[cid] if hold_after[cid] else None
                 if open_ratio == open_ratio_next:
                     paths.append([motion_type, 'arm', path1 + path2, None, task])
                 else:
@@ -616,7 +633,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
                     raise Exception(f'[run_motion_plan] Failed to plan path for {motion_type} {body_type} in task {task} ({assembly_dir})')
                 if checked:
                     violations = checker.check_path(path, open_ratio, state_before, carried=active_part, inserting=True, other_arm=other_arm)
-                    if violations: fail(active_part, 'insertion path: ' + '; '.join(violations)) # fixed by the grasp, no re-plan possible
+                    if violations: fail(active_part, 'insertion path: ' + '; '.join(violations), other_arm=any(blames_other_arm(v) for v in violations)) # fixed by the grasp, no re-plan possible
                     last_inserted = active_part
                 paths.append([motion_type, body_type, path, active_part, task])
                 current_states[motion_type][body_type] = q_goal

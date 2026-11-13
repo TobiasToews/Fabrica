@@ -25,10 +25,13 @@ run_planning_flat lists the files each stage reads and writes there.
 4. Loop: sequence optimization -> pickup layout -> motion planning ->
    verify_plan.py. A stage that cannot find a clean plan says what has
    to change (planning/plan_checks.py CAUSE_*). The loop does that and
-   tries again, at most MAX_SEQUENCE_ATTEMPTS times:
+   tries again: at most MAX_SEQUENCE_ATTEMPTS changes of a move grasp or
+   a spot, and at most MAX_HOLD_GRASP_CHANGES changes of a hold grasp:
 
    * the move grasp (arm or gripper do not fit): it is removed, the
-     next best sequence is tried;
+     next best sequence is tried. If the hold arm was in the way, this
+     happens OTHER_ARM_MOVE_GRASP_TRIES times; at the next such failure
+     the hold grasp it held is removed instead;
    * the hold grasp (the hold arm cannot pick the first part, has no
      path, or comes too close to the move arm): it is removed, the next
      best sequence is tried;
@@ -76,6 +79,8 @@ from planning.config import (
     ROBOT_SELF_CLEARANCE,
     MAX_PLAN_ATTEMPTS,
     MAX_SEQUENCE_ATTEMPTS,
+    MAX_HOLD_GRASP_CHANGES,
+    OTHER_ARM_MOVE_GRASP_TRIES,
     MIN_SIGMA,
     MIN_SIGMA_INSERTION,
     MIN_JOINT_LIMIT_MARGIN,
@@ -320,21 +325,30 @@ def ban_grasp(log_dir, part, grasp_id):
         pickle.dump(grasps, fp)
 
 
-def next_step(failure):
+def next_step(failure, other_arm_failures=0, hold_changes=0):
     """Decides what the loop does after a stage failed.
 
     Args:
         failure (dict | None): The content of the planning_failure.json
             that the failed stage wrote (plan_checks.write_failure):
-            'stage', 'part', 'grasp_id', 'reason' and 'cause' (one of
-            the CAUSE_* values of planning/plan_checks.py). None if the
-            stage named no failure.
+            'stage', 'part', 'grasp_id', 'reason', 'cause' (one of
+            the CAUSE_* values of planning/plan_checks.py) and
+            'other_arm' (the hold grasp [part, id] the hold arm held
+            when it blocked the move arm, else None). None if the stage
+            named no failure.
+        other_arm_failures (int): How many failures since the last
+            change of a hold grasp were caused by the hold arm and
+            answered by dropping the move grasp.
+        hold_changes (int): How many hold grasps the loop has dropped
+            so far.
 
     Returns:
         str: 'ban grasp' (drop the move grasp and take the next best
-        sequence), 'ban hold grasp' (the same for a hold grasp),
-        'ban spot' (lay the part out elsewhere, same sequence) or
-        'stop'.
+        sequence), 'ban hold grasp' (drop the hold grasp named by the
+        failure), 'change hold grasp' (the hold arm was in the way
+        OTHER_ARM_MOVE_GRASP_TRIES times: drop the hold grasp it held,
+        keep the move grasp), 'ban spot' (lay the part out elsewhere,
+        same sequence) or 'stop'.
     """
     if failure is None:
         return 'stop'
@@ -347,7 +361,18 @@ def next_step(failure):
     if failure.get('grasp_id') is None:
         return 'stop'
     if cause == CAUSE_HOLD_GRASP:
+        if hold_changes >= MAX_HOLD_GRASP_CHANGES:
+            return 'stop'
         return 'ban hold grasp'
+    # The hold arm was in the way of the move arm: first other move
+    # grasps are tried (they put the move hand elsewhere), then the hold
+    # grasp is changed (it puts the hold hand elsewhere).
+    if (
+        failure.get('other_arm') is not None
+        and other_arm_failures >= OTHER_ARM_MOVE_GRASP_TRIES
+        and hold_changes < MAX_HOLD_GRASP_CHANGES
+    ):
+        return 'change hold grasp'
     return 'ban spot' if cause == CAUSE_SPOT else 'ban grasp'
 
 
@@ -553,13 +578,23 @@ def run_planning_flat(
 
     banned, banned_spots = [], []
     banned_hold = []  # (part, hold grasp id) dropped by the loop
+    # Two budgets: move_changes counts the attempts that ended by
+    # dropping a move grasp or banning a spot (at most
+    # MAX_SEQUENCE_ATTEMPTS), hold_changes the hold grasps dropped (at
+    # most MAX_HOLD_GRASP_CHANGES). other_arm_failures counts the
+    # failures caused by the hold arm since the last hold grasp change.
+    move_changes, hold_changes, other_arm_failures = 0, 0, 0
     clear_banned_spots(
         log_dir
     )  # spots banned by an earlier run belong to its sequences
     new_sequence = True
-    for attempt in range(1, MAX_SEQUENCE_ATTEMPTS + 1):
+    attempt = 0
+    while True:
+        attempt += 1
         print(
-            f'[run_planning_flat] sequence attempt {attempt}/{MAX_SEQUENCE_ATTEMPTS}'
+            f'[run_planning_flat] sequence attempt {attempt} (changes so '
+            f'far: {move_changes}/{MAX_SEQUENCE_ATTEMPTS} move grasp or '
+            f'spot, {hold_changes}/{MAX_HOLD_GRASP_CHANGES} hold grasp)'
             + (f', without move grasps {banned}' if banned else '')
             + (
                 f', without hold grasps {banned_hold}'
@@ -619,7 +654,7 @@ def run_planning_flat(
                 if os.path.exists(failure_path):
                     with open(failure_path, 'r') as fp:
                         failure = json.load(fp)
-                step = next_step(failure)
+                step = next_step(failure, other_arm_failures, hold_changes)
                 if step == 'stop':
                     if failure is None:
                         print(
@@ -629,22 +664,53 @@ def run_planning_flat(
                         print(
                             f'[run_planning_flat] part {failure["part"]} cannot be brought to where its insertion starts, whatever the grasp and wherever it lies: {failure["reason"]}'
                         )
+                    elif failure.get('cause') == CAUSE_HOLD_GRASP:
+                        print(
+                            f'[run_planning_flat] {MAX_HOLD_GRASP_CHANGES} '
+                            f'hold grasps dropped already, no clean plan'
+                        )
                     else:
                         print(
                             f'[run_planning_flat] {failure}: names no grasp '
                             f'to drop, cannot continue'
                         )
                     return False
-                if step == 'ban hold grasp':
-                    # The hold arm cannot do its part with this hold
-                    # grasp: drop it and take the next best sequence.
-                    banned_hold.append((failure['part'], failure['grasp_id']))
-                    ban_hold_grasp(
-                        log_dir, failure['part'], failure['grasp_id']
+                if step in ('ban hold grasp', 'change hold grasp'):
+                    # 'ban hold grasp': the hold arm cannot do its part
+                    # with this hold grasp. 'change hold grasp': the hold
+                    # arm, holding with this grasp, was in the way of the
+                    # move arm too often. Either way: drop the hold grasp
+                    # and take the next best sequence.
+                    part, grasp_id = (
+                        (failure['part'], failure['grasp_id'])
+                        if step == 'ban hold grasp'
+                        else tuple(failure['other_arm'])
                     )
+                    if step == 'change hold grasp':
+                        print(
+                            f'[run_planning_flat] the hold arm was in the '
+                            f'way of the move arm {other_arm_failures + 1} '
+                            f'times: hold grasp {grasp_id} of part {part} '
+                            f'is changed, move grasp {failure["grasp_id"]} '
+                            f'of part {failure["part"]} stays'
+                        )
+                    banned_hold.append((part, grasp_id))
+                    ban_hold_grasp(log_dir, part, grasp_id)
+                    hold_changes += 1
+                    other_arm_failures = 0
                     new_sequence = True
                     failed = True
                     break
+                if move_changes >= MAX_SEQUENCE_ATTEMPTS:
+                    print(
+                        f'[run_planning_flat] no clean plan within '
+                        f'{MAX_SEQUENCE_ATTEMPTS} changes of a move grasp '
+                        f'or spot'
+                    )
+                    return False
+                move_changes += 1
+                if failure.get('other_arm') is not None:
+                    other_arm_failures += 1
                 if (
                     step == 'ban spot'
                 ):  # the grasp is fine: only the place where the part lies changes
@@ -687,9 +753,6 @@ def run_planning_flat(
             )
             return False
         break
-    else:
-        print('[run_planning_flat] no clean plan within the sequence attempts')
-        return False
 
     # the poses for real_robot/place_parts.py (the robot shows where each part lies) are a help for laying the parts out, not part
     # of the plan: its joint-space moves between the spots can collide where hands lean far. Then the file is removed, so that

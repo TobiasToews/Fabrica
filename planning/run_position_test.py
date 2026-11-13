@@ -284,7 +284,9 @@ def result_of(log_dir, console_path):
                         'the final check failed',
                         'no plan where the assembly stands',
                         'failed without naming',
-                        'not caused by a move grasp',
+                        'not caused by a move grasp',  # logs before 2026-11-13
+                        'names no grasp to drop',
+                        'hold grasps dropped already',
                         'Traceback',
                         'is planned for',
                     ]

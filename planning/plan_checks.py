@@ -598,6 +598,7 @@ class SceneChecker:
         stretches are allowed because both hands work at the assembly:
         a path that arrives there to insert, or leaves after letting
         go, starts or ends close to the hand that holds the assembly.
+        A path that never gets ARM_ARM_CLEARANCE away is a violation.
         While inserting, only contact counts.
 
         Args:
@@ -674,7 +675,17 @@ class SceneChecker:
             violations[f'{arm} arm touches the {other} arm'] = touching
         if not inserting:
             clear = [d >= ARM_ARM_CLEARANCE - DISTANCE_TOL for d, _ in near]
-            if True in clear:
+            if True not in clear:
+                # The path never gets ARM_ARM_CLEARANCE away from the other
+                # arm. The planner cannot make such a path: every path
+                # leaves its start straight until it is clear of
+                # everything, or its start is clear already.
+                key = (
+                    f'{arm} arm never gets {ARM_ARM_CLEARANCE} cm away '
+                    f'from the {other} arm'
+                )
+                violations[key] = list(range(len(path)))
+            else:
                 first = clear.index(True)
                 last = len(clear) - 1 - clear[::-1].index(True)
                 for k in range(first, last + 1):
@@ -807,10 +818,30 @@ CAUSE_TEXT = {
 }
 
 
-def write_failure(log_dir, stage, part, grasp_id, reason, cause=CAUSE_GRASP):
+def blames_other_arm(violation):
+    """Tells whether a violation is about the distance to the hold arm.
+
+    Args:
+        violation (str): One text of check_path or other_arm_violations
+            for a path of the move arm.
+
+    Returns:
+        bool: True for the texts of other_arm_violations (the move arm,
+        its gripper or its part touches, passes or never leaves the
+        hold arm).
+    """
+    return 'the hold arm' in violation or ' cm to hold ' in violation
+
+
+def write_failure(
+    log_dir, stage, part, grasp_id, reason, cause=CAUSE_GRASP, other_arm=None
+):
     """
     Tells run_planning_flat.py why planning failed and what to change (cause, see CAUSE_*): drop the move grasp and take the next
     best sequence, lay the part out at another spot with the same grasp, or stop because no grasp and no spot can help.
+    other_arm: (part id, hold grasp id) of the hold grasp the hold arm held while the move arm was blocked by it; None if the
+    hold arm was not the cause. The loop then changes that hold grasp instead of the move grasp after OTHER_ARM_MOVE_GRASP_TRIES
+    such failures.
     """
     import json
 
@@ -823,6 +854,9 @@ def write_failure(log_dir, stage, part, grasp_id, reason, cause=CAUSE_GRASP):
                 'grasp_id': None if grasp_id is None else int(grasp_id),
                 'reason': reason,
                 'cause': cause,
+                'other_arm': None
+                if other_arm is None
+                else [other_arm[0], int(other_arm[1])],
             },
             fp,
             indent=4,

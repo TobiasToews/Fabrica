@@ -1,0 +1,7 @@
+{
+    "stage": "run_motion_plan",
+    "part": "4",
+    "grasp_id": 200,
+    "reason": "transport path: no path found: no straight move into the goal pose from a pose clear of everything (dual-arm after 0.25 cm)",
+    "cause": "grasp"
+}

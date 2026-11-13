@@ -122,6 +122,7 @@ from planning.robot.workcell import (
     get_panda_base_z,
     get_panda_desk_z,
     get_panda_virtual_walls,
+    get_dual_arm_box,
 )
 
 DOWN = np.array(
@@ -1511,7 +1512,18 @@ def failure_file_names_the_cause(c):
             'grasp_id': 17,
             'reason': 'no way',
             'cause': CAUSE_GRASP,
+            'other_arm': None,
         }
+        # the hold arm was in the way, holding part 0 with hold grasp 775
+        write_failure(
+            tmp,
+            'run_motion_plan',
+            '3',
+            17,
+            'no way',
+            other_arm=('0', np.int64(775)),
+        )
+        assert read()['other_arm'] == ['0', 775]
         for cause in [
             CAUSE_SPOT,
             CAUSE_INSERTION,
@@ -1931,6 +1943,53 @@ def assembly_zone_is_wide_enough_for_gamepad(c):
     )  # and inside the checked zone
 
 
+def arm_distance(c, q_move, q_hold):
+    """distance (cm) of the two arms (links and grippers), 0 if touching"""
+    move_arm = c.placed_arm('move', q_move, 0.5)
+    hold_arm = c.placed_arm('hold', q_hold, 0.5)
+    if move_arm.in_collision_other(hold_arm):
+        return 0.0
+    return move_arm.min_distance_other(hold_arm)
+
+
+def move_pose_at(c, spot, q_hold, target, q_init=None):
+    """
+    full q of the move arm, gripper pointing down 10 cm above the table at
+    spot + (dx, 0), with dx chosen so that the two arms are target cm
+    apart (bisection on dx, within 0.01 cm); returns (q, distance)
+    """
+    low, high = 2.0, 40.0  # dx: the arms touch at 2 cm, are far at 40
+    q = None
+    for _ in range(40):
+        dx = 0.5 * (low + high)
+        q = ik_down(c, spot + [dx, 0.0], 10.0, q_init=q_init)
+        d = arm_distance(c, q, q_hold)
+        if abs(d - target) < 0.01 and d > 0.0:
+            return q, d
+        if d < target:
+            low = dx
+        else:
+            high = dx
+    raise AssertionError(f'no pose {target} cm from the hold arm')
+
+
+def poses_near_the_hold_arm(c, spot, q_hold):
+    """
+    three full qs of the move arm beside the hold arm (its gripper down
+    over spot): touching it, closer than ARM_ARM_CLEARANCE but not
+    touching, and clear of it by ARM_ARM_CLEARANCE + 1 cm
+    """
+    touching = ik_down(c, spot + [2.0, 0.0], 10.0)
+    assert arm_distance(c, touching, q_hold) == 0.0
+    close, _ = move_pose_at(
+        c, spot, q_hold, 0.5 * ARM_ARM_CLEARANCE, q_init=touching
+    )
+    clear, _ = move_pose_at(
+        c, spot, q_hold, ARM_ARM_CLEARANCE + 1.0, q_init=close
+    )
+    return touching, close, clear
+
+
 @test
 def arms_keep_their_distance(c):
     """
@@ -1949,23 +2008,7 @@ def arms_keep_their_distance(c):
     )
     assert q_hold is not None, 'the hold arm does not reach the spot'
 
-    def distance(q_move, q_other=q_hold):
-        """distance of the two arms (links and grippers), 0 if touching"""
-        move_arm = c.placed_arm('move', q_move, 0.5)
-        hold_arm = c.placed_arm('hold', q_other, 0.5)
-        if move_arm.in_collision_other(hold_arm):
-            return 0.0
-        return move_arm.min_distance_other(hold_arm)
-
-    # The move gripper at the height of the hold gripper, further and
-    # further away along +x (towards the move arm).
-    poses, q = [], None
-    for dx in np.arange(4.0, 40.0, 0.5):
-        q = ik_down(c, spot + [dx, 0.0], 10.0, q_init=q)
-        poses.append((distance(q), q))
-    touching = next(q for d, q in poses if d == 0.0)
-    close = next(q for d, q in poses if 0.2 < d < ARM_ARM_CLEARANCE - 0.2)
-    clear = next(q for d, q in poses if d > ARM_ARM_CLEARANCE + 1.0)
+    touching, close, clear = poses_near_the_hold_arm(c, spot, q_hold)
 
     def check(path, inserting=False):
         return c.other_arm_violations(
@@ -1977,6 +2020,11 @@ def arms_keep_their_distance(c):
     assert has(check([clear, close, clear]), passes)
     # close at the start and at the end (leaving, arriving): allowed
     assert check([close, clear, close]) == []
+    # a path that never gets clear of the other arm: not allowed
+    assert has(
+        check([close, close]),
+        f'move arm never gets {ARM_ARM_CLEARANCE} cm away from the hold arm',
+    )
     # touching is never allowed, also at the end of a path
     assert has(check([clear, touching]), 'move arm touches the hold arm')
     # while inserting only contact counts
@@ -1999,7 +2047,7 @@ def arms_keep_their_distance(c):
     q_far = hold.inverse_kinematics(
         np.array([spot[0] - 20.0, spot[1], 21.2]), DOWN, q_init=q_hold
     )
-    assert q_far is not None and distance(close, q_far) > 3.0
+    assert q_far is not None and arm_distance(c, close, q_far) > 3.0
     assert has(
         c.other_arm_violations(
             'hold', [q_far, q_hold, q_far], 0.5, close, 0.5
@@ -2017,6 +2065,84 @@ def arms_keep_their_distance(c):
         ),
         'hold arm touches the move arm',
     )
+
+
+@test
+def planner_and_check_agree_on_the_other_arm(c):
+    """
+    The motion planner of the real arm keeps the rule of plan_checks.py
+    towards the hold arm, with the same value (ARM_ARM_CLEARANCE) on the
+    same exact meshes: a pose closer than that is refused, a pose beyond
+    it is fine (in its free path only with the reserve PLANNER_MARGIN,
+    lowered to what the two ends of the free path reach), and a step of
+    a straight move out of a pose only must not touch the hold arm.
+    Until 2026-11-13 the planner inflated both arms by 1 cm, refused
+    poses about 2 cm apart, and so could not leave a release pose that
+    the check allows (gamepad: 1.1 cm apart, 'dual-arm after 0.25 cm').
+    """
+    set_scene(c)
+    spot = np.array([0.0, -25.0])
+    hold_chain = get_arm_chain('panda', 'hold')
+    q_hold = c.arm_planner('hold').inverse_kinematics(
+        np.array([*spot, 21.2]), DOWN, q_init=None
+    )
+    planner = make_move_planner(
+        c.chain,
+        'panda',
+        False,
+        get_dual_arm_box('panda')[0],
+        {'A': box([1, 1, 1], [*FAR, 0.5])},
+    )
+
+    def collision_fn():
+        return planner.get_fns(
+            None,
+            None,
+            [],
+            0.5,
+            arm_chain_other=hold_chain,
+            arm_q_other=q_hold,
+            open_ratio_other=0.5,
+            has_ft_sensor_other=False,
+        )[3]
+
+    def active(q):
+        return c.chain.active_from_full(q)
+
+    touching, close, _ = poses_near_the_hold_arm(c, spot, q_hold)
+    between, gap_between = move_pose_at(
+        c, spot, q_hold, ARM_ARM_CLEARANCE + 0.5 * PLANNER_MARGIN, close
+    )
+    gamepad, _ = move_pose_at(c, spot, q_hold, 1.1, between)
+
+    cf = collision_fn()
+    # closer than the rule: refused; as a step of a straight move: fine
+    assert cf(active(close), reserve=False) and cf.hit == 'dual-arm'
+    assert not cf(
+        active(close), buffered=False, move_ground_buffer=False, step=True
+    )
+    # touching: refused also as a step
+    assert cf(
+        active(touching), buffered=False, move_ground_buffer=False, step=True
+    )
+    # beyond the rule: fine; in the free path the reserve is wanted
+    # until the limit is lowered to what an end of the free path reaches
+    assert not cf(active(between), reserve=False)
+    assert cf(active(between)) and cf.hit == 'dual-arm'
+    cf.relax([active(between)])
+    assert not cf(active(between))
+    # 1.1 cm apart: refused until 2026-11-13, fine now
+    assert not collision_fn()(active(gamepad), reserve=False)
+
+    # Leaving the close pose straight away from the hold arm (+x): the
+    # planner gets out, and the check accepts the path (it starts close,
+    # then keeps the distance).
+    path = planner.plan_path_straight_out(
+        close, collision_fn(), np.array([1.0, 0.0, 0.0])
+    )
+    assert path is not None, planner.last_block
+    assert arm_distance(c, path[-1], q_hold) >= ARM_ARM_CLEARANCE - 1e-3
+    assert c.other_arm_violations('move', path, 0.5, q_hold, 0.5) == []
 
 
 @test

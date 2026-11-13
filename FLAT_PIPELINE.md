@@ -113,8 +113,11 @@ python real_robot/run.py --single-arm --residual --fn logs/<exp_name>/<assembly>
    move arm did not avoid the hold arm, a hold path without a plan was stored as a jump, and a first part out of the hold
    arm's reach was left to the human; the option is gone). When the planner finds no path, the message names what stopped
    its straight move, e.g. `no straight move into the goal pose from a pose clear of everything (virtual wall after 0.25 cm)`.
-6. If a stage finds no clean plan it says what has to change (`planning_failure.json`, `cause`), and the loop does that, at
-   most `MAX_SEQUENCE_ATTEMPTS` 10 times in total:
+6. If a stage finds no clean plan it says what has to change (`planning_failure.json`, `cause`), and the loop does that: at
+   most `MAX_SEQUENCE_ATTEMPTS` 10 changes of a move grasp or a spot, and at most `MAX_HOLD_GRASP_CHANGES` 10 changes of a
+   hold grasp. If the hold arm was in the way of a move-arm path (`other_arm` in the failure file), the move grasp is
+   dropped `OTHER_ARM_MOVE_GRASP_TRIES` 2 times; at the next such failure the hold grasp it held is dropped instead and the
+   move grasp stays:
 
    | Cause | When | What the loop does |
    |---|---|---|
@@ -198,7 +201,7 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
 | gripper / carried part vs the assembly, including the part just released | no contact (the carried part is not checked while inserting: insertion paths are fixed by the grasp) |
 | gripper / carried part passing by the assembly (a path may start or end closer: leaving after a release, arriving to insert) | ≥ `ASSEMBLY_CLEARANCE` 1.0 cm |
 | gripper (hand, fingers) vs the robot's own links 0–5 | ≥ `ROBOT_SELF_CLEARANCE` 1.0 cm |
-| the arm that moves (links, gripper, carried part) vs the other arm, which stands still meanwhile; checked for the paths of both arms | no contact; ≥ `ARM_ARM_CLEARANCE` 1.0 cm except in one stretch at the start and one at the end of a path (both hands work at the assembly); while inserting only no contact (since 2026-11-13) |
+| the arm that moves (links, gripper, carried part) vs the other arm, which stands still meanwhile; checked for the paths of both arms | no contact; ≥ `ARM_ARM_CLEARANCE` 0.25 cm except in one stretch at the start and one at the end of a path (both hands work at the assembly), and every path gets that far away at least once; while inserting only no contact (since 2026-11-13). The motion planner uses the same value on the same exact meshes (its free path with the reserve `PLANNER_MARGIN`); a step of a straight move out of or into a pose only must not touch the other arm |
 | carried part above the table outside the assembly zone (assembly + `ASSEMBLY_ZONE_MARGIN` 4.0 cm; 3.0 until 2026-11-12), once lifted | ≥ `TRANSFER_PART_CLEARANCE` 3.0 cm |
 | carried part above the table inside the assembly zone, until the last stretch of its path, where it comes down to its goal (not while inserting: an insertion may end on the table) | ≥ `ZONE_PART_TABLE_CLEARANCE` 0.2 cm |
 | gripper / arm above the table | ≥ 0.2 cm / ≥ 1.0 cm |
@@ -250,7 +253,7 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
   them, and a straight move into the next pose. If a straight move is impossible (e.g. a wall or a neighbouring part in the way)
   there is no path (stage 6 decides what changes); a finished path that still fails the check is re-planned (up to
   `MAX_PLAN_ATTEMPTS`).
-- `python planning/test_plan_rules.py` tests every rule, the planner and the causes of a failure on a toy scene (no robot, 40
+- `python planning/test_plan_rules.py` tests every rule, the planner and the causes of a failure on a toy scene (no robot, 41
   tests, about 30 s).
 - Memory: the planner's setup for a path (`get_fns`) builds collision structures of all still parts, for assemblies with
   large meshes several hundred MB (gamepad: two parts with 52000 faces). It releases those of the call before when it

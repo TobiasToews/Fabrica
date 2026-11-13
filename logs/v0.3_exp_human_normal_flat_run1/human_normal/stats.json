@@ -1,0 +1,1 @@
+{"preced_plan": {"time": 289.53}, "grasp_gen": {"success": true, "time": 971.15}, "seq_plan": {"success": true, "time": 4.36, "stop_msg": "tree fully explored (solution found: True)"}, "seq_opt": {"time": 22.74, "flat": true}, "fixture_gen": {"time": 36.52, "flat": true}, "motion_plan": {"time": 160.19}}

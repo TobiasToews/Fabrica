@@ -4004,6 +4004,33 @@ def loop_reacts_to_the_cause_of_a_failure(c):
     assert (
         next_step(failure(cause=CAUSE_HOLD_GRASP, grasp_id=None)) == 'stop'
     )  # no hold grasp named: nothing to drop
+    assert (
+        next_step(
+            failure(cause=CAUSE_HOLD_GRASP),
+            hold_changes=config.MAX_HOLD_GRASP_CHANGES,
+        )
+        == 'stop'
+    )  # every hold grasp change is used up
+    # The hold arm was in the way of the move arm: first other move
+    # grasps (OTHER_ARM_MOVE_GRASP_TRIES times), then the hold grasp.
+    blocked = failure(cause=CAUSE_GRASP, other_arm=['0', 775])
+    tries = config.OTHER_ARM_MOVE_GRASP_TRIES
+    assert all(next_step(blocked, n) == 'ban grasp' for n in range(tries))
+    assert next_step(blocked, tries) == 'change hold grasp'
+    assert (
+        next_step(
+            failure(cause=CAUSE_SPOT, other_arm=['0', 775]), tries
+        )
+        == 'change hold grasp'
+    )  # also when the spot was blamed
+    assert (
+        next_step(blocked, tries, config.MAX_HOLD_GRASP_CHANGES)
+        == 'ban grasp'
+    )  # no hold grasp change left: the move grasp goes, as before
+    assert (
+        next_step(failure(cause=CAUSE_GRASP, other_arm=None), tries)
+        == 'ban grasp'
+    )  # not blocked by the hold arm: the counter does not matter
 
     # ban_hold_grasp removes the hold grasp and the pairs that use it, and
     # nothing else (not the move grasp with the same id, not other parts).

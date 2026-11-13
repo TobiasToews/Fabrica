@@ -48,6 +48,7 @@ from planning.config import (
     STRAIGHT_STEP,
     STRAIGHT_MAX,
     STRAIGHT_MAX_JOINT_STEP,
+    ARM_ARM_CLEARANCE,
 )
 from planning.robot.panda_condition import (
     PANDA_JOINT_LIMITS,
@@ -230,7 +231,17 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         for name, mesh in self.gripper_meshes_buffered.items():
             self.gripper_col_manager_buffered.add_object(name, mesh)
             self.other_col_manager_buffered.add_object(name, mesh)
-        
+        # The same arm meshes without inflation, for the exact distance
+        # between the two arms (see collision_fn: until 2026-11-13 both
+        # arms were inflated by 1 cm there, about 2 cm apart in effect).
+        self.arm_col_manager = trimesh.collision.CollisionManager()
+        self.other_col_manager = trimesh.collision.CollisionManager()
+        for name, mesh in self.arm_meshes.items():
+            self.arm_col_manager.add_object(name, mesh)
+            self.other_col_manager.add_object(name, mesh)
+        for name, mesh in self.gripper_meshes.items():
+            self.other_col_manager.add_object(name, mesh)
+
         self.ground_col_manager = trimesh.collision.CollisionManager()
         self.ground_col_manager_buffered = trimesh.collision.CollisionManager()
         self.ground_mesh = trimesh.creation.box((100, 100, 0.4)) # NOTE: 0.2cm safety
@@ -391,25 +402,43 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
 
         # strict: limits of the cheap rules. The free path keeps the reserve, the fixed poses (grasp, release, insertion start) and the
         # straight moves only the checked values; relax() lowers the reserve to what the two ends of the free path reach.
-        limits = {'joint': MIN_JOINT_LIMIT_MARGIN + PLANNER_JOINT_MARGIN, 'sigma': MIN_SIGMA + PLANNER_SIGMA_MARGIN, 'wall': VIRTUAL_WALL_SAFETY + PLANNER_MARGIN}
-        limits_checked = {'joint': MIN_JOINT_LIMIT_MARGIN, 'sigma': MIN_SIGMA, 'wall': VIRTUAL_WALL_SAFETY}
+        # 'arm': the distance to the other arm (ARM_ARM_CLEARANCE), the same value as in planning/plan_checks.py.
+        limits = {'joint': MIN_JOINT_LIMIT_MARGIN + PLANNER_JOINT_MARGIN, 'sigma': MIN_SIGMA + PLANNER_SIGMA_MARGIN, 'wall': VIRTUAL_WALL_SAFETY + PLANNER_MARGIN,
+                  'arm': ARM_ARM_CLEARANCE + PLANNER_MARGIN}
+        limits_checked = {'joint': MIN_JOINT_LIMIT_MARGIN, 'sigma': MIN_SIGMA, 'wall': VIRTUAL_WALL_SAFETY, 'arm': ARM_ARM_CLEARANCE}
         def pose_values(q):
             return {'joint': joint_limit_margin(q)[0], 'sigma': np.linalg.svd(panda_jacobian(q), compute_uv=False).min(),
-                    'wall': get_virtual_wall_margin(self.arm_chain, self.arm_chain.active_to_full(q)) if self.virtual_walls else np.inf}
+                    'wall': get_virtual_wall_margin(self.arm_chain, self.arm_chain.active_to_full(q)) if self.virtual_walls else np.inf,
+                    'arm': arm_gap(q)}
         def relax(qs):
             for q in qs:
                 for key, value in pose_values(q).items():
                     limits[key] = max(limits_checked[key], min(limits[key], value))
 
-        # other arm collision manager
+        # other arm collision manager: its exact meshes where it stands (it does not move while this arm moves)
         if arm_chain_other is not None and DUAL_ARM_COL_CHECK:
             assert arm_q_other is not None and open_ratio_other is not None
             arm_transforms_other, gripper_transforms_other = self.get_meshes_transforms_other(arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other)
-            self.apply_transforms_to_col_manager(self.other_col_manager_buffered, arm_transforms_other)
-            self.apply_transforms_to_col_manager(self.other_col_manager_buffered, gripper_transforms_other)
-            other_col_manager_buffered = self.other_col_manager_buffered
+            self.apply_transforms_to_col_manager(self.other_col_manager, arm_transforms_other)
+            self.apply_transforms_to_col_manager(self.other_col_manager, gripper_transforms_other)
+            other_col_manager = self.other_col_manager
         else:
-            other_col_manager_buffered = None
+            other_col_manager = None
+
+        def moving_managers():
+            # this arm, its gripper and the part it carries, at the transforms last set on them
+            return [self.arm_col_manager, self.gripper_col_manager] + ([move_col_manager] if move_col_manager is not None else [])
+
+        def arm_gap(q):
+            '''exact distance (cm) of this arm, its gripper and its carried part to the other arm at the active pose q (inf: no other arm)'''
+            if other_col_manager is None:
+                return np.inf
+            arm_tf, grip_tf, move_tf = self.get_meshes_transforms_active(q, open_ratio, move_pickup_mesh, gripper_pickup_transform)
+            self.apply_transforms_to_col_manager(self.arm_col_manager, arm_tf)
+            self.apply_transforms_to_col_manager(self.gripper_col_manager, grip_tf)
+            if move_col_manager is not None:
+                self.apply_transforms_to_col_manager(move_col_manager, {'move': move_tf})
+            return min(other_col_manager.min_distance_other(m) for m in moving_managers())
 
         # consider gripper base offset in distance function
         tcp_offset = get_gripper_grasp_base_offset(self.gripper_type, open_ratio)
@@ -441,7 +470,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 print('collision detected: ' + what)
             return True
 
-        def collision_fn(q, buffered=buffered, move_ground_buffer=True, part_clearance=False, reserve=True):
+        def collision_fn(q, buffered=buffered, move_ground_buffer=True, part_clearance=False, reserve=True, step=False):
+            # step=True: a step of a straight move out of or into a pose (plan_path_straight_out): towards the other arm only
+            # contact counts there, as in plan_checks.py, which allows a path to start and end closer than ARM_ARM_CLEARANCE
 
             # real arm: joint limits, singularities and walls first (cheap; most rejected samples stop here)
             if self.strict:
@@ -466,6 +497,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             # transform arm and gripper meshes
             arm_transforms_i, gripper_transforms_i, move_transform_global = self.get_meshes_transforms_active(q, open_ratio, move_pickup_mesh, gripper_pickup_transform)
             self.apply_transforms_to_col_manager(self.arm_col_manager_buffered, arm_transforms_i)
+            self.apply_transforms_to_col_manager(self.arm_col_manager, arm_transforms_i)
             self.apply_transforms_to_col_manager(self.gripper_col_manager_buffered, gripper_transforms_i)
             self.apply_transforms_to_col_manager(self.gripper_col_manager, gripper_transforms_i)
             if move_transform_global is not None:
@@ -523,12 +555,17 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             if SELF_ARM_INTERSECT_CHECK and self.arm_self_collision():
                 return hit('arm self-intersection')
 
-            # check dual-arm collision
-            if other_col_manager_buffered is not None:
-                if other_col_manager_buffered.in_collision_other(self.arm_col_manager_buffered) or \
-                    other_col_manager_buffered.in_collision_other(self.gripper_col_manager_buffered) or \
-                    (move_col_manager is not None and other_col_manager_buffered.in_collision_other(move_col_manager)):
+            # check dual-arm collision, on the exact meshes of both arms (the rule of plan_checks.py, ARM_ARM_CLEARANCE): a step of
+            # a straight move only must not touch the other arm; every other pose keeps ARM_ARM_CLEARANCE, the free path of the
+            # real arm (strict, buffered) plus the reserve, lowered to what the two ends of the free path reach (relax)
+            if other_col_manager is not None:
+                moving = moving_managers()
+                if any(other_col_manager.in_collision_other(m) for m in moving):
                     return hit('dual-arm')
+                if not step:
+                    need = (limits if self.strict and buffered and reserve else limits_checked)['arm']
+                    if min(other_col_manager.min_distance_other(m) for m in moving) < need - 1e-9:
+                        return hit('dual-arm')
 
             if verbose:
                 print('no collision detected')
@@ -616,7 +653,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             if q_next is None or np.abs(q_next - path[-1]).max() > STRAIGHT_MAX_JOINT_STEP:
                 self.last_block = ('no arm pose', moved)
                 return None
-            if collision_fn(self.arm_chain.active_from_full(q_next), buffered=False, move_ground_buffer=False):
+            if collision_fn(self.arm_chain.active_from_full(q_next), buffered=False, move_ground_buffer=False, step=True):
                 self.last_block = (getattr(collision_fn, 'hit', None), moved)
                 return None
             path.append(q_next)

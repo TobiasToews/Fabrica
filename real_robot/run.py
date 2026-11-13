@@ -207,39 +207,37 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
                         else:
                             print('Incorrect input, try again')
 
+                    # Repeat the insertion? Asked also with --auto (2026-11-13, Tobias): there a failed insertion used to be
+                    # retried without asking, endlessly when the policy never reported success (pos err 0.5-1.5 cm)
                     if auto:
-                        if policy_success:
+                        print(f'[insertion] the policy reports {"success" if policy_success else "no success"}')
+                    while True:
+                        repeat_choice = input('Repeat? (y/n)')
+                        if repeat_choice == 'n':
                             repeat = False
-                        else:
+                            break
+                        elif repeat_choice == 'y':
                             done_init_right = False
-                    else:
-                        while True:
-                            repeat_choice = input('Repeat? (y/n)')
-                            if repeat_choice == 'n':
-                                repeat = False
-                                break
-                            elif repeat_choice == 'y':
-                                done_init_right = False
 
-                                if vlm:
-                                    vlm_choice = input('Use VLM? (y/n)')
-                                    if vlm_choice == 'y':
-                                        keyframes = gemini.get_keyframes_from_file(record_path, num_frames=10)
-                                        query_list = [prompt] + keyframes
-                                        response = gemini.generate_content(query_list, temperature=0.1)
-                                        response = json.loads(response)
-                                        action = response['action'].strip().lower()
-                                        print(f"[Gemini] Response generated: {response}")
-                                        last_action = action
-                                        past_actions.append(action)
+                            if vlm:
+                                vlm_choice = input('Use VLM? (y/n)')
+                                if vlm_choice == 'y':
+                                    keyframes = gemini.get_keyframes_from_file(record_path, num_frames=10)
+                                    query_list = [prompt] + keyframes
+                                    response = gemini.generate_content(query_list, temperature=0.1)
+                                    response = json.loads(response)
+                                    action = response['action'].strip().lower()
+                                    print(f"[Gemini] Response generated: {response}")
+                                    last_action = action
+                                    past_actions.append(action)
 
-                                        response_path = os.path.join(video_dir, f"step_{i+1}", f"trial_{repeat_idx}_{last_action}.json")
-                                        with open(response_path, 'w') as f:
-                                            json.dump(response, f, indent=4)
+                                    response_path = os.path.join(video_dir, f"step_{i+1}", f"trial_{repeat_idx}_{last_action}.json")
+                                    with open(response_path, 'w') as f:
+                                        json.dump(response, f, indent=4)
 
-                                break
-                            else:
-                                print('Incorrect input, try again')
+                            break
+                        else:
+                            print('Incorrect input, try again')
 
                 else:
                     # start trajectory server and go to the first joint pose
