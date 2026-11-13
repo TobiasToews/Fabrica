@@ -28,8 +28,21 @@ from utils.parallel import parallel_execute
 
 class GraspArmGenerator(GraspGenerator):
 
-    def __init__(self, asset_folder, assembly_dir, preced_graph, gripper_type=None, arm_type=None, has_ft_sensor=None, seed=0, n_surface_pt=100, n_angle=10, antipodal_thres=0.95, ik_optimizer=None, ik_regularization=None, offset_delta=0.0, reduced_limit=0.0):
+    def __init__(self, asset_folder, assembly_dir, preced_graph, gripper_type=None, arm_type=None, has_ft_sensor=None, seed=0, n_surface_pt=100, n_angle=10, antipodal_thres=0.95, ik_optimizer=None, ik_regularization=None, offset_delta=0.0, reduced_limit=0.0, flat=False):
         GraspGenerator.__init__(self, asset_folder, assembly_dir, preced_graph, gripper_type=gripper_type, arm_type=arm_type, has_ft_sensor=has_ft_sensor['move'] or has_ft_sensor['hold'], seed=seed, n_surface_pt=n_surface_pt, n_angle=n_angle, antipodal_thres=antipodal_thres, offset_delta=offset_delta)
+
+        # flat: grasps for the fixture-free pipeline (planning/flat_grasp.py). The contact is evaluated on a grid of the finger
+        # pads, and the move grasps that are kept can pick their part lying flat on the table (generate_grasps_flat).
+        self.flat = flat
+        self.pads = None
+        self.part_faces = {} # part id -> PartFaces of the part at its final pose
+        if flat:
+            from planning.flat_grasp import finger_pads
+            self.pads = finger_pads(self.gripper_type, self.gripper_meshes_visual)
+            # the original pipeline keeps gripper and arm out of a box where its fixture stands (run_grasp_gen.py: 30 x 50 x 100 cm,
+            # from y = get_fixture_min_y on). Without a fixture nothing stands there: the parts lie where the layout puts them,
+            # and the assembly may stand in that area (an assembly placed there got no grasp at all, position test of 2026-11-12)
+            self.ground_col_manager.remove_object('fixture')
 
         # arm
         self.arm_type = arm_type
@@ -364,6 +377,12 @@ class GraspArmGenerator(GraspGenerator):
         return grasps
     
     def compute_contact_points(self, grasp, part_id, n_sample=1000):
+        if self.pads is not None: # flat pipeline: fixed grid on the gripping pads instead of n_sample random points on the fingers
+            from planning.flat_grasp import PartFaces, set_pad_contact
+            if part_id not in self.part_faces:
+                self.part_faces[part_id] = PartFaces(self.part_meshes[part_id].copy().apply_transform(self.part_final_transforms[part_id]))
+            return set_pad_contact(grasp, self.pads, self.gripper_type, self.gripper_meshes_visual, self.part_faces[part_id])
+
         part_mesh = self.part_meshes[part_id].copy()
         part_mesh.apply_transform(self.part_final_transforms[part_id])
 
@@ -386,6 +405,50 @@ class GraspArmGenerator(GraspGenerator):
         grasp.contact_points = contact_points
         return grasp
 
+    def compute_contact_points_chunk(self, grasps, part_id):
+        return [self.compute_contact_points(grasp, part_id) for grasp in grasps]
+
+    def assembly_scene(self):
+        '''
+        flat: the planner of the move arm and the parts at their assembled poses for assembly_moves_chunk, with the inflated
+        versions of the part meshes that the planner tests against already computed. Built once per assembly, and in the parent
+        process before the worker processes start: they get it by fork and share its memory. (Built in every worker instead,
+        50 planners with the inflated meshes of duct needed more memory than the machine has, and the kernel killed a worker.)
+        '''
+        if getattr(self, '_assembly_scene', None) is None:
+            from planning.robot.motion_plan_arm import ArmMotionPlanner
+            from planning.run_motion_plan import make_move_planner
+            ArmMotionPlanner.VISUALIZE = False
+            final = {k: self.part_meshes[k].copy().apply_transform(self.part_final_transforms[k]) for k in self.part_meshes}
+            planner = make_move_planner(get_arm_chain(self.arm_type, 'move'), self.gripper_type, self.has_ft_sensor['move'], get_dual_arm_box(self.arm_type)[0], final)
+            for buffer in planner.part_buffers():
+                planner.part_manager(list(final.values()), buffer) # computes and keeps the inflated mesh of every part
+            self._assembly_scene = (planner, final)
+        return self._assembly_scene
+
+    def assembly_moves_chunk(self, moves, part_id):
+        '''
+        flat: for each move grasp of the chunk (the grasp along the insertion path) None, or which straight move at the assembly
+        the real arm cannot do with it (run_motion_plan.assembly_moves_blocked), with the planner of assembly_scene. The random
+        numbers (IK restarts) are set per grasp, so that the result does not depend on how the grasps are split into chunks.
+        '''
+        import gc
+        import random
+        from planning.run_motion_plan import assembly_moves_blocked
+        planner, final = self.assembly_scene()
+        before = [final[k] for k in sorted(self.G_preced.nodes[part_id]['parts_after'])] # the parts that are assembled before this one
+        inserted = len(before) > 0 # nothing before it: the part can be the one that is held first, which is not inserted along its path
+        blocked = []
+        for move in moves:
+            random.seed(move[0].grasp_id)
+            np.random.seed(move[0].grasp_id)
+            blocked.append(assembly_moves_blocked(planner, move, final[part_id], before, inserted=inserted))
+            # the collision structures the planner builds for a grasp are only released by the garbage collector (they are held
+            # in reference cycles). Left to itself it runs too late: with the two large parts of duct (28000 and 38000 faces)
+            # a process grew by 60 MB per grasp, 280 -> 1744 MB after 24 grasps; collected after each grasp it stays constant
+            gc.collect()
+        return blocked
+
     def compute_retract_grasp(self, grasp, arm_type):
         grasp = super().compute_retract_grasp(grasp)
         gripper_pos_retract, gripper_ori_retract = grasp.pos_retract, get_ik_target_orientation(self.arm_chains[arm_type], self.gripper_type, grasp.quat)
@@ -393,7 +456,193 @@ class GraspArmGenerator(GraspGenerator):
         if not ik_success: grasp.arm_q_retract = None
         return grasp
     
+    def antipodal_candidates(self, part_id, part_mesh, sample_budget, grasp_id):
+        '''
+        Grasp candidates from antipodal point pairs on the part surface, as in generate_grasps; their ids count on from grasp_id.
+        Every call draws new surface points (the random stream goes on), so a second call does not repeat the pairs of the first.
+        '''
+        grasps_cand = []
+        antipodal_pairs = compute_antipodal_pairs(part_mesh, sample_budget=sample_budget, antipodal_thres=self.antipodal_thres, collision_meshes=[])
+        for antipodal_points in antipodal_pairs:
+            open_ratio = get_gripper_open_ratio(self.gripper_type, antipodal_points)
+            if open_ratio is None or open_ratio > 0.95: continue
+            gripper_pos_list, gripper_quat_list = generate_gripper_states(self.gripper_type, antipodal_points, open_ratio, self.n_angle, offset_delta=self.offset_delta)
+            for gripper_pos, gripper_quat in zip(gripper_pos_list, gripper_quat_list):
+                grasps_cand.append(Grasp(part_id, grasp_id, gripper_pos, gripper_quat, open_ratio))
+                grasp_id += 1
+        return grasps_cand
+
+    def lying_candidates(self, part_id, part_mesh, flat_rots, sample_budget, grasp_id):
+        '''
+        Grasp candidates made for the part lying on the board in the resting poses flat_rots (flat_grasp.lying_grasp_candidates);
+        their ids count on from grasp_id. Marked with source = 'lying' (the candidates of antipodal_candidates have no mark).
+        '''
+        from planning.config import FLAT_LYING_ANGLES
+        from planning.flat_grasp import lying_grasp_candidates
+        grasps_cand = []
+        for pos, quat, open_ratio, _ in lying_grasp_candidates(part_mesh, flat_rots, self.gripper_type, self.gripper_meshes, sample_budget, FLAT_LYING_ANGLES, self.antipodal_thres):
+            grasp = Grasp(part_id, grasp_id, pos, quat, open_ratio)
+            grasp.source = 'lying'
+            grasps_cand.append(grasp)
+            grasp_id += 1
+        return grasps_cand
+
+    def generate_grasps_flat(self, part_id, max_n_grasp=None, n_proc=1, verbose=False):
+        '''
+        Grasps of a part for the flat pipeline: a move grasp must pick the part lying flat on the table and insert it, so the
+        flat-pickup test and the other criteria of the grasp filter (flat_grasp.move_grasp_criteria) are applied BEFORE the number
+        of grasps is cut to max_n_grasp, and the grasps that are kept are the best rated ones (flat_grasp.rate_flat_grasp), spread
+        over the approach directions, instead of a random choice.
+          1. the matching between the assembled and the lying pose, from both sides: candidates from n_surface_pt antipodal
+             pairs at the assembled pose, as in generate_grasps (all are checked; hold grasps as before), and candidates made
+             on the lying part in its stable resting poses (lying_candidates, FLAT_LYING_PT pairs), which are then checked at
+             the assembled pose like the others. All of them are rated together.
+          2. fewer than FLAT_MIN_GRASPS usable move grasps: FLAT_RESAMPLE_PT further pairs from new surface points; of those only
+             the candidates that can pick the part lying flat are checked
+          3. no usable move grasp in the stable resting poses: the less stable resting poses are admitted for this part
+             (get_flat_rots with_fallback; the grasp filter decides the same from the grasps that are kept), and candidates
+             are made on the part lying in those poses as well
+        Hold grasps are chosen at random as before. The part that is held first has to be taken from the table too: it gets, in
+        addition, the best rated hold grasps that can pick it lying flat (up to max_n_grasp / 2). And for every part that can
+        be inserted while this part is held, hold grasps whose gripper leaves room for that insertion are kept if the random
+        choice has fewer than FLAT_HOLD_ROOM of them (flat_grasp.holds_with_room).
+        The results do not depend on the order in which the worker processes finish (they are sorted by the grasp id).
+        '''
+        from planning.config import FLAT_FALLBACK_POSES, FLAT_MIN_GRASPS, FLAT_RESAMPLE_PT, FLAT_HOLD_ROOM, FLAT_LYING_PT # read at the call: the values can be set per run
+        from planning.flat_grasp import PartFaces, get_flat_rots, get_flat_pickup_candidates, move_grasp_criteria, rate_flat_grasp, \
+            select_grasps, approach_direction, part_center_of_mass, insertion_score, insertion_ranks, holds_with_room
+
+        part_mesh = self.part_meshes[part_id].copy()
+        part_mesh.apply_transform(self.part_final_transforms[part_id])
+        self.part_faces[part_id] = PartFaces(part_mesh) # before the worker processes start
+        rots_stable = get_flat_rots(part_mesh)
+        rots_all = get_flat_rots(part_mesh, with_fallback=True) if FLAT_FALLBACK_POSES else rots_stable
+        arm_chain = self.arm_chains['move'] if self.arm_type == 'panda' else None
+        first_held = len(self.G_preced.nodes[part_id]['parts_after']) == 0
+        is_flat = lambda grasp, rots: len(get_flat_pickup_candidates(grasp, part_mesh, rots, self.gripper_type, self.gripper_meshes)) > 0
+
+        def with_contact(grasps_cand): # a grasp whose pads do not touch the part is none
+            chunks = [grasps_cand[i::n_proc] for i in range(max(n_proc, 1))] # one process per chunk: a contact takes a few ms, less than starting a process
+            args = [(chunk, part_id) for chunk in chunks if len(chunk) > 0]
+            grasps = [grasp for chunk in parallel_execute(self.compute_contact_points_chunk, args, num_proc=n_proc, show_progress=False) for grasp in chunk if len(grasp.contact_points) > 0]
+            return sorted(grasps, key=lambda grasp: grasp.grasp_id)
+
+        def feasible(grasps_cand): # reachable and collision free at the assembled pose, as a move and / or as a hold grasp
+            args = [(grasp, part_id, False) for grasp in grasps_cand]
+            results = [result for result in parallel_execute(self.check_grasp_feasible, args, num_proc=n_proc, show_progress=False) if result is not None]
+            return sorted(results, key=lambda r: (r['move'][0] if r['move'] is not None else r['hold']).grasp_id)
+
+        criteria = {} # grasp id -> criteria of the move grasp, with 'flat' for all resting poses and 'flat_stable' for the stable ones
+        def usable(results, stable_only):
+            moves = []
+            for result in results:
+                if result['move'] is None: continue
+                grasp_id = result['move'][0].grasp_id
+                if grasp_id not in criteria:
+                    criteria[grasp_id] = move_grasp_criteria(result['move'], part_mesh, rots_all, self.gripper_type, self.gripper_meshes, arm_chain)
+                    criteria[grasp_id]['flat_stable'] = criteria[grasp_id]['flat'] and is_flat(result['move'][0], rots_stable)
+                c = criteria[grasp_id]
+                if c['walls'] and c['conditioned'] and c['overlap'] and (c['flat_stable'] if stable_only else c['flat']):
+                    moves.append(result['move'])
+            # the straight moves of the real arm at the assembly (to the insertion start with the part, away after the release),
+            # for the grasps that pass everything else: a planner routine per grasp, so it runs in the worker processes.
+            # criteria[...]['assembly']: None, or which of the two moves is missing
+            if arm_chain is not None:
+                untested = [move for move in moves if 'assembly' not in criteria[move[0].grasp_id]]
+                if len(untested) > 0: self.assembly_scene() # built here, in the parent: the worker processes share it
+                # a planner routine with collision tests per grasp, which needs memory (duct: 200 MB per process): over all parts,
+                # which are processed at the same time, no more processes than cores
+                n_chunks = max(1, min(n_proc, (os.cpu_count() or 1) // max(len(self.part_meshes), 1)))
+                chunks = [chunk for chunk in (untested[i::n_chunks] for i in range(n_chunks)) if len(chunk) > 0]
+                for blocked, (chunk, _) in parallel_execute(self.assembly_moves_chunk, [(chunk, part_id) for chunk in chunks], num_proc=n_chunks, show_progress=False, return_args=True):
+                    for move, why in zip(chunk, blocked): criteria[move[0].grasp_id]['assembly'] = why # the results come in the order the processes finish
+                moves = [move for move in moves if criteria[move[0].grasp_id]['assembly'] is None]
+            return moves
+
+        # 1. the matching of the two poses a grasp has to serve. Candidates made at the assembled pose, as in generate_grasps
+        #    (tested on the lying part by usable() below), and candidates made on the lying part in its stable resting poses
+        #    (tested at the assembled pose by feasible(), like all others)
+        grasps_cand = self.antipodal_candidates(part_id, part_mesh, self.n_surface_pt, 0)
+        n_cand, n_cand_more = len(grasps_cand), 0
+        grasps_lying = self.lying_candidates(part_id, part_mesh, rots_stable, FLAT_LYING_PT, n_cand) if FLAT_LYING_PT > 0 else []
+        n_lying = len(grasps_lying)
+        results = feasible(with_contact(grasps_cand)) + feasible([grasp for grasp in with_contact(grasps_lying) if is_flat(grasp, rots_stable)])
+
+        # 2. more surface points for a part with (nearly) no usable move grasp
+        if len(usable(results, stable_only=True)) < FLAT_MIN_GRASPS:
+            grasps_more = self.antipodal_candidates(part_id, part_mesh, FLAT_RESAMPLE_PT, n_cand + n_lying)
+            n_cand_more = len(grasps_more)
+            results += feasible([grasp for grasp in with_contact(grasps_more) if is_flat(grasp, rots_all)])
+
+        # 3. the lying poses of this part: the stable ones, or also the less stable ones if no grasp fits a stable one
+        #    (then candidates are made for the part lying in those poses as well)
+        moves = usable(results, stable_only=True)
+        fallback = False
+        if len(moves) == 0 and len(rots_all) > len(rots_stable):
+            if FLAT_LYING_PT > 0:
+                grasps_less = self.lying_candidates(part_id, part_mesh, [r for r in rots_all if r.get('fallback')], FLAT_LYING_PT, n_cand + n_lying + n_cand_more)
+                n_lying += len(grasps_less)
+                results += feasible([grasp for grasp in with_contact(grasps_less) if is_flat(grasp, rots_all)])
+            moves = usable(results, stable_only=False)
+            fallback = len(moves) > 0
+        rots = rots_all if fallback else rots_stable
+
+        # the move grasps that are kept: best rated, spread over the approach directions
+        center_of_mass = part_center_of_mass(part_mesh)
+        def rated(grasps, with_insertion):
+            ranks = insertion_ranks([insertion_score(grasp, self.G_preced) for grasp in grasps]) if with_insertion else np.zeros(len(grasps))
+            return [rate_flat_grasp(grasp, get_flat_pickup_candidates(grasp, part_mesh, rots, self.gripper_type, self.gripper_meshes)[0], center_of_mass, self.gripper_type, rank)['rating']
+                    for grasp, rank in zip(grasps, ranks)]
+        ratings = rated([move[0] for move in moves], with_insertion=True)
+        for move, rating in zip(moves, ratings):
+            for grasp in move: grasp.flat_rating = rating
+        chosen = select_grasps(ratings, [approach_direction(move[0]) for move in moves], max_n_grasp)
+        grasps_move = [moves[i] for i in chosen]
+
+        # hold grasps: a random choice as in generate_grasps; the part held first also gets the best ones that can pick it lying flat;
+        # and every part keeps hold grasps that leave room for each part that can be inserted while it is held (holds_with_room)
+        holds = [result['hold'] for result in results if result['hold'] is not None]
+        n_hold_flat, n_hold_room = 0, 0
+        if max_n_grasp is None or len(holds) <= max_n_grasp:
+            grasps_hold = holds
+        else:
+            grasps_hold = [holds[i] for i in np.random.choice(len(holds), max_n_grasp, replace=False)]
+            if first_held:
+                chosen_ids = {hold.grasp_id for hold in grasps_hold}
+                flat_holds = [hold for hold in holds if hold.grasp_id not in chosen_ids and is_flat(hold, rots)]
+                flat_ratings = rated(flat_holds, with_insertion=False)
+                extra = [flat_holds[i] for i in select_grasps(flat_ratings, [approach_direction(hold) for hold in flat_holds], max_n_grasp // 2)]
+                n_hold_flat = len(extra)
+                grasps_hold = grasps_hold + extra
+            # the parts that are not yet there when this one is (the others cannot be inserted while it is held)
+            later_parts = sorted(p for p in self.G_preced.nodes if p != part_id and p not in self.G_preced.nodes[part_id]['parts_after'])
+            room = holds_with_room(holds, grasps_hold, later_parts, FLAT_HOLD_ROOM)
+            n_hold_room = len(room)
+            grasps_hold = grasps_hold + room
+
+        n_move = sum(result['move'] is not None for result in results)
+        no_assembly = [c['assembly'] for c in criteria.values() if c.get('assembly') is not None] # why, for each grasp dropped for the moves at the assembly
+        from_lying =lambda grasps: sum(getattr(grasp, 'source', None) == 'lying' for grasp in grasps)
+        n_usable_lying, n_kept_lying = from_lying([move[0] for move in moves]), from_lying([move[0] for move in grasps_move])
+        print(f'[generate_grasps] part {part_id}: {n_cand} candidates' + (f' + {n_lying} made for the lying part' if n_lying > 0 else '') +
+              (f' + {n_cand_more} from {FLAT_RESAMPLE_PT} further surface point pairs' if n_cand_more > 0 else '') +
+              f', {n_move} feasible move grasps, {len(moves)} usable lying flat' + (f' ({n_usable_lying} of them made for the lying part, {n_kept_lying} of those kept)' if n_lying > 0 else '') +
+              (f', {len(no_assembly)} more dropped (no straight move of the arm to the insertion start or away after the release)' if len(no_assembly) > 0 else '') +
+              (' in a less stable resting pose (no grasp fits a stable one)' if fallback else '') +
+              f' -> kept {len(grasps_move)} move + {len(grasps_hold)} hold' + (f' ({n_hold_flat} of the hold grasps added to pick the part lying flat)' if first_held and n_hold_flat > 0 else '') +
+              (f' ({n_hold_room} of the hold grasps added to leave room for the insertion of other parts)' if n_hold_room > 0 else ''), flush=True)
+        if len(moves) == 0 and n_move > 0:
+            failed = {name: sum(not c[name] for c in criteria.values()) for name in ['walls', 'conditioned', 'overlap', 'flat']}
+            print(f'[generate_grasps] part {part_id}: no usable move grasp; of the {len(criteria)} feasible move grasps fail: walls {failed["walls"]}, singularity / joint limits {failed["conditioned"]}, '
+                  f'finger overlap {failed["overlap"]}, flat pickup {failed["flat"]} (stable poses {len(rots_stable)}, with the less stable ones {len(rots_all)})' +
+                  (f'; the {len(no_assembly)} that pass these fail at the assembly, e.g. {no_assembly[0]}' if len(no_assembly) > 0 else ''), flush=True)
+
+        return {'move': grasps_move, 'hold': grasps_hold}
+
     def generate_grasps(self, part_id, max_n_grasp=None, n_proc=1, verbose=False):
+        if self.flat:
+            return self.generate_grasps_flat(part_id, max_n_grasp=max_n_grasp, n_proc=n_proc, verbose=verbose)
+
         grasps_cand = []
         grasp_id = 0
 
@@ -457,6 +706,8 @@ class GraspArmGenerator(GraspGenerator):
     
     def generate_grasps_all(self, max_n_grasp=None, n_proc=1, verbose=False):
         grasps = {part_id: [] for part_id in self.part_ids}
+        if self.flat and self.arm_type == 'panda':
+            self.assembly_scene() # before the parts are handed to their processes: all of them and their workers share it
         args = [(part_id, max_n_grasp, max(n_proc // len(self.part_ids), 1), False) for part_id in self.part_ids]
         for grasps_i, ret_arg in parallel_execute(self.generate_grasps, args, num_proc=min(n_proc, len(self.part_ids)), return_args=True, show_progress=verbose, desc='grasp generation'):
             part_id = ret_arg[0]
@@ -544,7 +795,7 @@ class GraspArmGenerator(GraspGenerator):
         return grasp_id_pairs_all
     
 
-def run_grasp_arm_gen(assembly_dir, log_dir, gripper, arm, ft_sensor, seed, n_surface_pt, n_angle, antipodal_thres, ik_optimizer, ik_regularization, offset_delta, reduced_limit, max_n_grasp, num_proc, verbose):
+def run_grasp_arm_gen(assembly_dir, log_dir, gripper, arm, ft_sensor, seed, n_surface_pt, n_angle, antipodal_thres, ik_optimizer, ik_regularization, offset_delta, reduced_limit, max_n_grasp, num_proc, verbose, flat=False):
     asset_folder = os.path.join(project_base_dir, './assets')
 
     precedence_path = os.path.join(log_dir, 'precedence.pkl')
@@ -561,7 +812,7 @@ def run_grasp_arm_gen(assembly_dir, log_dir, gripper, arm, ft_sensor, seed, n_su
 
     t_start = time()
     grasp_generator = GraspArmGenerator(asset_folder, assembly_dir, G_preced, gripper, arm, has_ft_sensor,
-        seed, n_surface_pt, n_angle, antipodal_thres, ik_optimizer, ik_regularization, offset_delta, reduced_limit)
+        seed, n_surface_pt, n_angle, antipodal_thres, ik_optimizer, ik_regularization, offset_delta, reduced_limit, flat=flat)
 
     grasps_all = grasp_generator.generate_grasps_all(max_n_grasp=max_n_grasp, n_proc=num_proc, verbose=verbose)
     grasp_id_pairs_all = grasp_generator.filter_grasp_id_pairs_all(grasps_all, n_proc=num_proc, verbose=verbose)
@@ -582,7 +833,8 @@ def run_grasp_arm_gen(assembly_dir, log_dir, gripper, arm, ft_sensor, seed, n_su
                         'antipodal_thres': antipodal_thres,
                         'optimizer': ik_optimizer,
                         'offset_delta': offset_delta,
-                        'max_n_grasp': max_n_grasp
+                        'max_n_grasp': max_n_grasp,
+                        'flat': flat, # grasps chosen for the flat pipeline, contact points on the pad grid (generate_grasps_flat)
                     }
                 }, fp
             )
@@ -629,6 +881,9 @@ if __name__ == '__main__':
     parser.add_argument('--num-proc', type=int, default=1, help='number of processes')
     parser.add_argument('--seed', type=int, default=0, help='random seed')
     parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
+    parser.add_argument('--flat', action='store_true', default=False, help='grasps for the fixture-free pipeline: move grasps that can pick their part lying flat, chosen by rating (run_planning_flat.py)')
     args = parser.parse_args()
 
-    run_grasp_arm_gen(args.assembly_dir, args.log_dir, args.gripper, args.arm, args.ft_sensor, args.seed, args.n_surface_pt, args.n_angle, args.antipodal_thres, args.ik_optimizer, args.ik_regularization, args.offset_delta, args.reduced_limit, args.max_n_grasp, args.num_proc, args.verbose)
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
+    run_grasp_arm_gen(args.assembly_dir, args.log_dir, args.gripper, args.arm, args.ft_sensor, args.seed, args.n_surface_pt, args.n_angle, args.antipodal_thres, args.ik_optimizer, args.ik_regularization, args.offset_delta, args.reduced_limit, args.max_n_grasp, args.num_proc, args.verbose, flat=args.flat)

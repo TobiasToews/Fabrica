@@ -522,4 +522,6 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', action='store_true', default=True, help='verbose')
     args = parser.parse_args()
 
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     run_seq_plan(args.assembly_dir, args.log_dir, early_term=args.early_term, plot=args.plot, verbose=args.verbose)

@@ -4,8 +4,10 @@ import sys
 project_base_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.append(project_base_dir)
 
+import gc
 import numpy as np
 import trimesh
+import fcl
 import os
 from scipy.spatial.transform import Rotation as R, Slerp
 
@@ -15,9 +17,11 @@ from planning.path.rrt_star import rrt_star
 from planning.path.meta import direct_path
 from planning.path.smoothing import smooth_path
 from planning.robot.util_arm import get_gripper_pos_quat_from_arm_q, get_ik_target_orientation, get_gripper_basis_directions, get_virtual_wall_margin
-from planning.robot.geometry import load_arm_meshes, load_gripper_meshes, transform_arm_meshes, transform_gripper_meshes, get_arm_meshes_transforms, get_gripper_meshes_transforms, get_buffered_arm_meshes, get_buffered_gripper_meshes, get_buffered_meshes, get_gripper_grasp_base_offset
+from planning.robot.geometry import load_arm_meshes, load_gripper_meshes, transform_arm_meshes, transform_gripper_meshes, get_arm_meshes_transforms, get_gripper_meshes_transforms, get_buffered_arm_meshes, get_buffered_gripper_meshes, get_buffered_meshes, offset_mesh, get_gripper_grasp_base_offset
 from utils.common import TimeStamp
-from planning.config import TRANSFER_LIFT_DELTA
+from planning.config import TRANSFER_LIFT_DELTA, ROBOT_PART_CLEARANCE, ASSEMBLY_CLEARANCE, MIN_SIGMA, MIN_JOINT_LIMIT_MARGIN, \
+    PLANNER_MARGIN, PLANNER_JOINT_MARGIN, PLANNER_SIGMA_MARGIN, STRAIGHT_STEP, STRAIGHT_MAX, STRAIGHT_MAX_JOINT_STEP
+from planning.robot.panda_condition import PANDA_JOINT_LIMITS, panda_jacobian, joint_limit_margin
 
 
 DUAL_ARM_COL_CHECK = True
@@ -27,6 +31,11 @@ MAX_ANG_SPEED = 1 # rad/s
 N_IK_RESTART = 20 # chain's default is 3
 MAX_RETRACT_JOINT_STEP = 0.5 # rad, largest joint change between two retract poses
 VIRTUAL_WALL_SAFETY = 1.0 # cm, extra distance to franka-interface's virtual walls (tracking error)
+# what the collision test of a pose can find (collision_fn.hit), by who causes it: the arm and the gripper (their pose follows from
+# the grasp), or the part in the gripper (its pose at an insertion start or at its pickup spot does not depend on the grasp)
+HITS_ARM = ['joint limit', 'singularity', 'virtual wall', 'arm and ground', 'gripper and ground', 'arm and gripper', 'arm and part', 'arm and move part',
+            'gripper and part', 'arm self-intersection', 'dual-arm']
+HITS_CARRIED_PART = ['carried part too close to the table', 'move part and ground', 'move part and part']
 
 
 def interpolate_angles(start_angle, end_angle, num_steps, bidirectional):
@@ -135,6 +144,14 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         self.table_z = table_z # world z of the real table surface (cm); with part_clearance, a carried part stays this far above it during transport
         self.part_clearance = part_clearance
         self.clearance_exempt_xy = clearance_exempt_xy # (xy lower, xy upper) around the assembly where carried parts may come low (insertion approach)
+        # strict: plan for the real arm so that the paths pass planning/plan_checks.py (panda only). Every pose keeps the joint-limit,
+        # singularity and wall rules; a path is [straight move out] + [free path that keeps the clearances to all parts] + [straight
+        # move in]; the straight moves only have to be contact free and end where the clearances hold; nothing falls back silently.
+        self.strict = False
+        self.last_failure = None # strict: why the last plan_path* call returned None ('start', 'goal' or 'path')
+        self.last_block = None # strict: what stopped the last straight move, see plan_path_straight_out
+        self._buffer_cache = {} # (id(mesh), buffer) -> (mesh, inflated mesh); the mesh is kept so that its id stays unique
+        self._self_pairs = None # pairs of arm links that are tested against each other, see arm_self_collision
         self.optimizer = optimizer
         if stamp is None:
             self.stamp = TimeStamp()
@@ -219,6 +236,42 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         for name, mesh in transforms.items():
             col_manager.set_transform(name, mesh)
 
+    def arm_self_collision(self):
+        '''
+        True if two links of the (inflated) arm that may collide intersect, at the transforms last set on arm_col_manager_buffered.
+        Same result as in_collision_internal() filtered by check_colliding_links(), but only those link pairs are tested and each
+        test stops at the first contact (neighbouring inflated links always overlap and produced hundreds of contacts per call).
+        '''
+        if self._self_pairs is None:
+            names = list(self.arm_col_manager_buffered._objs)
+            self._self_pairs = [(self.arm_col_manager_buffered._objs[a]['obj'], self.arm_col_manager_buffered._objs[b]['obj'])
+                                for i, a in enumerate(names) for b in names[i + 1:] if self.arm_chain.check_colliding_links(a, b)]
+        for obj_a, obj_b in self._self_pairs:
+            if fcl.collide(obj_a, obj_b, fcl.CollisionRequest(), fcl.CollisionResult()) > 0:
+                return True
+        return False
+
+    def part_buffers(self):
+        '''
+        By how much (cm) the still parts are inflated for the gripper / carried part, and for the arm. strict: gripper and carried
+        part keep the checked clearance to every part, the arm (inflated by 1 cm itself) only needs the reserve.
+        '''
+        if self.strict:
+            return max(ROBOT_PART_CLEARANCE, ASSEMBLY_CLEARANCE) + PLANNER_MARGIN, PLANNER_MARGIN
+        return 0.5, 0.5
+
+    def part_manager(self, meshes, buffer):
+        '''collision manager of the still meshes, each inflated by buffer (cm); the inflated meshes are computed once per mesh'''
+        manager = trimesh.collision.CollisionManager()
+        for idx, mesh in enumerate(meshes):
+            if buffer > 0:
+                key = (id(mesh), buffer)
+                if key not in self._buffer_cache: # strict: grown by at least buffer everywhere, see offset_mesh
+                    self._buffer_cache[key] = (mesh, offset_mesh(mesh, buffer) if self.strict else get_buffered_meshes(mesh, buffer=buffer))
+                mesh = self._buffer_cache[key][1]
+            manager.add_object(f'part_still_{idx}', mesh)
+        return manager
+
     def visualize_col_managers(self, col_managers, other_meshes=[]):
         if not ArmMotionPlanner.VISUALIZE: return
         meshes = {}
@@ -257,6 +310,13 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
 
     def get_fns(self, move_pickup_mesh, gripper_pickup_transform, still_meshes, open_ratio, arm_chain_other=None, arm_q_other=None, open_ratio_other=None, has_ft_sensor_other=False, buffered=True, verbose=False):
 
+        # The collision structures built by an earlier call are held in reference cycles (the functions returned below refer to
+        # each other), so Python frees them only when its garbage collector runs. Left to itself that is too late for large
+        # meshes: every call left 218 MB behind for gamepad (two parts with 52000 faces), 76 MB for beam, and eight motion
+        # plans of gamepad at once filled the 15 GB of the machine. Collected here, the memory of a process stays constant.
+        # What a caller still holds is not touched.
+        gc.collect()
+
         # move part collision manager
         if move_pickup_mesh is not None:
             move_col_manager = trimesh.collision.CollisionManager()
@@ -264,14 +324,23 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         else:
             move_col_manager = None
 
-        # still part collision manager
-        still_meshes_buffered = get_buffered_meshes(still_meshes, buffer=0.5)
-        part_col_manager = trimesh.collision.CollisionManager()
-        for idx, mesh in enumerate(still_meshes):
-            part_col_manager.add_object(f'part_still_{idx}', mesh)
-        part_col_manager_buffered = trimesh.collision.CollisionManager()
-        for idx, mesh in enumerate(still_meshes_buffered):
-            part_col_manager_buffered.add_object(f'part_still_{idx}', mesh)
+        # still part collision managers: exact, and inflated for the gripper / carried part and for the (already inflated) arm
+        part_buffer, part_buffer_arm = self.part_buffers()
+        part_col_manager = self.part_manager(still_meshes, 0.0)
+        part_col_manager_buffered = self.part_manager(still_meshes, part_buffer)
+        part_col_manager_arm = self.part_manager(still_meshes, part_buffer_arm)
+
+        # strict: limits of the cheap rules. The free path keeps the reserve, the fixed poses (grasp, release, insertion start) and the
+        # straight moves only the checked values; relax() lowers the reserve to what the two ends of the free path reach.
+        limits = {'joint': MIN_JOINT_LIMIT_MARGIN + PLANNER_JOINT_MARGIN, 'sigma': MIN_SIGMA + PLANNER_SIGMA_MARGIN, 'wall': VIRTUAL_WALL_SAFETY + PLANNER_MARGIN}
+        limits_checked = {'joint': MIN_JOINT_LIMIT_MARGIN, 'sigma': MIN_SIGMA, 'wall': VIRTUAL_WALL_SAFETY}
+        def pose_values(q):
+            return {'joint': joint_limit_margin(q)[0], 'sigma': np.linalg.svd(panda_jacobian(q), compute_uv=False).min(),
+                    'wall': get_virtual_wall_margin(self.arm_chain, self.arm_chain.active_to_full(q)) if self.virtual_walls else np.inf}
+        def relax(qs):
+            for q in qs:
+                for key, value in pose_values(q).items():
+                    limits[key] = max(limits_checked[key], min(limits[key], value))
 
         # other arm collision manager
         if arm_chain_other is not None and DUAL_ARM_COL_CHECK:
@@ -286,40 +355,54 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         # consider gripper base offset in distance function
         tcp_offset = get_gripper_grasp_base_offset(self.gripper_type, open_ratio)
 
+        # the joint and TCP positions of a pose, as one array (n + 1, 3): path smoothing asks for the same poses again and again
+        points_cache = {}
+        def pose_points(q):
+            key = np.asarray(q, dtype=float).tobytes()
+            points = points_cache.get(key)
+            if points is None:
+                fk = self.arm_chain.forward_kinematics_active(q, full_kinematics=True)
+                tcp = fk[-1][:3, 3] + fk[-1][:3, 0 if self.arm_type == 'ur5e' else 2] * tcp_offset
+                points = np.array([f[:3, 3] for f in fk] + [tcp])
+                if len(points_cache) >= 50000: points_cache.clear()
+                points_cache[key] = points
+            return points
+
         def distance_fn(q1, q2, use_all_joints=True, average=True): # NOTE: use all joints or only the endeffector joint
-            fk1 = self.arm_chain.forward_kinematics_active(q1, full_kinematics=True)
-            fk2 = self.arm_chain.forward_kinematics_active(q2, full_kinematics=True)
-            if self.arm_type == 'ur5e':
-                tcp1 = fk1[-1][:3, 3] + fk1[-1][:3, 0] * tcp_offset
-                tcp2 = fk2[-1][:3, 3] + fk2[-1][:3, 0] * tcp_offset
-            else:
-                tcp1 = fk1[-1][:3, 3] + fk1[-1][:3, 2] * tcp_offset
-                tcp2 = fk2[-1][:3, 3] + fk2[-1][:3, 2] * tcp_offset
-            dist = np.linalg.norm(tcp1 - tcp2)
-            if use_all_joints:
-                for i in range(len(fk1)):
-                    dist += np.linalg.norm(fk1[i][:3, 3] - fk2[i][:3, 3])
-                if average:
-                    dist /= len(fk1) + 1
-            return dist
+            distances = np.linalg.norm(pose_points(q1) - pose_points(q2), axis=1) # joints ..., TCP
+            if not use_all_joints:
+                return distances[-1]
+            return distances.sum() / len(distances) if average else distances.sum()
 
         move_hull_vertices = move_pickup_mesh.convex_hull.vertices if move_pickup_mesh is not None else None
 
-        def collision_fn(q, buffered=buffered, move_ground_buffer=True, part_clearance=False):
+        def hit(what):
+            collision_fn.hit = what # what rejected the last pose that was rejected (one of HITS_ARM / HITS_CARRIED_PART), read by plan_path_straight_out
+            if verbose:
+                print('collision detected: ' + what)
+            return True
+
+        def collision_fn(q, buffered=buffered, move_ground_buffer=True, part_clearance=False, reserve=True):
+
+            # real arm: joint limits, singularities and walls first (cheap; most rejected samples stop here)
+            if self.strict:
+                active = limits if buffered and reserve else limits_checked
+                if joint_limit_margin(q)[0] < active['joint'] - 1e-9:
+                    return hit('joint limit')
+                if np.linalg.svd(panda_jacobian(q), compute_uv=False).min() < active['sigma'] - 1e-9:
+                    return hit('singularity')
+                if self.virtual_walls and get_virtual_wall_margin(self.arm_chain, self.arm_chain.active_to_full(q)) < active['wall'] - 1e-9:
+                    return hit('virtual wall')
 
             # carried part too close to the table (only while transporting, the pickup and the assembly approach are exempt)
             if part_clearance and move_hull_vertices is not None and self.part_clearance is not None:
                 _, _, move_transform_global = self.get_meshes_transforms_active(q, open_ratio, move_pickup_mesh, gripper_pickup_transform)
                 if self.vertices_too_low(move_hull_vertices @ move_transform_global[:3, :3].T + move_transform_global[:3, 3]):
-                    if verbose:
-                        print('collision detected: carried part too close to the table')
-                    return True
+                    return hit('carried part too close to the table')
 
             # the real robot stops at franka-interface's virtual walls
-            if self.virtual_walls and not self.check_virtual_walls(self.arm_chain.active_to_full(q)):
-                if verbose:
-                    print('collision detected: virtual wall')
-                return True
+            if not self.strict and self.virtual_walls and not self.check_virtual_walls(self.arm_chain.active_to_full(q)):
+                return hit('virtual wall')
 
             # transform arm and gripper meshes
             arm_transforms_i, gripper_transforms_i, move_transform_global = self.get_meshes_transforms_active(q, open_ratio, move_pickup_mesh, gripper_pickup_transform)
@@ -333,82 +416,78 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             _, objs_in_collision = self.arm_col_manager_buffered.in_collision_other(self.ground_col_manager, return_names=True)
             for obj_pair in objs_in_collision:
                 if self.arm_chain.get_base_link_name() in obj_pair: continue
-                if verbose:
-                    print('collision detected: arm and ground')
-                return True
+                return hit('arm and ground')
 
             # check collision between gripper and ground
             gripper_col_manager = self.gripper_col_manager_buffered if buffered else self.gripper_col_manager
             if gripper_col_manager.in_collision_other(self.ground_col_manager):
-                if verbose:
-                    print('collision detected: gripper and ground')
-                return True
+                return hit('gripper and ground')
 
-            # check collision between move part and ground
-            if move_col_manager is not None and move_col_manager.in_collision_other(self.ground_col_manager_buffered if move_ground_buffer else self.ground_col_manager):
-                if verbose:
-                    print('collision detected: move part and ground')
-                return True
+            # check collision between move part and ground. The table has a buffer for the carried part, except in the zone around the
+            # assembly: there the part only has to stay off the table slab itself (0.2 cm, as the gripper), because an insertion can
+            # start lower than the buffer (a part that slides in just above the table)
+            if move_col_manager is not None:
+                ground_buffer = move_ground_buffer and not self.in_exempt_zone(move_hull_vertices @ move_transform_global[:3, :3].T + move_transform_global[:3, 3])
+                if move_col_manager.in_collision_other(self.ground_col_manager_buffered if ground_buffer else self.ground_col_manager):
+                    return hit('move part and ground')
 
             # check collision between arm and grippers
             _, objs_in_collision = self.arm_col_manager_buffered.in_collision_other(self.gripper_col_manager_buffered, return_names=True)
             for obj_pair in objs_in_collision:
                 if 'ft_sensor' in obj_pair or self.arm_chain.get_eef_link_name() in obj_pair: continue
-                if verbose:
-                    print('collision detected: arm and gripper')
-                return True
+                return hit('arm and gripper')
 
             # check collision between arm and parts
             part_col_manager_i = part_col_manager_buffered if buffered else part_col_manager
-            if self.arm_col_manager_buffered.in_collision_other(part_col_manager_i):
-                if verbose:
-                    print('collision detected: arm and part')
-                return True
-            
+            if self.arm_col_manager_buffered.in_collision_other(part_col_manager_arm if buffered else part_col_manager):
+                return hit('arm and part')
+
             # check collision between arm and move part
             if move_col_manager is not None and self.arm_col_manager_buffered.in_collision_other(move_col_manager):
-                if verbose:
-                    print('collision detected: arm and move part')
-                return True
-            
+                return hit('arm and move part')
+
+            # strict, with buffers: the grown parts stick out at edges and corners, so a hit is confirmed by the exact distance
+            # (the slower distance query only runs for poses next to a part)
+            confirm = self.strict and buffered
+
             # check collision between gripper and parts (NOTE: unbuffered gripper)
-            if self.gripper_col_manager.in_collision_other(part_col_manager_i):
-                if verbose:
-                    print('collision detected: gripper and part')
-                return True
+            if self.gripper_col_manager.in_collision_other(part_col_manager_i) and \
+                    (not confirm or self.gripper_col_manager.min_distance_other(part_col_manager) < part_buffer):
+                return hit('gripper and part')
 
             # check collision between move part and parts
-            if move_col_manager is not None and part_col_manager_i.in_collision_other(move_col_manager):
-                if verbose:
-                    print('collision detected: move part and part')
-                return True
+            if move_col_manager is not None and part_col_manager_i.in_collision_other(move_col_manager) and \
+                    (not confirm or move_col_manager.min_distance_other(part_col_manager) < part_buffer):
+                return hit('move part and part')
 
             # check arm self-intersection
-            if SELF_ARM_INTERSECT_CHECK:
-                _, objs_in_collision = self.arm_col_manager_buffered.in_collision_internal(return_names=True)
-                for obj_pair in objs_in_collision:
-                    if not self.arm_chain.check_colliding_links(obj_pair[0], obj_pair[1]): continue
-                    if verbose:
-                        print('collision detected: arm self-intersection')
-                    return True
+            if SELF_ARM_INTERSECT_CHECK and self.arm_self_collision():
+                return hit('arm self-intersection')
 
             # check dual-arm collision
             if other_col_manager_buffered is not None:
                 if other_col_manager_buffered.in_collision_other(self.arm_col_manager_buffered) or \
                     other_col_manager_buffered.in_collision_other(self.gripper_col_manager_buffered) or \
                     (move_col_manager is not None and other_col_manager_buffered.in_collision_other(move_col_manager)):
-                    if verbose:
-                        print('collision detected: dual-arm')
-                    return True
+                    return hit('dual-arm')
 
             if verbose:
                 print('no collision detected')
 
             return False
 
+        collision_fn.hit = None
+        collision_fn.relax = relax
+
+        active_bounds = np.array([link.bounds for link_idx, link in enumerate(self.arm_chain.links) if self.arm_chain.active_links_mask[link_idx]], dtype=float)
         def sample_fn():
             while True:
-                q = self.arm_chain.sample_joint_angles_active()
+                if self.strict: # draw only where the joint-limit rule allows
+                    lower = np.maximum(active_bounds[:, 0], PANDA_JOINT_LIMITS[0] + limits['joint'])
+                    upper = np.minimum(active_bounds[:, 1], PANDA_JOINT_LIMITS[1] - limits['joint'])
+                    q = np.random.uniform(lower, upper)
+                else:
+                    q = self.arm_chain.sample_joint_angles_active()
                 if not collision_fn(q):
                     return q
 
@@ -456,7 +535,60 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         if optimizer is None: optimizer = self.optimizer
         return self.inverse_kinematics_collision_free_with_grasp(pos, ori, None, None, part_meshes, open_ratio, q_init, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, n_restart, n_restart_inner, optimizer, regularization_parameter, verbose)
 
+    def plan_path_straight_out(self, q, collision_fn, direction):
+        '''
+        strict: move the gripper straight along direction (same orientation) from q (full) until the pose keeps the clearances to
+        all parts (collision_fn with buffers). Every step must be contact free and keep the checked joint-limit, singularity and
+        wall rules. Returns the path of full qs starting with q ([q] if q is clear already), or None; then last_block says why:
+        (what, cm moved), what = one of HITS_ARM / HITS_CARRIED_PART (a step breaks a rule or touches something), the same with
+        'never clear of: ' in front (no clear pose within STRAIGHT_MAX), or 'no arm pose' (no IK, or the arm would flip).
+        '''
+        self.last_block = None
+        fk = self.arm_chain.forward_kinematics(q)
+        pos, ori = fk[:3, 3].copy(), fk[:3, :3].copy()
+        path = [np.array(q, dtype=float)]
+        while collision_fn(self.arm_chain.active_from_full(path[-1]), reserve=False):
+            not_clear = getattr(collision_fn, 'hit', None)
+            moved = len(path) * STRAIGHT_STEP
+            if moved > STRAIGHT_MAX:
+                self.last_block = (f'never clear of: {not_clear}', moved - STRAIGHT_STEP)
+                return None
+            q_next = self.inverse_kinematics(pos + direction * moved, ori, q_init=path[-1]) # from the first pose: no drift
+            if q_next is None or np.abs(q_next - path[-1]).max() > STRAIGHT_MAX_JOINT_STEP:
+                self.last_block = ('no arm pose', moved)
+                return None
+            if collision_fn(self.arm_chain.active_from_full(q_next), buffered=False, move_ground_buffer=False):
+                self.last_block = (getattr(collision_fn, 'hit', None), moved)
+                return None
+            path.append(q_next)
+        return path
+
+    def blocked_by_carried_part(self):
+        '''True if the last straight move (plan_path_straight_out) failed because of the carried part, not of the arm or the gripper'''
+        return self.last_block is not None and str(self.last_block[0]).replace('never clear of: ', '') in HITS_CARRIED_PART
+
+    def in_exempt_zone(self, vertices):
+        '''True if all points (n, 3) lie in the zone around the assembly where a carried part may come low (clearance_exempt_xy)'''
+        if self.clearance_exempt_xy is None:
+            return False
+        lower, upper = self.clearance_exempt_xy
+        return bool(np.all((vertices[:, :2] >= lower) & (vertices[:, :2] <= upper)))
+
+    def add_buffered(self, mesh, buffer, buffered):
+        '''
+        Register the inflated version of a still mesh that was computed elsewhere, so that part_manager does not compute it again:
+        the inflated mesh of a part moves with the part (run_pickup_gen.py tests the same part at many spots).
+        '''
+        self._buffer_cache[(id(mesh), buffer)] = (mesh, buffered)
+
+    def drop_buffered(self, mesh):
+        '''forget the inflated versions of a mesh that is not used any more (the cache holds a reference to every mesh it has seen)'''
+        for key in [key for key in self._buffer_cache if key[0] == id(mesh)]:
+            del self._buffer_cache[key]
+
     def plan_path_retract(self, q, collision_fn, retract, retract_delta):
+        if self.strict:
+            return self.plan_path_straight_out(q, collision_fn, retract)
         q_retract = q.copy()
         path_retract = [q_retract]
         while collision_fn(self.arm_chain.active_from_full(q_retract), buffered=False, move_ground_buffer=False):
@@ -511,6 +643,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         '''
         distance_fn, sample_fn, extend_fn, collision_fn = self.get_fns(move_pickup_mesh, gripper_pickup_transform, still_meshes, open_ratio, arm_chain_other=arm_chain_other, arm_q_other=arm_q_other, open_ratio_other=open_ratio_other, has_ft_sensor_other=has_ft_sensor_other, verbose=False)
         collision_fn_unbuffered = lambda q: collision_fn(q, buffered=False, move_ground_buffer=False)
+        self.last_failure, self.last_block = None, None
 
         path_start_retract = []
         q_start_active = self.arm_chain.active_from_full(q_start)
@@ -526,6 +659,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                     if verbose:
                         self.stamp.print(f'[plan_path_with_grasp] failed to plan start retract {retract_start}')
                         self.visualize_meshes(q_start, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
+                    if self.strict:
+                        self.last_failure = 'start'
+                        return None
                     path_start_retract = []
                 else:
                     path_start_retract = [self.arm_chain.active_from_full(q) for q in path_start_retract]
@@ -546,6 +682,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                     if verbose:
                         self.stamp.print(f'[plan_path_with_grasp] failed to plan goal retract {retract_goal}')
                         self.visualize_meshes(q_goal, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
+                    if self.strict:
+                        self.last_failure = 'goal'
+                        return None
                     path_goal_retract = []
                 else:
                     path_goal_retract = [self.arm_chain.active_from_full(q) for q in path_goal_retract]
@@ -562,6 +701,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 path_lift = self.plan_path_lift(self.arm_chain.active_to_full(q_end_active), too_low_fn, collision_fn_unbuffered)
                 if path_lift is None or collision_fn_unbuffered(self.arm_chain.active_from_full(path_lift[-1])):
                     self.stamp.print(f'[plan_path_with_grasp] WARNING: cannot lift the carried part {self.part_clearance} cm above the table at the {end}')
+                    if self.strict:
+                        self.last_failure, self.last_block = end, ('no straight lift of the carried part', None)
+                        return None
                     use_clearance = False
                     path_start_lift, path_goal_lift = [], []
                     break
@@ -574,7 +716,15 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             if len(path_goal_lift) > 0: q_goal_active = path_goal_lift[-1]
         collision_fn_clear = lambda q, buffered=None, move_ground_buffer=True: collision_fn(q, **({} if buffered is None else {'buffered': buffered}), move_ground_buffer=move_ground_buffer, part_clearance=use_clearance)
 
-        if collision_fn_clear(q_start_active) or collision_fn_clear(q_goal_active):
+        if self.strict: # the free path keeps all clearances; its two ends must do so already (never plan without them)
+            collision_fn.relax([q_start_active, q_goal_active])
+            for end, q_end in [('start', q_start_active), ('goal', q_goal_active)]:
+                if collision_fn_clear(q_end):
+                    if verbose: self.stamp.print(f'[plan_path_with_grasp] the {end} of the free path does not keep the clearances')
+                    self.last_failure, self.last_block = end, (collision_fn.hit, None)
+                    return None
+            collision_fn_new = collision_fn_clear
+        elif collision_fn_clear(q_start_active) or collision_fn_clear(q_goal_active):
             collision_fn_new = lambda q, buffered=False, move_ground_buffer=False: collision_fn_clear(q, buffered=buffered, move_ground_buffer=move_ground_buffer) # the table clearance stays on
             assert not collision_fn_new(q_start_active), f'[plan_path_with_grasp] start in collision even without buffer'
             assert not collision_fn_new(q_goal_active), f'[plan_path_with_grasp] goal in collision even without buffer'
@@ -588,6 +738,7 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 self.stamp.print('[plan_path_with_grasp] failed to plan path')
                 self.visualize_meshes(q_start, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
                 self.visualize_meshes(q_goal, open_ratio, move_pickup_mesh, gripper_pickup_transform, still_meshes, arm_chain_other, arm_q_other, open_ratio_other, has_ft_sensor_other, buffered=True)
+            self.last_failure, self.last_block = 'path', None
             return None
         if verbose: self.stamp.print(f'[plan_path_with_grasp] path planned (len: {len(path)})')
         
@@ -600,6 +751,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
         for q in path:
             if collision_fn_new(q):
                 in_collision = True
+                break
+        # strict: in_collision here mostly means that the path cuts into the planner's reserve between two checked poses; whether a
+        # rule is broken is decided by the exact check of the finished path (SceneChecker.check_path in run_motion_plan.py)
 
         if len(path_start_lift) > 0: # the lift continues the retract
             path_start_retract = (path_start_retract if len(path_start_retract) > 0 else [self.arm_chain.active_from_full(q_start)]) + path_start_lift
@@ -636,6 +790,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             if verbose:
                 self.stamp.print('[plan_path_switch] failed to plan start retract')
                 self.visualize_meshes(q_start, open_ratio, still_meshes=part_meshes, buffered=True)
+            if self.strict: # no straight way out of the release pose
+                self.last_failure = 'start'
+                return None, None
             path_start_retract = []
             q_start_retract = q_start
         else:
@@ -646,6 +803,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
             if verbose:
                 self.stamp.print('[plan_path_switch] failed to plan goal retract')
                 self.visualize_meshes(q_goal, open_ratio, still_meshes=part_meshes, buffered=True)
+            if self.strict: # no straight way into the grasp pose
+                self.last_failure = 'goal'
+                return None, None
             path_goal_retract = []
             q_goal_retract = q_goal
         else:
@@ -658,6 +818,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 if verbose:
                     self.stamp.print('[plan_path_switch] failed to plan goal retract extra')
                     self.visualize_meshes(q_goal_retract, open_ratio, still_meshes=part_meshes, buffered=True)
+                if self.strict:
+                    self.last_failure = 'goal'
+                    return None, None
             else:
                 path_goal_retract += path_goal_retract_extra[1:]
                 q_goal_retract = path_goal_retract[-1]
@@ -668,6 +831,9 @@ class ArmMotionPlanner: # NOTE: all input/output q is full unless specified acti
                 if verbose:
                     self.stamp.print('[plan_path_switch] failed to plan start retract extra')
                     self.visualize_meshes(q_start_retract, open_ratio, still_meshes=part_meshes, buffered=True)
+                if self.strict:
+                    self.last_failure = 'start'
+                    return None, None
             else:
                 path_start_retract += path_start_retract_extra[1:]
                 q_start_retract = path_start_retract[-1]

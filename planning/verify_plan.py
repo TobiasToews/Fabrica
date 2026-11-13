@@ -47,8 +47,12 @@ def check_grasps(log_dir, grasps):
     with open(os.path.join(log_dir, 'tree_opt.pkl'), 'rb') as fp:
         tree = pickle.load(fp)
     violations, overlaps = [], {}
-    for _, _, attr in tree.edges(data=True):
-        part, grasp_id = attr['move_part'], attr['move_grasp_id']
+    used = [(attr['move_part'], attr['move_grasp_id']) for _, _, attr in tree.edges(data=True)]
+    flat_pickup_path = os.path.join(log_dir, 'fixture', 'flat_pickup.json')
+    if os.path.exists(flat_pickup_path): # the first part in the fallback: the move arm brings it to the assembly spot with a move grasp of its own
+        with open(flat_pickup_path, 'r') as fp:
+            used += [(part, info['grasp_id']) for part, info in json.load(fp).items() if info['arm'] == 'place']
+    for part, grasp_id in used:
         grasp = {g[0].grasp_id: g[0] for g in grasps['grasps'][part]['move']}[grasp_id]
         overlap = grasp_finger_overlap(grasp, grasps['gripper'])
         overlaps[part] = round(overlap, 2)
@@ -75,6 +79,12 @@ def iterate_move_paths(motion, part_ids):
         if task == 'transport' and part is not None:
             yield i, path, open_ratio, dict(state), dict(carried=part)
             last_inserted = None
+            # a carried part is inserted by the next arm path of the move arm. If it is not (the first part in the fallback: the
+            # move arm stands it at the assembly spot and lets go), it is at its place after this path
+            next_arm = next((s for s in motion[i + 1:] if s[0] == 'move' and s[1] == 'arm'), None)
+            if next_arm is None or not (next_arm[4] == 'assembly' and next_arm[3] == part):
+                state[part] = 'final'
+                last_inserted = part
         elif task == 'assembly':
             yield i, path, open_ratio, dict(state), dict(carried=part, inserting=True)
             state[part] = 'final'
@@ -119,4 +129,6 @@ if __name__ == '__main__':
     parser.add_argument('--assembly-dir', type=str, required=True)
     parser.add_argument('--log-dir', type=str, required=True)
     args = parser.parse_args()
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     sys.exit(0 if verify_plan(args.assembly_dir, args.log_dir)['passed'] else 1)

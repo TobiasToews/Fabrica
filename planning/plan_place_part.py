@@ -25,7 +25,7 @@ import random
 import numpy as np
 
 from assets.transform import get_transform_matrix
-from planning.config import RETRACT_OPEN_RATIO, RETRACT_DELTA_FAR, OPEN_RATIO_REST, TRANSFER_PART_CLEARANCE, MAX_PLAN_ATTEMPTS, GRASP_MIN_FINGER_OVERLAP
+from planning.config import RETRACT_OPEN_RATIO, RETRACT_DELTA_FAR, OPEN_RATIO_REST, TRANSFER_PART_CLEARANCE, MAX_PLAN_ATTEMPTS, GRASP_MIN_FINGER_OVERLAP, ASSEMBLY_ZONE_MARGIN
 from planning.plan_checks import SceneChecker, grasp_finger_overlap
 from planning.robot.geometry import load_part_meshes
 from planning.robot.motion_plan_arm import ArmMotionPlanner
@@ -52,7 +52,7 @@ def search_spot(part, usable, raw, pickup_mats, final_meshes, final_mat, gripper
             if not any(np.allclose(c['rot'], o) for o in candidates): candidates.append(c['rot'])
     others = [MultiPoint(raw[k].copy().apply_transform(pickup_mats[k]).vertices[:, :2]).convex_hull for k in raw if k != part]
     bounds = np.array([m.bounds for m in final_meshes.values()])
-    zone = box(*(bounds[:, 0, :2].min(axis=0) - TRANSFER_PART_CLEARANCE), *(bounds[:, 1, :2].max(axis=0) + TRANSFER_PART_CLEARANCE))
+    zone = box(*(bounds[:, 0, :2].min(axis=0) - ASSEMBLY_ZONE_MARGIN), *(bounds[:, 1, :2].max(axis=0) + ASSEMBLY_ZONE_MARGIN))
     board = box(-BOARD_HALF_SIZE[0] + 1, -BOARD_HALF_SIZE[1] + 1, BOARD_HALF_SIZE[0] - 1, BOARD_HALF_SIZE[1] - 1)
     current = raw[part].copy().apply_transform(pickup_mats[part]).bounds[:, :2].mean(axis=0)
     grid = np.array([[x, y] for x in np.arange(-BOARD_HALF_SIZE[0], BOARD_HALF_SIZE[0], step) for y in np.arange(-BOARD_HALF_SIZE[1], BOARD_HALF_SIZE[1], step)])
@@ -93,7 +93,7 @@ def plan_place_part(assembly_dir, log_dir, part, seed=0, others_on_table=False, 
     planner = ArmMotionPlanner(chain, grasps['gripper'], has_ft, virtual_walls=True,
                                table_z=get_panda_base_z() + get_panda_desk_z(), part_clearance=TRANSFER_PART_CLEARANCE)
     bounds = np.array([m.bounds for m in final_meshes.values()])
-    planner.clearance_exempt_xy = (bounds[:, 0, :2].min(axis=0) - TRANSFER_PART_CLEARANCE, bounds[:, 1, :2].max(axis=0) + TRANSFER_PART_CLEARANCE)
+    planner.clearance_exempt_xy = (bounds[:, 0, :2].min(axis=0) - ASSEMBLY_ZONE_MARGIN, bounds[:, 1, :2].max(axis=0) + ASSEMBLY_ZONE_MARGIN)
     checker = SceneChecker('panda', grasps['gripper'], has_ft, raw, pickup_mats, final_meshes)
     rest = chain.active_to_full(chain.rest_q)
     # default: the part is moved before the other parts are laid out (only it lies on the table); --others-on-table: all lie there
@@ -117,7 +117,7 @@ def plan_place_part(assembly_dir, log_dir, part, seed=0, others_on_table=False, 
         best = None
         for grasp in usable:
             for score, q_pick in pickup_ik_solutions(ik_cache, planner, grasp, part, mat, final_mat, has_ft):
-                if not checker.check_pickup(q_pick, min(grasp.open_ratio + RETRACT_OPEN_RATIO, 1.0), part, lying):
+                if not checker.check_pickup(q_pick, min(grasp.open_ratio + RETRACT_OPEN_RATIO, 1.0), part, lying, closed_ratio=grasp.open_ratio):
                     if best is None or score > best[0]: best = (score, grasp, q_pick)
                     break
         return best
@@ -219,4 +219,6 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--others-on-table', default=False, action='store_true', help='the other parts already lie on the table (default: only this part)')
     args = parser.parse_args()
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     sys.exit(0 if plan_place_part(args.assembly_dir, args.log_dir, args.part, args.seed, args.others_on_table) else 1)

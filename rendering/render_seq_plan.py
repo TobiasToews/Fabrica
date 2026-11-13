@@ -237,7 +237,9 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--fps', type=int, default=30)
     args = parser.parse_args()
-    
+
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     camera_lookat, camera_pos = get_camera_option(args.camera_option)
     if args.camera_lookat is not None:
         camera_lookat = args.camera_lookat

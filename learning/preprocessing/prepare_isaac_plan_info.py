@@ -53,6 +53,8 @@ def prepare_isaac_plan_info(log_dir, plan_info_path):
     assert gripper_type == 'panda' and arm_type == 'panda' and not has_ft_sensor['move'] and not has_ft_sensor['hold']
     with open(tree_path, 'rb') as fp:
         tree = pickle.load(fp)
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(log_dir) # the place of the assembly this log is planned for (the default place if it stores none)
     assembly_center = get_assembly_center(arm_type)
 
     seq_optimizer = SequenceOptimizer(G_preced, grasps)

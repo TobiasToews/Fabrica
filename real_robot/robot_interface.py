@@ -30,6 +30,7 @@ import pickle
 import select
 import tty
 import termios
+import json
 
 
 def get_key_nonblocking():
@@ -342,6 +343,7 @@ class RobotInterface:
         else:
             raise Exception(f"Invalid control mode")
 
+        self._last_targ_pos = np.array(targ_pos, dtype=float) # for the insertion log
         targ_ori_quat=np.roll(
             R.from_matrix(targ_ori_mat).as_quat(), shift=1
         )  # (w, x, y, z)
@@ -408,6 +410,7 @@ class RobotInterface:
         obs = policy.obs_to_torch(obs)
         action = policy.get_action(obs, is_determenistic=real_config['rl']['deterministic'])
         action = action.detach().cpu().numpy()
+        self._rl_info = {'policy_action': action.tolist()} # for the insertion log
 
         if disassembly_path is not None:
             path_scale = np.linalg.norm(disassembly_path[0] - disassembly_path[-1]) / 0.02
@@ -423,11 +426,15 @@ class RobotInterface:
                 residual_action_norm = np.linalg.norm(residual_action)
             residual_action /= residual_action_norm
             action += residual_action
+            self._rl_info['residual'] = residual_action.tolist()
         
         action *= np.array(pos_action_scale)
+        self._rl_info['action'] = action.tolist()
         return action
 
-    def execute_rl_policy(self, policy, real_config, goal_joints, global_pos_shift=np.zeros(3)):
+    def execute_rl_policy(self, policy, real_config, goal_joints, global_pos_shift=np.zeros(3), log=None):
+        '''log: None or {'file': path of a .jsonl file, ...}: one line per attempt is appended to the file, with the other entries
+        of log and, for every control step, what the policy saw, what it returned and the target sent to the robot (m, base frame)'''
         rate_ctrl = rospy.Rate(real_config['control']['freq'])
         duration = real_config['control']['duration']
 
@@ -453,6 +460,8 @@ class RobotInterface:
         tty.setcbreak(fd)
 
         success = False
+        outcome = 'interrupted' # replaced when the loop ends by itself
+        rows = {k: [] for k in ('t', 'pos', 'obs', 'obs_noisy', 'policy_action', 'residual', 'action', 'target')}
 
         try:
             while rospy.get_time() - t_start < duration:
@@ -460,6 +469,7 @@ class RobotInterface:
                 key = get_key_nonblocking()
                 if key == 'q':
                     print('Early stopped')
+                    outcome = 'stopped with q'
                     break
 
                 curr_joints = self.get_joints()
@@ -485,18 +495,41 @@ class RobotInterface:
 
                 self.send_control_targets(pose_curr, action, real_config, disassembly_path)
 
+                if log is not None:
+                    rows['t'].append(rospy.get_time() - t_start)
+                    rows['pos'].append(np.asarray(pose_curr.translation, dtype=float).tolist())
+                    rows['obs'].append(obs_raw.cpu().numpy().tolist())
+                    rows['obs_noisy'].append(obs.cpu().numpy().tolist())
+                    rows['policy_action'].append(self._rl_info['policy_action'])
+                    rows['residual'].append(self._rl_info.get('residual'))
+                    rows['action'].append(self._rl_info['action'])
+                    rows['target'].append(self._last_targ_pos.tolist())
+
                 # If current pose is close enough to goal pose, terminate early
                 pos_err, _ = self.get_pose_error(pose_curr, pose_goal)
                 if obs_raw[-1].cpu().numpy() > -0.003: # NOTE: This is kind of cheating
                     print("Near goal, early termination")
                     success = True
+                    outcome = 'near goal'
                     break
                 
                 rate_ctrl.sleep()
                 n_step += 1
+            else:
+                outcome = 'timeout'
 
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            if log is not None:
+                try:
+                    entry = {k: v for k, v in log.items() if k != 'file'}
+                    entry.update(wall_time=time.time(), outcome=outcome, success=bool(success), residual_on=bool(self.residual), deterministic=real_config['rl']['deterministic'],
+                                 start=disassembly_path[1].tolist(), goal=disassembly_path[0].tolist(), global_pos_shift=np.asarray(global_pos_shift, dtype=float).tolist(), steps=rows)
+                    os.makedirs(os.path.dirname(os.path.abspath(log['file'])), exist_ok=True)
+                    with open(log['file'], 'a') as fp:
+                        fp.write(json.dumps(entry) + '\n')
+                except Exception as e: # the log must never stop the robot code
+                    print(f'[insertion log] not written: {e}')
         
         print(f'RL policy execution finished (pos err: {pos_err})')
         self.stop_skill()

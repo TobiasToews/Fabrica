@@ -119,6 +119,8 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
     done_init_right = start_from == 0
     
     global_pos_shift = np.zeros(3)
+    # every insertion attempt of the policy is logged step by step (see RobotInterface.execute_rl_policy)
+    insertion_log_file = os.path.join(os.path.dirname(os.path.abspath(fn)), 'run_logs', f'insertions_{time.strftime("%Y%m%d_%H%M%S")}.jsonl')
 
     for i in range(start_from, len(d)):
         print(f"========= Step {i+1}/{len(d)}, {('human' if single_arm else 'left') if d[i][0] == 'hold' else 'right'} arm, {d[i][1]} =========")
@@ -197,7 +199,8 @@ def run_traj(fn, dt=0.1, reset=True, start_from=0, checkpoint_path=None, residua
                         elif policy_type == 'r':
                             if vlm:
                                 camera.start_video_recording(record_path)
-                            policy_success = robot.execute_rl_policy(policy=policy, real_config=real_config, goal_joints=d[i][2][-1], global_pos_shift=global_pos_shift + pos_diff)
+                            policy_success = robot.execute_rl_policy(policy=policy, real_config=real_config, goal_joints=d[i][2][-1], global_pos_shift=global_pos_shift + pos_diff,
+                                log=dict(file=insertion_log_file, plan=os.path.abspath(fn), step=i + 1, part=d[i][3], attempt=repeat_idx, checkpoint=checkpoint_path))
                             if vlm:
                                 camera.stop_video_recording()
                             break

@@ -18,14 +18,14 @@ from time import time
 from assets.load import load_pos_quat_dict
 from assets.transform import get_transform_matrix, get_transform_matrix_quat, mat_to_pos_quat, get_pos_euler_from_transform_matrix
 from planning.config import RETRACT_OPEN_RATIO, RETRACT_DELTA_FAR
-from planning.robot.geometry import load_part_meshes, load_gripper_meshes, transform_gripper_meshes
+from planning.robot.geometry import load_part_meshes, load_gripper_meshes, transform_gripper_meshes, offset_mesh
 from planning.robot.motion_plan_arm import ArmMotionPlanner, VIRTUAL_WALL_SAFETY
-from planning.robot.util_arm import get_arm_chain, get_virtual_wall_margin
-from planning.robot.workcell import get_assembly_center, get_fixture_min_y, get_dual_arm_box
+from planning.robot.util_arm import get_arm_chain, get_virtual_wall_margin, get_hand_wall_margin
+from planning.robot.workcell import get_assembly_center, get_fixture_min_y, get_dual_arm_box, get_pickup_center
 from planning.run_fixture_gen import run_bin_packing, generate_pickup_meshes, check_part_gripper_collision, DELTA_BUFFER_SIZE, DX
-from planning.run_motion_plan import get_pickup_arm_q
+from planning.run_motion_plan import get_pickup_arm_q, get_pickup_gripper_pose, get_back_retract_dir, make_move_planner
 from planning.run_seq_opt import SequenceOptimizer
-from planning.config import RETRACT_OPEN_RATIO as _RETRACT_OPEN_RATIO, GRASP_MIN_FINGER_OVERLAP, MIN_SIGMA, MIN_JOINT_LIMIT_MARGIN
+from planning.config import RETRACT_OPEN_RATIO as _RETRACT_OPEN_RATIO, GRASP_MIN_FINGER_OVERLAP, MIN_SIGMA, MIN_JOINT_LIMIT_MARGIN, FLAT_FALLBACK_POSES, OPEN_RATIO_REST
 
 
 '''
@@ -33,79 +33,20 @@ Fixture-free pickup: every part lies flat on the board in one of its stable rest
 Replaces run_fixture_gen.py: writes fixture/pickup.json and no fixture.obj.
 '''
 
-MAX_TILT = 30.0 # max angle [deg] between gripper approach direction and straight down
-MIN_TIP_ANGLE_FALLBACK = 10.0 # deg, resting poses allowed for a part that has none tipping only above MIN_TIP_ANGLE (marked on the template)
-MIN_TIP_ANGLE = 20.0 # min tilt [deg] of the board/part before the part tips over (support margin vs. height of the center of mass)
-GROUND_CLEARANCE = 0.5 # min height [cm] of the (opened) gripper above the board
-YAW_OFFSETS = [0, 180, 90, -90] # rotations [deg] of a resting part about the vertical axis to try for the arm IK
+# resting poses and the flat-pickup test live in planning/flat_grasp.py (shared with the grasp generation); the names stay available here
+from planning.flat_grasp import MAX_TILT, MIN_TIP_ANGLE_FALLBACK, MIN_TIP_ANGLE, GROUND_CLEARANCE, WRIST_CLEARANCE, YAW_OFFSETS, \
+    get_flat_rots, get_flat_pickup_candidates, flat_move_grasps
 PICKUP_SHIFT_Y = -15.0 # cm, pickup area moved this far from get_fixture_min_y towards the assembly (the real desk ends beside the robot base)
 MAX_LAYOUT_SIZE = [12 * DX, 14 * DX]
 PLACEMENT_STEP = 1.25 # cm, grid of spots tried for each part (half the board hole spacing)
-PART_GAP = 0.5 # cm, between the footprints of two lying parts
-MAX_PLACEMENT_TRIES = 150 # spots checked with the robot per part before giving up
+PART_GAP = 2.0 # cm, between the footprints of two lying parts: room for the gripper to turn between them, and more than ROBOT_PART_CLEARANCE (1.0 cm), so that a part lifted straight up cannot come too close to a neighbour (0.5 until 2026-11-11, then 1.2; 2.0 set by the user on 2026-11-12)
+MAX_PLACEMENT_TRIES = 150 # spots (with a resting pose each) checked with the robot per part, nearest to the pickup area first
+MAX_PLACEMENT_TRIES_WIDE = 300 # further checks over the whole board if none of those fits (only spots where the fingers stay clear of the parts already placed, every second grid spot)
 LIFT_CHECK_HEIGHTS = [2.5, 5.0, 7.5, 10.0] # cm above the pickup pose, checked for singularities and joint limits
 N_PICKUP_IK_SAMPLES = 12 # random IK starts per pickup (besides the rest pose and the grasp's assembly pose)
 PICKUP_AREA_OFFSETS = [(dx, dy) for dx in (0.0, -5.0, 5.0, -10.0, 10.0) for dy in (0.0, -5.0, 5.0, -10.0, 10.0)] # cm, tried around the default pickup area
 BOARD_HALF_SIZE = (31.25, 46.25) # cm, optical board (x between the arms, y along them) # max size [cm] of the pickup area, x between the arms, y from get_fixture_min_y (board edge at y = 46.25)
 
-
-def get_flat_rots(mesh, min_tip_angle=MIN_TIP_ANGLE):
-    '''
-    Stable resting rotations of a mesh lying on the board (about the origin), with the support margin and tipping angle
-    '''
-    transforms, probs = trimesh.poses.compute_stable_poses(mesh)
-    flat_rots = []
-    for transform, prob in zip(transforms, probs):
-        mesh_rest = mesh.copy().apply_transform(transform)
-        support = mesh_rest.vertices[mesh_rest.vertices[:, 2] < mesh_rest.bounds[0, 2] + 1e-3][:, :2]
-        if len(support) < 3: continue
-        try:
-            hull = ConvexHull(support)
-        except Exception: # degenerate (line) support
-            continue
-        margin = -np.max(hull.equations[:, :2] @ mesh_rest.center_mass[:2] + hull.equations[:, 2])
-        tip_angle = np.degrees(np.arctan2(margin, mesh_rest.center_mass[2] - mesh_rest.bounds[0, 2]))
-        flat_rots.append({'rot': transform[:3, :3], 'prob': float(prob), 'margin': float(margin), 'tip_angle': float(tip_angle)})
-    stable = [r for r in flat_rots if r['tip_angle'] >= min_tip_angle]
-    if len(stable) == 0 and min_tip_angle > MIN_TIP_ANGLE_FALLBACK: # e.g. a small cylinder: rolls lying, but stands upright
-        stable = [r for r in flat_rots if r['tip_angle'] >= MIN_TIP_ANGLE_FALLBACK]
-        for r in stable: r['fallback'] = True
-    return stable
-
-
-def get_flat_pickup_candidates(grasp, part_mesh, flat_rots, gripper_type, gripper_meshes, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE):
-    '''
-    For a grasp (defined at the final pose), the resting rotations where the gripper approaches from (nearly) above
-    and stays above the board; the yaw first aligns the gripper fingers with the x axis (as in the fixture), then is
-    rotated by YAW_OFFSETS as alternatives for the arm IK
-    '''
-    grasp_rot = R.from_quat(grasp.quat[[1, 2, 3, 0]]).as_matrix()
-    candidates = []
-    for flat_rot in flat_rots:
-        approach = flat_rot['rot'] @ grasp_rot @ np.array([0, 0, 1])
-        tilt = np.degrees(np.arccos(np.clip(-approach[2], -1, 1)))
-        if tilt > max_tilt: continue
-
-        l2r = flat_rot['rot'] @ grasp_rot @ np.array([0, -1, 0])
-        yaw = -np.arctan2(l2r[1], l2r[0])
-        rot = R.from_euler('z', yaw).as_matrix() @ flat_rot['rot']
-
-        # gripper height does not depend on the yaw
-        pickup_mat = np.eye(4)
-        pickup_mat[:3, :3] = rot
-        pickup_mat[2, 3] = -(part_mesh.vertices @ rot.T)[:, 2].min() # rest on the board
-        gripper_pos, gripper_quat = mat_to_pos_quat(pickup_mat @ get_transform_matrix_quat(grasp.pos, grasp.quat))
-        min_z = np.inf
-        for open_ratio in [grasp.open_ratio, min(grasp.open_ratio + RETRACT_OPEN_RATIO, 1.0)]:
-            meshes = transform_gripper_meshes(gripper_type, gripper_meshes, gripper_pos, gripper_quat, np.eye(4), open_ratio)
-            min_z = min(min_z, min(mesh.bounds[0, 2] for mesh in meshes.values()))
-        if min_z < clearance: continue
-
-        for i, yaw_offset in enumerate(YAW_OFFSETS):
-            candidates.append({'rot': R.from_euler('z', yaw_offset, degrees=True).as_matrix() @ rot, 'tilt': float(tilt), 'tip_angle': flat_rot['tip_angle'], 'margin': flat_rot['margin'], 'fallback': bool(flat_rot.get('fallback', False)),
-                               'prob': flat_rot['prob'], 'gripper_min_z': float(min_z), 'yaw_offset': yaw_offset, 'yaw_rank': i})
-    candidates.sort(key=lambda c: (round(c['tilt'], 1), -c['tip_angle'], c['yaw_rank']))
-    return candidates
 
 
 PAGE_SIZES = {'a4': (21.0, 29.7), 'a3': (29.7, 42.0)} # portrait [cm]
@@ -160,7 +101,8 @@ def save_pickup_template(part_meshes_pickup, pickup_info, save_path, dx=2.5, pag
             ax.plot(*np.vstack([hull, hull[:1]]).T, lw=0.8, ls='--', color='tab:blue') # support polygon (also for parts resting on edges/corners)
             ax.plot(support[:, 0], support[:, 1], 'o', ms=2, color='tab:blue')
             ax.text(*mesh.center_mass[:2], f'{part_id}', ha='center', va='center', fontsize=14, weight='bold', clip_on=True)
-            ax.text(mesh.center_mass[0], mesh.center_mass[1] - 0.6, f'{pickup_info[part_id]["arm"]}', ha='center', va='top', fontsize=6, clip_on=True)
+            who = {'place': 'move (brings it to the assembly spot)'}.get(pickup_info[part_id]['arm'], pickup_info[part_id]['arm']) # 'place': the first part in the fallback
+            ax.text(mesh.center_mass[0], mesh.center_mass[1] - 0.6, who, ha='center', va='top', fontsize=6, clip_on=True)
             if pickup_info[part_id].get('fallback'):
                 ax.text(mesh.center_mass[0], mesh.center_mass[1] - 1.2, f'tips at {pickup_info[part_id]["tip_angle"]:.0f} deg: place carefully', ha='center', va='top', fontsize=6, color='tab:red', clip_on=True)
         # scale bar and notes in a free spot of this sheet
@@ -317,6 +259,18 @@ def pickup_ik_solutions(cache, planner, grasp, part_id, pickup_mat, final_mat, h
     from planning.plan_checks import joint_condition
     from planning.robot.workcell import get_panda_base_z
     key = ('lift', round(get_panda_base_z(), 3), part_id, int(grasp.grasp_id), tuple(np.round(pickup_mat[:3, :4], 3).flatten()))
+    if key not in cache and planner.virtual_walls:
+        # the wrist frame and the flange follow the gripper rigidly. If one of them is behind a virtual wall at the pickup or
+        # on the lift above it, every arm pose fails the tests below, so none is searched: that search (52 IK runs that cannot
+        # succeed) took most of the time of a layout far from the arm. The limit is lower by PICKUP_POSE_SLACK, as in pickup_blocked.
+        from planning.plan_checks import PICKUP_POSE_SLACK
+        gripper_pose = get_pickup_gripper_pose(grasp, pickup_mat, final_mat)
+        for lift in [0.0] + LIFT_CHECK_HEIGHTS:
+            lifted = gripper_pose.copy()
+            lifted[2, 3] += lift
+            if get_hand_wall_margin(planner.arm_chain, planner.gripper_type, lifted, has_ft_sensor) < VIRTUAL_WALL_SAFETY - PICKUP_POSE_SLACK:
+                cache[key] = []
+                break
     if key not in cache:
         rest = planner.arm_chain.active_to_full(planner.arm_chain.rest_q)
         starts = [(rest, None), (grasp.arm_q, None)] + [(planner.arm_chain.sample_joint_angles(), 1) for _ in range(N_PICKUP_IK_SAMPLES)]
@@ -344,13 +298,13 @@ def pickup_ik_solutions(cache, planner, grasp, part_id, pickup_mat, final_mat, h
 
 
 def area_allowed(center_x, min_y, bin_size, final_meshes, margin=1.0):
-    '''the pickup area lies on the board and away from the assembly zone (assembly + TRANSFER_PART_CLEARANCE)'''
-    from planning.config import TRANSFER_PART_CLEARANCE
+    '''the pickup area lies on the board and away from the assembly zone (assembly + ASSEMBLY_ZONE_MARGIN)'''
+    from planning.config import ASSEMBLY_ZONE_MARGIN
     lower, upper = np.array([center_x - bin_size[0] / 2, min_y]), np.array([center_x + bin_size[0] / 2, min_y + bin_size[1]])
     if np.any(lower < -np.array(BOARD_HALF_SIZE) + margin) or np.any(upper > np.array(BOARD_HALF_SIZE) - margin):
         return False
     bounds = np.array([mesh.bounds for mesh in final_meshes.values()])
-    zone_lower, zone_upper = bounds[:, 0, :2].min(axis=0) - TRANSFER_PART_CLEARANCE, bounds[:, 1, :2].max(axis=0) + TRANSFER_PART_CLEARANCE
+    zone_lower, zone_upper = bounds[:, 0, :2].min(axis=0) - ASSEMBLY_ZONE_MARGIN, bounds[:, 1, :2].max(axis=0) + ASSEMBLY_ZONE_MARGIN
     return bool(np.any(upper <= zone_lower) or np.any(lower >= zone_upper))
 
 
@@ -401,10 +355,23 @@ def load_final_part_cfg(assembly_dir, arm_type):
     return {'mesh': part_meshes_final, 'pos': part_pos_dict_final, 'quat': part_quat_dict_final}
 
 
+def flat_rots_of(part_mesh, part_id, grasps, min_tip_angle=MIN_TIP_ANGLE):
+    '''
+    The resting poses of a part in this plan: the stable ones, plus the less stable ones if the grasp filter needed them to find a
+    move grasp for this part (recorded in grasps['settings']['flat_pickup']['fallback_parts'])
+    '''
+    fallback_parts = grasps['settings'].get('flat_pickup', {}).get('fallback_parts', [])
+    return get_flat_rots(part_mesh, min_tip_angle, with_fallback=part_id in fallback_parts)
+
+
 def filter_flat_grasps(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE, min_tip_angle=MIN_TIP_ANGLE, filter_hold=False):
     '''
-    Keep only grasps that can pick their part lying flat on the board (run before sequence planning);
-    hold grasps are only used on the board for the first held part, so they are kept by default
+    Keep only the move grasps that meet the criteria of the flat pipeline (flat_grasp.move_grasp_criteria: inside the virtual walls,
+    away from singularities and joint limits, deep enough in the fingers, able to pick their part lying flat). Run before sequence
+    planning. If no move grasp of a part passes in its stable resting poses, the less stable ones are admitted for that part
+    (get_flat_rots with_fallback); these parts are recorded for the later stages (flat_rots_of) and marked on the template.
+    Hold grasps are only used on the board for the first held part, so they are kept by default.
+    Returns the parts that have move grasps before, but none after the filter.
     '''
     grasps_path = os.path.join(log_dir, 'grasps.pkl')
     grasps_all_path = os.path.join(log_dir, 'grasps_unfiltered.pkl')
@@ -415,42 +382,84 @@ def filter_flat_grasps(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUN
 
     part_cfg_final = load_final_part_cfg(assembly_dir, grasps['arm'])
     gripper_meshes = load_gripper_meshes(grasps['gripper'], os.path.join(project_base_dir, 'assets'))
-    if grasps['arm'] == 'panda': # the move arm is the real robot: its assembly/disassembly poses must stay inside franka-interface's virtual walls
-        arm_chain_move = get_arm_chain(grasps['arm'], 'move')
-        in_walls = lambda grasps_move: all(get_virtual_wall_margin(arm_chain_move, g.arm_q) >= VIRTUAL_WALL_SAFETY for g in grasps_move)
-    else:
-        in_walls = lambda grasps_move: True
+    arm_chain_move = get_arm_chain(grasps['arm'], 'move') if grasps['arm'] == 'panda' else None # the move arm is the real robot
+    never_moved = [] # the base part is held, not inserted: it needs no move grasp
+    precedence_path = os.path.join(log_dir, 'precedence.pkl')
+    if os.path.exists(precedence_path):
+        with open(precedence_path, 'rb') as fp:
+            G_preced = pickle.load(fp)
+        never_moved = [part_id for part_id in G_preced.nodes if G_preced.nodes[part_id]['path'] is None]
 
-    kept_ids = {}
+    kept_ids, fallback_parts, empty_parts = {}, [], []
     for part_id, part_grasps in grasps['grasps'].items():
         part_mesh = part_cfg_final['mesh'][part_id]
-        flat_rots = get_flat_rots(part_mesh, min_tip_angle)
-        is_flat = lambda g: len(get_flat_pickup_candidates(g, part_mesh, flat_rots, grasps['gripper'], gripper_meshes, max_tilt, clearance)) > 0
         n_move, n_hold = len(part_grasps['move']), len(part_grasps['hold'])
-        from planning.plan_checks import grasp_finger_overlap
-        deep = lambda g: grasp_finger_overlap(g, grasps['gripper'], gripper_meshes) >= GRASP_MIN_FINGER_OVERLAP # the part reaches far enough into the fingers
-        from planning.plan_checks import joint_condition
-        from planning.config import MIN_SIGMA_INSERTION
-        def conditioned(grasps_move): # insertion poses away from singularities and joint limits
-            if grasps['arm'] != 'panda': return True
-            conditions = [joint_condition(arm_chain_move.active_from_full(x.arm_q)) for x in grasps_move]
-            return all(sigma >= MIN_SIGMA_INSERTION and margin >= MIN_JOINT_LIMIT_MARGIN for sigma, margin, _ in conditions)
-        part_grasps['move'] = [g for g in part_grasps['move'] if in_walls(g) and conditioned(g) and deep(g[0]) and is_flat(g[0])]
+        moves, flat_rots, fallback = flat_move_grasps(part_grasps['move'], part_mesh, grasps['gripper'], gripper_meshes, arm_chain_move, max_tilt, clearance, min_tip_angle, allow_fallback=FLAT_FALLBACK_POSES)
+        if fallback: fallback_parts.append(part_id) # no grasp fits a stable resting pose: the less stable ones are used for this part
+        if len(moves) == 0 and part_id not in never_moved: empty_parts.append(part_id)
+        part_grasps['move'] = moves
         if filter_hold:
-            part_grasps['hold'] = [g for g in part_grasps['hold'] if is_flat(g)]
+            part_grasps['hold'] = [g for g in part_grasps['hold'] if len(get_flat_pickup_candidates(g, part_mesh, flat_rots, grasps['gripper'], gripper_meshes, max_tilt, clearance)) > 0]
         kept_ids[part_id] = {'move': {g[0].grasp_id for g in part_grasps['move']}, 'hold': {g.grasp_id for g in part_grasps['hold']}}
-        print(f'[filter_flat_grasps] part {part_id}: {len(flat_rots)} stable poses, move {n_move} -> {len(part_grasps["move"])}, hold {n_hold} -> {len(part_grasps["hold"])}')
+        print(f'[filter_flat_grasps] part {part_id}: {len(flat_rots)} resting poses' + (' (less stable ones included: no grasp fits a stable one)' if part_id in fallback_parts else '') +
+              f', move {n_move} -> {len(part_grasps["move"])}, hold {n_hold} -> {len(part_grasps["hold"])}')
 
     grasps['grasp_id_pairs'] = {(part_move, part_hold): [(m, h) for m, h in pairs if m in kept_ids[part_move]['move'] and h in kept_ids[part_hold]['hold']]
                                 for (part_move, part_hold), pairs in grasps['grasp_id_pairs'].items()}
-    grasps['settings']['flat_pickup'] = {'max_tilt': max_tilt, 'clearance': clearance, 'min_tip_angle': min_tip_angle, 'filter_hold': filter_hold, 'min_finger_overlap': GRASP_MIN_FINGER_OVERLAP}
+    grasps['settings']['flat_pickup'] = {'max_tilt': max_tilt, 'clearance': clearance, 'min_tip_angle': min_tip_angle, 'filter_hold': filter_hold, 'min_finger_overlap': GRASP_MIN_FINGER_OVERLAP,
+                                         'fallback_parts': fallback_parts}
     with open(grasps_path, 'wb') as fp:
         pickle.dump(grasps, fp)
+    if len(empty_parts) > 0:
+        print(f'[filter_flat_grasps] NO MOVE GRASP left for part(s) {", ".join(empty_parts)}: none of their grasps can pick the part lying flat and insert it')
+    return empty_parts
+
+
+def first_hold_nodes(nodes, part_grasps, part_meshes, grasps, gripper_meshes, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE, min_tip_angle=MIN_TIP_ANGLE):
+    '''
+    The first-hold nodes of a grasp tree, and those of them that the flat pipeline cannot use.
+    nodes: the nodes of the grasp tree, (parts that remain, part held, hold grasp id), in disassembly order: in a first-hold node
+    only the part that is held first remains. part_grasps: {part_id: {'hold': {grasp_id: grasp}}} (SequenceOptimizer.grasps);
+    part_meshes: the parts at their assembled poses; grasps: the content of grasps.pkl (gripper, resting poses per part).
+    Returns (first-hold nodes, those whose hold grasp cannot pick its part lying flat): the hold grasp of the first step is the
+    only hold grasp that takes its part from the board.
+    '''
+    first_holds = [node for node in nodes if len(node[0]) == 1 and node[1] in node[0]]
+    flat_rots, infeasible = {}, []
+    for node in first_holds:
+        part_id, grasp_id = node[1], node[2]
+        if part_id not in flat_rots: flat_rots[part_id] = flat_rots_of(part_meshes[part_id], part_id, grasps, min_tip_angle)
+        grasp = part_grasps[part_id]['hold'][grasp_id]
+        if len(get_flat_pickup_candidates(grasp, part_meshes[part_id], flat_rots[part_id], grasps['gripper'], gripper_meshes, max_tilt, clearance)) == 0:
+            infeasible.append(node)
+    return first_holds, infeasible
+
+
+def place_grasps_of_first_part(part_moves, part_mesh, flat_rots, gripper_type, gripper_meshes, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE, final_pose_ok=None):
+    '''
+    Fallback for the part that is held first when no first hold grasp can pick it lying flat: the move arm brings the part from
+    the board to the assembly spot (a planned step of the real arm), and the hold arm takes it there. The grasps the move arm
+    can do that with, best first: move grasps of the part (part_moves: [[grasp, ...], ...] as in grasps.pkl) that pick it lying
+    flat and whose arm pose with the part standing at the assembly spot is fine (final_pose_ok(grasp) -> bool; None: not
+    tested). Best first by the rating of the grasp generation (flat_rating), without it by how upright the hand is at the pickup.
+    Returns [(grasp, candidates of get_flat_pickup_candidates)].
+    '''
+    usable = []
+    for move in (part_moves.values() if isinstance(part_moves, dict) else part_moves): # SequenceOptimizer turns the lists of grasps.pkl into {grasp id: [grasp, ...]}
+        grasp = move[0]
+        candidates = get_flat_pickup_candidates(grasp, part_mesh, flat_rots, gripper_type, gripper_meshes, max_tilt, clearance)
+        if len(candidates) == 0 or grasp.arm_q is None: continue
+        if final_pose_ok is not None and not final_pose_ok(grasp): continue
+        usable.append((grasp, candidates))
+    return sorted(usable, key=lambda item: (-getattr(item[0], 'flat_rating', 0.0), round(item[1][0]['tilt'], 1), item[0].grasp_id))
 
 
 def run_flat_seq_opt(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE, min_tip_angle=MIN_TIP_ANGLE, plot=False, verbose=False):
     '''
-    run_seq_opt.py, but the first hold grasp (the only one that picks its part from the board) must pick the part lying flat
+    run_seq_opt.py, but the first hold grasp (the only one that picks its part from the board) must pick the part lying flat.
+    Fallback if no first hold grasp can: the hold grasps stay as they are, and the move arm brings the first part to the
+    assembly spot with one of its own move grasps (place_grasps_of_first_part; the layout chooses it). Without such a grasp
+    there is no sequence.
     '''
     with open(os.path.join(log_dir, 'precedence.pkl'), 'rb') as fp:
         G_preced = pickle.load(fp)
@@ -468,18 +477,23 @@ def run_flat_seq_opt(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUND_
 
     part_cfg_final = load_final_part_cfg(assembly_dir, grasps['arm'])
     gripper_meshes = load_gripper_meshes(grasps['gripper'], os.path.join(project_base_dir, 'assets'))
-    flat_rots = {}
-    first_holds = [node for node in grasp_tree.nodes if len(node[0]) == 1 and node[1] in node[0]] # only the first held part remains (disassembly order)
-    infeasible = []
-    for node in first_holds:
-        part_id, grasp_id = node[1], node[2]
-        if part_id not in flat_rots: flat_rots[part_id] = get_flat_rots(part_cfg_final['mesh'][part_id], min_tip_angle)
-        grasp = seq_optimizer.grasps[part_id]['hold'][grasp_id]
-        if len(get_flat_pickup_candidates(grasp, part_cfg_final['mesh'][part_id], flat_rots[part_id], grasps['gripper'], gripper_meshes, max_tilt, clearance)) == 0:
-            infeasible.append(node)
+    first_holds, infeasible = first_hold_nodes(grasp_tree.nodes, seq_optimizer.grasps, part_cfg_final['mesh'], grasps, gripper_meshes, max_tilt, clearance, min_tip_angle)
     print(f'[run_flat_seq_opt] {len(first_holds) - len(infeasible)}/{len(first_holds)} first hold grasps can pick their part lying flat')
     grasp_tree = grasp_tree.copy()
-    grasp_tree.remove_nodes_from(infeasible)
+    if len(first_holds) > 0 and len(infeasible) == len(first_holds):
+        # fallback: the move arm brings the first part to the assembly spot. Only for first parts that have a move grasp for it
+        can_place = set()
+        for part_id in sorted({node[1] for node in first_holds}):
+            flat_rots = flat_rots_of(part_cfg_final['mesh'][part_id], part_id, grasps, min_tip_angle)
+            if len(place_grasps_of_first_part(grasps['grasps'][part_id]['move'], part_cfg_final['mesh'][part_id], flat_rots, grasps['gripper'], gripper_meshes, max_tilt, clearance)) > 0:
+                can_place.add(part_id)
+        if len(can_place) == 0:
+            print('[run_flat_seq_opt] none can, and the part has no move grasp that picks it lying flat either: there is no sequence')
+            return False
+        print(f'[run_flat_seq_opt] none can: fallback, the move arm brings the first part ({", ".join(sorted(can_place))}) to the assembly spot and the hold arm takes it there')
+        grasp_tree.remove_nodes_from([node for node in first_holds if node[1] not in can_place])
+    else:
+        grasp_tree.remove_nodes_from(infeasible)
 
     result = seq_optimizer._optimize_part_tree_from_grasp_tree(grasp_tree, verbose=verbose)
     if result is None:
@@ -500,10 +514,150 @@ def run_flat_seq_opt(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUND_
     return True
 
 
+def finger_footprints(grasp, pose, gripper_type, gripper_meshes):
+    '''
+    Footprints on the board (shapely polygons, one per finger) of the gripper fingers at the pickup of a part that lies at
+    `pose` (4x4, applied to the part in its final pose, where the grasp is defined), each over the opened gripper (as it arrives)
+    and the gripper closed on the part.
+    '''
+    from shapely.geometry import MultiPoint
+    from planning.robot.geometry import get_gripper_meshes_transforms, get_gripper_finger_names
+    shapes = []
+    for name in get_gripper_finger_names(gripper_type):
+        vertices = gripper_meshes[name].convex_hull.vertices
+        points = []
+        for open_ratio in [grasp.open_ratio, min(grasp.open_ratio + _RETRACT_OPEN_RATIO, 1.0)]:
+            transform = get_gripper_meshes_transforms(gripper_type, gripper_meshes, grasp.pos, grasp.quat, pose, open_ratio)[name]
+            points.append((vertices @ transform[:3, :3].T + transform[:3, 3])[:, :2])
+        shapes.append(MultiPoint(np.vstack(points)).convex_hull)
+    return shapes
+
+
+def fingers_clear(fingers, others, clearance):
+    '''
+    True if the finger footprints keep `clearance` to the footprints of the other lying parts. Footprints are convex hulls seen
+    from above, so this is sufficient (not necessary) for the fingers to keep that distance to the parts in space.
+    '''
+    return all(finger.distance(other) >= clearance for finger in fingers for other in others)
+
+
+class PickupMoves:
+    '''
+    The straight moves of the real arm at a pickup spot, tested with the planner of run_motion_plan.py and its own routines. A
+    spot is only taken if the arm can get into the grasp there and away with the part; else the plan would fail later, in motion
+    planning, although the same grasp works a few centimetres further.
+      into the grasp     as ArmMotionPlanner.plan_path_switch: from the pickup pose back along the hand axis, the gripper opened
+                         for the grasp, until a pose is clear of every part (also of the one to pick); if the gripper arrives
+                         less opened than that, on to where it is clear with that opening as well
+      out with the part  as ArmMotionPlanner.plan_path_with_grasp: straight up with the part until it is clear of the other
+                         parts and the table, then the lift to the transport height, where the free path starts
+    '''
+    UP = np.array([0, 0, 1.0])
+
+    def __init__(self, planner, part_meshes_raw):
+        self.planner = planner # make_move_planner of run_motion_plan.py
+        self.raw = part_meshes_raw
+        self.inflated = {} # (part_id, buffer): the raw mesh inflated by buffer, computed once per part
+
+    def mesh_at(self, part_id, mat):
+        '''the part lying at mat (4x4, applied to the raw mesh); its inflated versions move with it and are handed to the planner'''
+        mesh = self.raw[part_id].copy().apply_transform(mat)
+        for buffer in self.planner.part_buffers():
+            if (part_id, buffer) not in self.inflated:
+                self.inflated[(part_id, buffer)] = offset_mesh(self.raw[part_id], buffer)
+            self.planner.add_buffered(mesh, buffer, self.inflated[(part_id, buffer)].copy().apply_transform(mat))
+        return mesh
+
+    def drop(self, mesh):
+        '''a mesh of mesh_at that is not used any more (the spot was not taken)'''
+        self.planner.drop_buffered(mesh)
+
+    def at_spot(self, grasp, part_mesh, gripper_pickup, others, open_before):
+        '''
+        part_mesh: the part where it lies (mesh_at); gripper_pickup: pose of the gripper at the pickup (4x4); others: meshes of all
+        other parts as they are when this part is picked (lying or assembled); open_before: open ratio of the gripper when it
+        arrives. Returns test(q): None if both straight moves exist for the arm pose q (full) at the pickup, else what is missing.
+        '''
+        planner = self.planner
+        active = planner.arm_chain.active_from_full
+        open_grasp = min(grasp.open_ratio + _RETRACT_OPEN_RATIO, 1.0)
+        fns = {} # the collision tests of the planner for this spot, built when the first arm pose is tested
+
+        def blocked():
+            what, moved = planner.last_block
+            return str(what) + (f' after {moved:.2f} cm' if moved is not None else '')
+
+        def test(q):
+            if len(fns) == 0:
+                fns['approach'] = [planner.get_fns(None, None, others + [part_mesh], ratio)[3] for ratio in ([open_grasp, open_before] if open_before < open_grasp else [open_grasp])]
+                fns['carry'] = planner.get_fns(part_mesh, gripper_pickup, others, grasp.open_ratio)[3]
+            back, q_clear = get_back_retract_dir(planner, q), q
+            for collision_fn in fns['approach']:
+                path = planner.plan_path_straight_out(q_clear, collision_fn, back)
+                if path is None: return f'no straight move into the grasp ({blocked()})'
+                q_clear = path[-1]
+            collision_fn = fns['carry']
+            contact = lambda q_active: collision_fn(q_active, buffered=False, move_ground_buffer=False)
+            path = planner.plan_path_straight_out(q, collision_fn, self.UP)
+            if path is None: return f'no straight move up with the part ({blocked()})'
+            lift = planner.plan_path_lift(path[-1], lambda q_active: planner.check_part_too_low(q_active, grasp.open_ratio, part_mesh, gripper_pickup), contact)
+            if lift is None or contact(active(lift[-1])): return 'no straight lift of the part to the transport height'
+            collision_fn.relax([active(lift[-1])])
+            if collision_fn(active(lift[-1]), part_clearance=True): return f'the part is not clear of everything after its lift ({collision_fn.hit})'
+            return None
+
+        return test
+
+
+BANNED_SPOTS_FILE = 'banned_spots.json'
+
+
+def spot_key(part_id, grasp_id, spot):
+    '''a spot (x, y) of the layout grid for a part and the move grasp that picks it there, as stored in BANNED_SPOTS_FILE'''
+    return (str(part_id), int(grasp_id), round(float(spot[0]), 3), round(float(spot[1]), 3))
+
+
+def load_banned_spots(log_dir):
+    '''
+    Spots where a part must not be laid out again: {spot_key}. run_planning_flat.py adds a spot when motion planning fails
+    because of the place where the part lies (planning/plan_checks.py CAUSE_SPOT): the layout then takes the next spot for the
+    same grasp. A ban holds for that grasp only, in whatever resting pose the part lies at the spot.
+    '''
+    path = os.path.join(log_dir, BANNED_SPOTS_FILE)
+    if not os.path.exists(path):
+        return set()
+    with open(path, 'r') as fp:
+        return {spot_key(part_id, grasp_id, (x, y)) for part_id, grasp_id, x, y in json.load(fp)}
+
+
+def ban_spot(log_dir, part_id, grasp_id, spot):
+    '''adds the spot (x, y) of a part to BANNED_SPOTS_FILE, see load_banned_spots; returns all banned spots as a sorted list'''
+    banned = load_banned_spots(log_dir) | {spot_key(part_id, grasp_id, spot)}
+    with open(os.path.join(log_dir, BANNED_SPOTS_FILE), 'w') as fp:
+        json.dump(sorted(banned), fp)
+    return sorted(banned)
+
+
+def clear_banned_spots(log_dir):
+    path = os.path.join(log_dir, BANNED_SPOTS_FILE)
+    if os.path.exists(path): os.remove(path)
+
+
+def pickup_anchor(arm_type, pickup_shift_y=PICKUP_SHIFT_Y, pickup_center_x=0.0):
+    '''
+    The place on the board (x, y in cm) around which the parts are laid out: the one stored in the log (run_planning_flat.py
+    --pickup-center, read by use_log_workcell), else the default pickup area, centred between the arms.
+    '''
+    stored = get_pickup_center()
+    if stored is not None:
+        return np.array(stored, dtype=float)
+    return np.array([pickup_center_x, get_fixture_min_y(arm_type) + pickup_shift_y + 10.0])
+
+
 def run_pickup_gen(assembly_dir, log_dir, max_tilt=MAX_TILT, clearance=GROUND_CLEARANCE, min_tip_angle=MIN_TIP_ANGLE, seed=0, pickup_shift_y=PICKUP_SHIFT_Y, verbose=False):
     '''
     Lay the parts out on the table one by one, in reverse pick order, each at the free spot nearest to the pickup area
-    (centered between the arms, pickup_shift_y from the default fixture place) where its pickup passes every real-robot check
+    (pickup_anchor) where its pickup passes every real-robot check and the arm can move straight into the grasp and out with the part
     '''
     return _run_pickup_gen(assembly_dir, log_dir, max_tilt, clearance, min_tip_angle, seed, pickup_shift_y, 0.0, verbose)
 
@@ -526,40 +680,64 @@ def _run_pickup_gen(assembly_dir, log_dir, max_tilt, clearance, min_tip_angle, s
         return False
     sequence_forward, grasps_sequence_forward = sequence[::-1], grasps_sequence[::-1]
 
-    # grasp used to pick up each part: hold grasp for the first held part, move grasp for the others
+    # grasp used to pick up each part: hold grasp for the first held part, move grasp for the others ('arm': who picks it)
     pickup_grasps = {} # part_id: (grasp, arm)
+    first_part = sequence_forward[0][1]
     for i, ((part_move, part_hold), (grasps_move, grasp_hold)) in enumerate(zip(sequence_forward, grasps_sequence_forward)):
         if i == 0: pickup_grasps[part_hold] = (grasp_hold, 'hold')
         pickup_grasps[part_move] = (grasps_move[0], 'move')
 
     part_cfg_final = load_final_part_cfg(assembly_dir, arm_type)
     gripper_meshes = load_gripper_meshes(gripper_type, os.path.join(project_base_dir, 'assets'))
+    from planning.plan_checks import SceneChecker, clear_failure, write_failure, joint_condition
+    from planning.robot.geometry import load_part_meshes
+    clear_failure(log_dir)
+    part_meshes_raw = {k[4:]: v for k, v in load_part_meshes(assembly_dir, transform='none').items()}
+    checker = SceneChecker(arm_type, gripper_type, has_ft_sensor['move'], part_meshes_raw, {k: np.eye(4) for k in part_meshes_raw}, part_cfg_final['mesh']) if arm_type == 'panda' else None
 
     candidates = {}
-    for part_id, (grasp, _) in pickup_grasps.items():
+    for part_id, (grasp, _) in list(pickup_grasps.items()):
         part_mesh = part_cfg_final['mesh'][part_id]
-        candidates[part_id] = get_flat_pickup_candidates(grasp, part_mesh, get_flat_rots(part_mesh, min_tip_angle), gripper_type, gripper_meshes, max_tilt, clearance)
+        flat_rots = flat_rots_of(part_mesh, part_id, grasps, min_tip_angle)
+        candidates[part_id] = get_flat_pickup_candidates(grasp, part_mesh, flat_rots, gripper_type, gripper_meshes, max_tilt, clearance)
+        if len(candidates[part_id]) == 0 and part_id == first_part and checker is not None:
+            # fallback (run_flat_seq_opt): the hold grasp cannot take the first part from the board, so the move arm brings it to
+            # the assembly spot ('place'): with its best move grasp whose arm pose there, the part standing on the table, passes the checks
+            final_pose_ok = lambda g: len(checker.check_path([g.arm_q], g.open_ratio, {}, carried=part_id, inserting=True)) == 0
+            places = place_grasps_of_first_part(grasps['grasps'][part_id]['move'], part_mesh, flat_rots, gripper_type, gripper_meshes, max_tilt, clearance, final_pose_ok)
+            if len(places) == 0:
+                write_failure(log_dir, 'run_pickup_gen', part_id, None, f'hold grasp {grasp.grasp_id} cannot pick the first part lying flat, and no move grasp can bring it to the assembly spot')
+                return False
+            print(f'[run_pickup_gen] part {part_id} (held first): hold grasp {grasp.grasp_id} cannot pick it lying flat; fallback: the move arm brings it to the assembly spot with move grasp {places[0][0].grasp_id}')
+            pickup_grasps[part_id] = (places[0][0], 'place')
+            candidates[part_id] = places[0][1]
         if len(candidates[part_id]) == 0:
-            print(f'[run_pickup_gen] part {part_id} cannot be picked lying flat with grasp {grasp.grasp_id}, run with --filter first')
+            print(f'[run_pickup_gen] part {part_id} ' + ('has no resting pose on the board (it tips over in every pose)' if len(flat_rots) == 0 else
+                                                       f'cannot be picked lying flat with grasp {grasp.grasp_id}, run with --filter first'))
             return False
 
     arm_box_move, arm_box_hold = get_dual_arm_box(arm_type)
     motion_planners = {'move': ArmMotionPlanner(get_arm_chain(arm_type, 'move'), gripper_type, has_ft_sensor['move'], arm_box_move, virtual_walls=arm_type == 'panda'),
                        'hold': ArmMotionPlanner(get_arm_chain(arm_type, 'hold'), gripper_type, has_ft_sensor['hold'], arm_box_hold)}
     final_mats = {part_id: get_transform_matrix_quat(part_cfg_final['pos'][part_id], part_cfg_final['quat'][part_id]) for part_id in pickup_grasps}
-    min_fixture_y = get_fixture_min_y(arm_type) + pickup_shift_y
 
     # clearance of the real (move) arm at each pickup: to the parts still lying and the parts already assembled at that moment
-    from planning.plan_checks import SceneChecker, clear_failure, write_failure, joint_condition
-    from planning.robot.geometry import load_part_meshes
-    clear_failure(log_dir)
-    part_meshes_raw = {k[4:]: v for k, v in load_part_meshes(assembly_dir, transform='none').items()}
-    checker = SceneChecker(arm_type, gripper_type, has_ft_sensor['move'], part_meshes_raw, {k: np.eye(4) for k in part_meshes_raw}, part_cfg_final['mesh']) if arm_type == 'panda' else None
-    state_at_pick = {}
-    assembled = {sequence_forward[0][1]} # first held part (human / hold arm)
+    state_at_pick, open_before = {}, {}
+    assembled = {first_part} # the first held part stands at the assembly spot before the first insertion
+    picked_before = first_part if pickup_grasps[first_part][1] == 'place' else None # the part the move arm had in its gripper before
+    if picked_before is not None: # fallback: the move arm picks the first part itself, while every other part still lies on the board
+        state_at_pick[first_part] = {k: 'pickup' for k in part_meshes_raw}
+        open_before[first_part] = OPEN_RATIO_REST
     for part_move, _ in sequence_forward:
         state_at_pick[part_move] = {k: ('final' if k in assembled else 'pickup') for k in part_meshes_raw}
         assembled.add(part_move)
+        # how far the gripper is open when it arrives (run_motion_plan.py): as after the release of the part before, at rest for the first
+        open_before[part_move] = OPEN_RATIO_REST if picked_before is None else min(pickup_grasps[picked_before][0].open_ratio + _RETRACT_OPEN_RATIO, 1.0)
+        picked_before = part_move
+    # the straight moves into each grasp and out with the part, tested with the planner of run_motion_plan.py
+    moves = PickupMoves(make_move_planner(get_arm_chain(arm_type, 'move'), gripper_type, has_ft_sensor['move'], arm_box_move, part_cfg_final['mesh']), part_meshes_raw) if checker is not None else None
+    lying_meshes = {} # part_id: its mesh where it is laid out (parts picked by the real arm)
+    banned_spots = load_banned_spots(log_dir)
 
     ik_cache = load_ik_cache(log_dir)
     t_start = time()
@@ -568,13 +746,16 @@ def _run_pickup_gen(assembly_dir, log_dir, max_tilt, clearance, min_tip_angle, s
     from shapely.geometry import MultiPoint, box as shapely_box
     from shapely.affinity import translate as _translate
     shapely_translate = lambda shape, xy: _translate(shape, xoff=xy[0], yoff=xy[1])
-    anchor = np.array([pickup_center_x, min_fixture_y + 10.0]) # preferred place of the parts
+    anchor = pickup_anchor(arm_type, pickup_shift_y, pickup_center_x) # preferred place of the parts
+    print(f'[run_pickup_gen] the parts are laid out around ({anchor[0]:.1f}, {anchor[1]:.1f})' + (' (stored in the log)' if get_pickup_center() is not None else ' (default pickup area)'))
     final_bounds = np.array([mesh.bounds for mesh in part_cfg_final['mesh'].values()])
-    from planning.config import TRANSFER_PART_CLEARANCE
-    zone = shapely_box(*(final_bounds[:, 0, :2].min(axis=0) - TRANSFER_PART_CLEARANCE), *(final_bounds[:, 1, :2].max(axis=0) + TRANSFER_PART_CLEARANCE))
+    from planning.config import ASSEMBLY_ZONE_MARGIN
+    zone = shapely_box(*(final_bounds[:, 0, :2].min(axis=0) - ASSEMBLY_ZONE_MARGIN), *(final_bounds[:, 1, :2].max(axis=0) + ASSEMBLY_ZONE_MARGIN))
     board = shapely_box(-BOARD_HALF_SIZE[0] + 1.0, -BOARD_HALF_SIZE[1] + 1.0, BOARD_HALF_SIZE[0] - 1.0, BOARD_HALF_SIZE[1] - 1.0)
     grid = np.array([[x, y] for x in np.arange(-BOARD_HALF_SIZE[0], BOARD_HALF_SIZE[0], PLACEMENT_STEP) for y in np.arange(-BOARD_HALF_SIZE[1], BOARD_HALF_SIZE[1], PLACEMENT_STEP)])
     grid = grid[np.argsort(np.linalg.norm(grid - anchor, axis=1))]
+    coarse = np.all(np.round((grid + np.array(BOARD_HALF_SIZE)) / PLACEMENT_STEP).astype(int) % 2 == 0, axis=1) # every second spot in x and y (wide search)
+    from planning.config import ROBOT_PART_CLEARANCE
 
     # resting pose shape of every candidate: footprint (centered) and the transform that puts it on the table at (x, y)
     shapes = {}
@@ -594,42 +775,78 @@ def _run_pickup_gen(assembly_dir, log_dir, max_tilt, clearance, min_tip_angle, s
         return transform @ rot4 # applied to the part in its final pose (as pose_pickup of the fixture pipeline)
 
     order = [part_move for part_move, _ in sequence_forward][::-1] + [sequence_forward[0][1]] # last picked first; the human's part last
-    placed, footprints, choice, pickup_q = {}, {}, {}, {}
+    placed, footprints, choice, pickup_q, spots = {}, {}, {}, {}, {}
     for part_id in order:
-        grasp, arm = pickup_grasps[part_id]
+        grasp, kind = pickup_grasps[part_id]
+        arm = 'hold' if kind == 'hold' else 'move' # 'place': the first part, picked by the move arm (fallback)
         planner = motion_planners[arm]
         found, tried, violations_seen = False, 0, {}
-        for xy in grid:
-            for k, (footprint, _, _, _) in enumerate(shapes[part_id]):
-                shape = shapely_translate(footprint, xy)
-                if not board.contains(shape) or shape.intersects(zone) or any(shape.distance(other) < PART_GAP for other in footprints.values()):
-                    continue
-                pose = place(part_id, k, xy)
-                mat = pose @ final_mats[part_id]
-                if arm == 'hold' or checker is None: # the human takes it / no real-robot checks: free spot and reachable
-                    q = get_pickup_arm_q(planner, grasp, mat, final_mats[part_id], arm_q_init=planner.arm_chain.active_to_full(planner.arm_chain.rest_q), has_ft_sensor=has_ft_sensor[arm], optimizer='least_squares', regularization=1.0)
-                    if arm == 'move' and (q is None or not planner.check_virtual_walls(q) or not check_lift(planner, q)): continue
-                    found = True
-                else:
-                    tried += 1
-                    checker.set_pickups(part_meshes_raw, {**placed, part_id: mat})
-                    for score, q in pickup_ik_solutions(ik_cache, planner, grasp, part_id, mat, final_mats[part_id], has_ft_sensor[arm]):
-                        violations = checker.check_pickup(q, min(grasp.open_ratio + _RETRACT_OPEN_RATIO, 1.0), part_id, state_at_pick[part_id])
-                        if not violations:
-                            pickup_q[part_id] = q
-                            found = True
-                            break
-                        for v in violations: violations_seen[v.split(' (poses')[0]] = violations_seen.get(v.split(' (poses')[0], 0) + 1
-                if found:
-                    placed[part_id], footprints[part_id], choice[part_id] = mat, shape, k
-                    break
-            if found or tried >= MAX_PLACEMENT_TRIES: break
+        checked, fingers_at_origin = set(), {} # (spot, candidate) pairs checked with the robot; finger footprints per candidate
+        if arm == 'move' and moves is not None: # all other parts as they are when this one is picked: assembled, or lying where they were laid out (they are picked later)
+            others = [part_cfg_final['mesh'][k] if state == 'final' else lying_meshes[k] for k, state in state_at_pick[part_id].items() if k != part_id]
+        # 1. the spots nearest to the pickup area. 2. (real arm only) if none of them fits: the whole board, every second spot,
+        #    and only where the fingers stay clear of the parts already placed (a quick test before the robot check)
+        for wide in ([False, True] if arm == 'move' and checker is not None else [False]):
+            if wide: print(f'[run_pickup_gen] part {part_id}: no spot among the {tried} nearest ones, searching the whole board')
+            limit = MAX_PLACEMENT_TRIES + (MAX_PLACEMENT_TRIES_WIDE if wide else 0)
+            for i, xy in enumerate(grid):
+                if wide and not coarse[i]: continue
+                for k, (footprint, _, _, _) in enumerate(shapes[part_id]):
+                    shape = shapely_translate(footprint, xy)
+                    if not board.contains(shape) or shape.intersects(zone) or any(shape.distance(other) < PART_GAP for other in footprints.values()):
+                        continue
+                    pose = place(part_id, k, xy)
+                    mat = pose @ final_mats[part_id]
+                    if arm == 'hold': # the human takes it: a free spot
+                        found = True
+                    elif checker is None: # no real-robot checks: free spot and reachable
+                        q = get_pickup_arm_q(planner, grasp, mat, final_mats[part_id], arm_q_init=planner.arm_chain.active_to_full(planner.arm_chain.rest_q), has_ft_sensor=has_ft_sensor[arm], optimizer='least_squares', regularization=1.0)
+                        if q is None or not planner.check_virtual_walls(q) or not check_lift(planner, q): continue
+                        found = True
+                    else:
+                        if (i, k) in checked: continue
+                        if spot_key(part_id, grasp.grasp_id, xy) in banned_spots: continue # motion planning failed with the part lying there
+                        if wide:
+                            if k not in fingers_at_origin: fingers_at_origin[k] = finger_footprints(grasp, place(part_id, k, (0.0, 0.0)), gripper_type, gripper_meshes)
+                            if not fingers_clear([shapely_translate(finger, xy) for finger in fingers_at_origin[k]], footprints.values(), ROBOT_PART_CLEARANCE): continue
+                        checked.add((i, k))
+                        tried += 1
+                        checker.set_pickups(part_meshes_raw, {**placed, part_id: mat})
+                        gripper_pickup = get_pickup_gripper_pose(grasp, mat, final_mats[part_id])
+                        open_ratio_pickup = min(grasp.open_ratio + _RETRACT_OPEN_RATIO, 1.0)
+                        # gripper or wrist too close to another part: no arm pose changes that, so none is searched
+                        blocked = checker.pickup_blocked(gripper_pickup, open_ratio_pickup, part_id, state_at_pick[part_id], closed_ratio=grasp.open_ratio)
+                        if blocked is not None:
+                            violations_seen[f'pickup of part {part_id}: {blocked}'] = violations_seen.get(f'pickup of part {part_id}: {blocked}', 0) + 1
+                            continue
+                        spot_mesh, straight = None, None # the straight moves at this spot: set up when the first arm pose passes the checks of the pickup pose
+                        for score, q in pickup_ik_solutions(ik_cache, planner, grasp, part_id, mat, final_mats[part_id], has_ft_sensor[arm]):
+                            violations = checker.check_pickup(q, open_ratio_pickup, part_id, state_at_pick[part_id], closed_ratio=grasp.open_ratio)
+                            if not violations:
+                                if straight is None:
+                                    spot_mesh = moves.mesh_at(part_id, mat)
+                                    straight = moves.at_spot(grasp, spot_mesh, gripper_pickup, others, open_before[part_id])
+                                missing = straight(q)
+                                if missing is not None: violations = [f'pickup of part {part_id}: {missing}']
+                            if not violations:
+                                pickup_q[part_id] = q # used by run_motion_plan.py
+                                lying_meshes[part_id] = spot_mesh
+                                found = True
+                                break
+                            for v in violations: violations_seen[v.split(' (poses')[0]] = violations_seen.get(v.split(' (poses')[0], 0) + 1
+                        if not found and spot_mesh is not None: moves.drop(spot_mesh)
+                    if found:
+                        placed[part_id], footprints[part_id], choice[part_id], spots[part_id] = mat, shape, k, [float(xy[0]), float(xy[1])]
+                        break
+                if found or tried >= limit: break
+            if found: break
         if not found:
             reasons = '; '.join(f'{v} ({n}x)' for v, n in sorted(violations_seen.items(), key=lambda x: -x[1])[:3])
             write_failure(log_dir, 'run_pickup_gen', part_id, grasp.grasp_id if arm == 'move' else None, f'no spot within {tried} tries where the pickup passes the checks: {reasons}')
             save_ik_cache(log_dir, ik_cache)
             return False
-        print(f'[run_pickup_gen] part {part_id} placed at ({footprints[part_id].centroid.x:.1f}, {footprints[part_id].centroid.y:.1f}), resting pose candidate {choice[part_id]}' + (f', {tried} spots tried' if tried else ''))
+        print(f'[run_pickup_gen] part {part_id} placed at ({footprints[part_id].centroid.x:.1f}, {footprints[part_id].centroid.y:.1f}), resting pose candidate {choice[part_id]}' +
+              (f', {tried} spots tried' + (' (whole board)' if tried > MAX_PLACEMENT_TRIES else '') if tried else ''))
         if verbose and violations_seen: print('    rejected because: ' + '; '.join(f'{v} ({n}x)' for v, n in violations_seen.items()))
 
     pose_pickup_global = placed
@@ -645,7 +862,8 @@ def _run_pickup_gen(assembly_dir, log_dir, max_tilt, clearance, min_tip_angle, s
         json.dump({part_id: get_pos_euler_from_transform_matrix(mat).tolist() for part_id, mat in pose_pickup_global.items()}, fp)
     if os.path.exists(os.path.join(fixture_dir, 'fixture.obj')):
         os.remove(os.path.join(fixture_dir, 'fixture.obj')) # no fixture: parts lie on the board
-    pickup_info = {part_id: {'arm': pickup_grasps[part_id][1], 'grasp_id': int(pickup_grasps[part_id][0].grasp_id),
+    # 'spot' (x, y of the layout grid): what run_planning_flat.py bans if motion planning fails because of the spot; 'candidate': which resting pose and yaw of the grasp
+    pickup_info = {part_id: {'arm': pickup_grasps[part_id][1], 'grasp_id': int(pickup_grasps[part_id][0].grasp_id), 'spot': spots[part_id], 'candidate': int(choice[part_id]),
                              **{k: v for k, v in candidates[part_id][choice[part_id]].items() if k != 'rot'}} for part_id in pickup_grasps}
     with open(os.path.join(fixture_dir, 'flat_pickup.json'), 'w') as fp:
         json.dump(pickup_info, fp, indent=4)
@@ -687,6 +905,8 @@ if __name__ == '__main__':
     parser.add_argument('--verbose', action='store_true', default=False)
     args = parser.parse_args()
 
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     if args.template == 'assembly':
         save_assembly_template(args.assembly_dir, args.log_dir)
         sys.exit(0)

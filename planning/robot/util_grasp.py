@@ -72,9 +72,11 @@ def filter_sparse_pairs(pairs, min_distance):
     return pairs[keep_mask]
 
 
-def compute_antipodal_pairs(mesh, sample_budget=200, antipodal_thres=0.95, clearance=1.0, sparsity=0.05, collision_meshes=[], ground_z=0.0, visualize=False, verbose=False):
+def compute_antipodal_pairs(mesh, sample_budget=200, antipodal_thres=0.95, clearance=1.0, sparsity=0.05, collision_meshes=[], ground_z=0.0, visualize=False, verbose=False, max_rounds=None):
     '''
     Compute pairs of antipodal points for a given mesh through ray casting and surface sampling
+    max_rounds: give up after this many sampling rounds (None: sample until sample_budget pairs are found, as in the original;
+    a mesh without such pairs then never returns). Returns an array (n, 2, 3), n = 0 if none was found.
     '''
     mesh_col_manager = trimesh.collision.CollisionManager()
     mesh_col_manager.add_object('mesh', mesh)
@@ -82,8 +84,12 @@ def compute_antipodal_pairs(mesh, sample_budget=200, antipodal_thres=0.95, clear
         mesh_col_manager.add_object(f'collision_mesh_{i}', collision_mesh)
 
     antipodal_pairs_all = []
+    n_rounds = 0
 
     while len(antipodal_pairs_all) < sample_budget:
+        if max_rounds is not None and n_rounds >= max_rounds:
+            break
+        n_rounds += 1
 
         # randomly sample surface points
         sample_points, sample_face_idx = mesh.sample(sample_budget, return_index=True)
@@ -120,6 +126,8 @@ def compute_antipodal_pairs(mesh, sample_budget=200, antipodal_thres=0.95, clear
         else:
             antipodal_pairs_all = np.concatenate([antipodal_pairs_all, antipodal_pairs], axis=0)
 
+    if len(antipodal_pairs_all) == 0: # only with max_rounds
+        return np.zeros((0, 2, 3))
     antipodal_pairs = filter_sparse_pairs(antipodal_pairs_all, min_distance=sparsity)
     antipodal_pairs = sort_antipodal_pairs(antipodal_pairs, mesh)
 

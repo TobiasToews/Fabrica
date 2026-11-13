@@ -123,4 +123,6 @@ if __name__ == '__main__':
     parser.add_argument('--lift', type=float, default=LIFT, help='[cm] height above the pickup pose')
     args = parser.parse_args()
 
+    from planning.robot.workcell import use_log_workcell
+    use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     sys.exit(0 if run_place_poses(args.log_dir, args.lift) else 1)

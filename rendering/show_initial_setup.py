@@ -46,7 +46,8 @@ def print_legend(assembly_dir, fixture_dir):
         line = f'  part {part_id:>2} ({COLOR_NAMES[int(part_id) % len(COLOR_NAMES)]:>6}): x {x0:6.1f}..{x1:6.1f} cm, y {y0:6.1f}..{y1:6.1f} cm, {z1:4.1f} cm tall'
         if part_id in flat:
             info = flat[part_id]
-            line += f', picked by the {info["arm"]} arm ({info["tilt"]:.0f} deg from vertical, tips over at {info["tip_angle"]:.0f} deg)'
+            who = 'move arm, which brings it to the assembly spot' if info['arm'] == 'place' else f'{info["arm"]} arm' # 'place': the first part in the fallback of run_pickup_gen.py
+            line += f', picked by the {who} ({info["tilt"]:.0f} deg from vertical, tips over at {info["tip_angle"]:.0f} deg)'
         print(line)
 
 

@@ -94,6 +94,34 @@ def get_virtual_wall_margin(arm_chain, arm_q):
     return margin * 100
 
 
+_HAND_FRAMES = {} # (gripper type, ft sensor): origins of frame J7 and of the flange in the frame of the gripper
+
+
+def get_hand_wall_margin(arm_chain, gripper_type, gripper_pose, has_ft_sensor=False):
+    '''
+    The part of get_virtual_wall_margin that follows from the gripper pose alone (4x4, world, cm): the margin (cm) of the last
+    two frames, J7 and the flange. Their origins move rigidly with the hand (the origin of J7 lies on the axis of joint 7), so
+    every arm pose that reaches this gripper pose has at most this margin, and a gripper pose with too little of it needs
+    no search for an arm pose (panda only).
+    '''
+    assert arm_chain.arm_type == 'panda'
+    planes, thresholds = get_panda_virtual_walls()
+    key = (gripper_type, has_ft_sensor)
+    if key not in _HAND_FRAMES:
+        q = arm_chain.active_to_full(arm_chain.rest_q)
+        fk = arm_chain.forward_kinematics(q, full_kinematics=True)
+        assert len(fk) - 2 == len(thresholds) # link2..link8 = J2..J7, flange
+        to_gripper = np.linalg.inv(get_transform_matrix_quat(*get_gripper_pos_quat_from_arm_q(arm_chain, q, gripper_type, has_ft_sensor=has_ft_sensor)))
+        _HAND_FRAMES[key] = [(to_gripper @ T)[:3, 3] for T in fk[-2:]]
+    base_rot = R.from_euler('xyz', arm_chain.base_euler).as_matrix()
+    margin = np.inf
+    for point, threshold in zip(_HAND_FRAMES[key], thresholds[-2:]):
+        pos = base_rot.T @ (gripper_pose[:3, :3] @ point + gripper_pose[:3, 3] - arm_chain.base_pos) / 100 # world (cm) -> robot base (m)
+        for axis, offset in planes:
+            margin = min(margin, abs(pos[axis] - offset) - threshold)
+    return margin * 100
+
+
 def get_ft_pos_from_gripper_pos_quat(gripper_type, gripper_pos, gripper_quat):
     base_basis_direction, _ = get_gripper_basis_directions(gripper_type)
     ft_spec = get_ft_sensor_spec()

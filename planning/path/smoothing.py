@@ -70,15 +70,19 @@ def smooth_path(path, extend_fn, collision_fn, distance_fn=None, cost_fn=None, s
     cost = compute_path_cost(waypoints, cost_fn=cost_fn)
     #paths = [extend_fn(*pair) for pair in get_pairs(waypoints)] # TODO: update incrementally
     #costs = [cost_fn(*pair) for pair in get_pairs(waypoints)]
+    per_waypoints = None # segments, paths and probabilities of the current waypoints: only recomputed after a shortcut was accepted
     for iteration in irange(max_iterations):
         if (elapsed_time(start_time) > max_time) or (elapsed_time(last_time) > converge_time) or (len(waypoints) <= 2):
             break
 
-        segments = get_pairs(range(len(waypoints)))
-        weights = [distance_fn(waypoints[i], waypoints[j]) for i, j in segments]
-        paths = [list(extend_fn(*pair)) for pair in get_pairs(waypoints)]
-        #weights = [len(paths[i]) for i, j in segments]
-        probabilities = np.array(weights) / sum(weights)
+        if per_waypoints is None:
+            segments = get_pairs(range(len(waypoints)))
+            weights = [distance_fn(waypoints[i], waypoints[j]) for i, j in segments]
+            paths = [list(extend_fn(*pair)) for pair in get_pairs(waypoints)]
+            #weights = [len(paths[i]) for i, j in segments]
+            probabilities = np.array(weights) / sum(weights)
+            per_waypoints = (segments, paths, probabilities)
+        segments, paths, probabilities = per_waypoints
         if verbose:
             print('Iteration: {} | Waypoints: {} | Cost: {:.3f} | Elapsed: {:.3f} | Remaining: {:.3f}'.format(
                 iteration, len(waypoints), cost, elapsed_time(start_time), max_time-elapsed_time(start_time)))
@@ -110,6 +114,7 @@ def smooth_path(path, extend_fn, collision_fn, distance_fn=None, cost_fn=None, s
             waypoints = new_waypoints
             cost = new_cost
             last_time = time.time()
+            per_waypoints = None
     #return waypoints
     return refine_waypoints(waypoints, extend_fn)
 
