@@ -1,7 +1,9 @@
 # Fixture-free pipeline for the real robot
 
-Plans an assembly where the parts lie flat on the table (no printed fixture). The single real Panda (the "move" arm)
-picks and inserts every part; a human holds the first part at the assembly spot (`real_robot/run.py --single-arm`).
+Plans an assembly where the parts lie flat on the table (no printed fixture). The "move" arm picks and inserts every
+part, the "hold" arm holds the assembly. Both arms are planned as robots: each avoids the other, and no step is left to a
+human (since 2026-11-13). Today only the move arm is a real Panda; `real_robot/run.py --single-arm` lets a human do the
+steps of the hold arm.
 Plan once, train once, run on the robot: a plan is only reported as done when every motion of the real arm passed the checks below.
 
 ## Use
@@ -17,7 +19,8 @@ Output in `logs/<exp_name>/<assembly>/`:
 |---|---|
 | `motion.pkl` | what `real_robot/run.py` executes |
 | `fixture/pickup_template_a4.pdf`, `fixture/assembly_template_a4.pdf` | 1:1 print-outs (A4, 100 %): where each part lies (several sheets with 1 cm overlap if the layout is larger), where the human holds the first part |
-| `fixture/pickup_q.json` | the checked arm pose of every pickup (used by motion planning) |
+| `fixture/pickup_q.json` | the checked arm pose of every pickup of the move arm (used by motion planning) |
+| `fixture/pickup_q_hold.json` | the arm pose of the hold arm at the first part (empty if the move arm brings that part) |
 | `pickup_ik_cache.pkl` | cached pickup arm poses; makes later runs in the same log fast |
 | `fixture/place_poses.json` | for `real_robot/place_parts.py` (the robot shows each spot, in reverse pick order). Missing if one of its moves between the spots collides (`workcell.json`: `place_poses` false): lay the parts out with the template then |
 | `verify_report.json` | result of the final check |
@@ -70,10 +73,11 @@ python real_robot/run.py --single-arm --residual --fn logs/<exp_name>/<assembly>
    ("place carefully") and recorded in `grasps.pkl` (`settings.flat_pickup.fallback_parts`).
 3. Sequence planning (`run_seq_plan.py`) and optimization (`run_pickup_gen.py --seq-opt`). The hold grasp of the first step is
    the only hold grasp that takes its part from the board: it must pick the part lying flat. Candidates that cannot are removed.
-   Fallback if none can: the hold grasps stay as they are, and the move arm brings the first part to the assembly spot as a
-   planned and checked step (pickup with one of the part's own move grasps, set down on the table at its assembled pose,
-   release, back to rest); the hold arm then takes the part where it stands. The layout marks such a part with `place` in
-   `flat_pickup.json`. Without a move grasp that can do this there is no sequence.
+   Fallback if none can, and also if the hold arm reaches the part on no spot of the layout (stage 4): the hold grasps stay
+   as they are, and the move arm brings the first part to the assembly spot as a planned and checked step (pickup with one
+   of the part's own move grasps, set down on the table at its assembled pose, release, back to rest); the hold arm then
+   takes the part where it stands. The layout marks such a part with `place` in `flat_pickup.json`. Without a move grasp
+   that can do this there is no sequence (for the reach case: the hold grasp is dropped, cause `hold grasp`).
 4. Pickup layout (`run_pickup_gen.py`): the parts are placed one by one in reverse pick order (so the parts lying around at each
    pickup are exactly those that still lie there during the run), each at the free spot nearest to the pickup area (1.25 cm grid,
    on the board, outside the assembly zone, `PART_GAP` 2.0 cm between the footprints of two parts) and the resting pose /
@@ -91,16 +95,24 @@ python real_robot/run.py --single-arm --residual --fn logs/<exp_name>/<assembly>
    (`get_hand_wall_margin`). Both stay `PICKUP_POSE_SLACK` 0.1 cm below the checked limits, so no spot is dropped that the
    full check would take. (A layout far from the arm took 27 min without these tests, 4 min with them.)
 
+   The first part (the hold arm picks it, before anything else moves) is placed last, at the nearest spot where the hold
+   arm has an arm pose for its hold grasp whose arm and opened gripper touch neither the lying parts, the table nor the move
+   arm at rest (`run_pickup_gen.hold_pickup_q`; the pose goes to `fixture/pickup_q_hold.json`). Until 2026-11-13 any free
+   spot counted and a human picked the part. If none of the 150 nearest spots works, the layout starts again with the
+   fallback of stage 3: the move arm brings the part.
+
    If none of the `MAX_PLACEMENT_TRIES` 150 nearest spot / resting pose combinations fits, the search goes on over the whole
    board (`MAX_PLACEMENT_TRIES_WIDE` 300 further checks, every second grid spot, only where the footprints of the fingers keep
    1 cm to the parts already placed). For every pickup several IK solutions of the redundant arm are computed and the best
    conditioned one is kept, including the poses while lifting the part 2.5–10 cm (the arm folds further when lifting close to
    the robot). Spots listed in `banned_spots.json` are skipped (stage 6).
-5. Motion planning (`run_motion_plan.py --no-viz --single-arm`): every path of the real arm is checked and re-planned with another seed
-   if it fails or the planner gives up (`MAX_PLAN_ATTEMPTS`). The hold arm is a human, so the real arm does not avoid a simulated hold arm.
-   The paths of the simulated hold arm are only shown in the viewer: one that cannot be planned is stored as a jump and does not
-   stop the plan (`--single-arm` only). When the planner finds no path, the message names what stopped its straight move, e.g.
-   `no straight move into the goal pose from a pose clear of everything (virtual wall after 0.25 cm)`.
+5. Motion planning (`run_motion_plan.py --no-viz`): every path of the real arm is checked and re-planned with another seed
+   if it fails or the planner gives up (`MAX_PLAN_ATTEMPTS`). Only one arm moves at a time, and it avoids the other arm,
+   which stands still meanwhile. The paths of the hold arm are planned the same way and checked for their distance to the
+   move arm; one that cannot be planned is a failure with cause `hold grasp` (until 2026-11-13, with `--single-arm`, the
+   move arm did not avoid the hold arm, a hold path without a plan was stored as a jump, and a first part out of the hold
+   arm's reach was left to the human; the option is gone). When the planner finds no path, the message names what stopped
+   its straight move, e.g. `no straight move into the goal pose from a pose clear of everything (virtual wall after 0.25 cm)`.
 6. If a stage finds no clean plan it says what has to change (`planning_failure.json`, `cause`), and the loop does that, at
    most `MAX_SEQUENCE_ATTEMPTS` 10 times in total:
 
@@ -108,6 +120,7 @@ python real_robot/run.py --single-arm --residual --fn logs/<exp_name>/<assembly>
    |---|---|---|
    | `grasp` | the arm or the gripper do not fit: an insertion path or the way out of a release pose breaks a rule, the insertion start cannot be approached because of the arm or the gripper, no free path in `MAX_PLAN_ATTEMPTS` tries, or the layout finds no spot on the whole board | the move grasp is removed, the next best sequence is planned |
    | `spot` | the place where the part lies: no straight move into its grasp or out with it, or every rejected path is too close to parts lying beside it | the grasp stays; the spot is added to `banned_spots.json` and the layout runs again (same sequence) |
+   | `hold grasp` | the hold arm cannot do its part with this hold grasp: no arm pose to pick the first part, no path in `MAX_PLAN_ATTEMPTS` tries, or too close to the move arm; also the layout when the hold arm reaches the first part nowhere and no move grasp can bring it | the hold grasp is removed (`run_planning_flat.ban_hold_grasp`), the next best sequence is planned |
    | `insertion` | the part itself cannot get to where its insertion starts (too close to the table or to the assembly on the straight move there), however it is grasped | planning stops with that message |
 7. Final check (`verify_plan.py`), place poses (`run_place_poses.py`), `workcell.json`. The place poses are a help for laying
    the parts out and do not decide whether the plan counts: `place_parts.py` moves in joint space between the spots, which
@@ -131,7 +144,7 @@ the table was only tested afterwards, so small round and long thin parts often k
 
 `python planning/test_flat_grasp.py` tests these functions, the straight moves at a pickup spot and at the assembly, the tests
 made before an arm pose is searched, the banned spots, the resting poses and the layout of a planned assembly, on toy parts
-with known dimensions (42 tests, about 2 min).
+with known dimensions (43 tests, about 2 min).
 
 ## Places of the assembly and of the parts (`planning/run_workspace_search.py`, `planning/robot/workcell.py`)
 
@@ -185,6 +198,7 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
 | gripper / carried part vs the assembly, including the part just released | no contact (the carried part is not checked while inserting: insertion paths are fixed by the grasp) |
 | gripper / carried part passing by the assembly (a path may start or end closer: leaving after a release, arriving to insert) | ≥ `ASSEMBLY_CLEARANCE` 1.0 cm |
 | gripper (hand, fingers) vs the robot's own links 0–5 | ≥ `ROBOT_SELF_CLEARANCE` 1.0 cm |
+| the arm that moves (links, gripper, carried part) vs the other arm, which stands still meanwhile; checked for the paths of both arms | no contact; ≥ `ARM_ARM_CLEARANCE` 1.0 cm except in one stretch at the start and one at the end of a path (both hands work at the assembly); while inserting only no contact (since 2026-11-13) |
 | carried part above the table outside the assembly zone (assembly + `ASSEMBLY_ZONE_MARGIN` 4.0 cm; 3.0 until 2026-11-12), once lifted | ≥ `TRANSFER_PART_CLEARANCE` 3.0 cm |
 | carried part above the table inside the assembly zone, until the last stretch of its path, where it comes down to its goal (not while inserting: an insertion may end on the table) | ≥ `ZONE_PART_TABLE_CLEARANCE` 0.2 cm |
 | gripper / arm above the table | ≥ 0.2 cm / ≥ 1.0 cm |
@@ -200,7 +214,7 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
 |---|---|
 | `planning/robot/workcell.py` | robot base height `get_panda_base_z()` (original: 0), table height, franka-interface virtual walls |
 | `planning/robot/motion_plan_arm.py` | virtual walls and table clearance of carried parts as constraints (inside the assembly zone the carried part only keeps off the 0.2 cm table slab); straight lift of a carried part to the clearance height; retract steps where the arm would flip are rejected; reports what stopped a straight move; `VISUALIZE` switch |
-| `planning/run_motion_plan.py` | works without `fixture.obj`; every move-arm path checked and re-planned; names the failing grasp and the cause (grasp, spot or insertion); `--no-viz`; `--single-arm`: a hold-arm path that cannot be planned is a jump |
+| `planning/run_motion_plan.py` | works without `fixture.obj`; every move-arm path checked and re-planned; hold-arm paths re-planned and checked for their distance to the move arm; names the failing grasp and the cause (move grasp, hold grasp, spot or insertion); `--no-viz` |
 | `planning/run_grasp_arm_gen.py` | `--flat`: grasps for this pipeline (pad-grid contact, candidates from both poses, second sampling round, flat test before the cut, straight moves at the assembly, rated choice, hold grasps that leave room; no blocking box where the fixture of the original pipeline stands, so the assembly may stand anywhere); without it the original generator is unchanged |
 | `planning/run_position_test.py` (new) | runs the pipeline at many places of the assembly and of the pickup area |
 | `planning/flat_grasp.py` (new) | resting poses, flat-pickup test, pad-grid contact, criteria of a move grasp, rating and choice |
@@ -218,7 +232,11 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
 - `logs/exp_human_normal_flat_v3` was planned before the gripper rules were tightened (2026-11-10) and no longer passes them
   (the gripper passes through the part it just released on five retracts and touches part 2 before grasping it).
   Re-plan it before the next run on the robot (the changed planner produces a passing plan from the same grasps and layout).
-- Only the move arm is checked: the hold arm is the human (single-arm mode). The human's hands at the assembly are protected only
+- The hold arm's paths are checked only for their distance to the move arm. Its own walls, singularities, joint limits and
+  table distance are not checked (the rules of `plan_checks.py` are written for the move arm and its franka-interface
+  walls; the walls of a second robot are not known yet); its planner avoids the parts, the table and the move arm with the
+  buffers of the original Fabrica planner.
+- With `real_robot/run.py --single-arm` a human does the hold arm's steps. The human's hands at the assembly are protected only
   indirectly (no contact with the assembly, 1 cm to all parts): keep them on the side away from the robot.
 - Insertion paths come from the grasp and the disassembly plan; they are checked for singularities, joint limits, walls and table,
   not re-planned.
@@ -232,15 +250,18 @@ Exact geometry, no planner buffers, every pose of every path in `motion.pkl`. Di
   them, and a straight move into the next pose. If a straight move is impossible (e.g. a wall or a neighbouring part in the way)
   there is no path (stage 6 decides what changes); a finished path that still fails the check is re-planned (up to
   `MAX_PLAN_ATTEMPTS`).
-- `python planning/test_plan_rules.py` tests every rule, the planner and the causes of a failure on a toy scene (no robot, 39
+- `python planning/test_plan_rules.py` tests every rule, the planner and the causes of a failure on a toy scene (no robot, 40
   tests, about 30 s).
 - Memory: the planner's setup for a path (`get_fns`) builds collision structures of all still parts, for assemblies with
   large meshes several hundred MB (gamepad: two parts with 52000 faces). It releases those of the call before when it
   builds new ones; a motion plan of gamepad then needs about 1.4 GB. Plans of several assemblies or places can run at the
   same time only as far as the memory of the machine allows (15.9 GB here: 6 plans of gamepad).
-- The first part is picked from the board with its hold grasp (by the human in single-arm mode). If no first hold grasp can
-  pick it lying flat, the move arm brings it to the assembly spot (stage 3). `real_robot/run.py` executes that step like every
-  other path of the move arm; its prompts for the human were not adapted to it.
+- The first part is picked from the board by the hold arm with its hold grasp. If no first hold grasp can pick it lying flat,
+  or the hold arm reaches it on no spot of the layout, the move arm brings it to the assembly spot (stages 3 and 4).
+  `real_robot/run.py` executes that step like every other path of the move arm; its prompts for the human were not adapted to it.
+- Plans made before 2026-11-13 were made without the move arm avoiding the hold arm. Checked again with the new rule, the
+  plan of `v0.1_exp_human_normal_flat_run6` fails it: the move arm's hand passes the hold arm's link 5 closer than 1 cm, and
+  carried parts pass its hand closer than 1 cm.
 - Inside the assembly zone a carried part may come as low as 0.2 cm above the table (`ZONE_PART_TABLE_CLEARANCE`); a part whose
   insertion starts on the table itself (0 cm) still has no approach. The zone is a fixed margin around the assembly (4 cm): a
   part that is inserted low and is clear of its neighbours only further out than that has no approach either (gamepad part 4

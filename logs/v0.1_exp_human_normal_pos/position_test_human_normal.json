@@ -1,0 +1,876 @@
+{
+  "assembly": "human_normal",
+  "seed": 0,
+  "min_corners": 4,
+  "min_separation": 5.0,
+  "n_assembly": 10,
+  "footprint_at_default": [
+    [
+      -6.3,
+      -19.0
+    ],
+    [
+      6.3,
+      -11.0
+    ]
+  ],
+  "default_center": [
+    0.0,
+    -15.0
+  ],
+  "places": [
+    {
+      "assembly": [
+        0.0,
+        -20.0
+      ],
+      "footprint_centre": [
+        0.0,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          0.0,
+          10.0
+        ],
+        [
+          2.5,
+          37.5
+        ],
+        [
+          -5.0,
+          32.5
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        0.0,
+        -7.5
+      ],
+      "footprint_centre": [
+        0.0,
+        -7.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -7.5,
+          15.0
+        ],
+        [
+          -7.5,
+          30.0
+        ],
+        [
+          -5.0,
+          25.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        10.0,
+        -15.0
+      ],
+      "footprint_centre": [
+        10.0,
+        -15.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          7.5,
+          -35.0
+        ],
+        [
+          0.0,
+          12.5
+        ],
+        [
+          -5.0,
+          0.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        2.5,
+        -32.5
+      ],
+      "footprint_centre": [
+        2.5000000000000004,
+        -32.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          10.0,
+          -10.0
+        ],
+        [
+          2.5,
+          25.0
+        ],
+        [
+          2.5,
+          7.5
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        5.0,
+        -27.5
+      ],
+      "footprint_centre": [
+        5.0,
+        -27.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          10.0,
+          -10.0
+        ],
+        [
+          -2.5,
+          10.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        0.0,
+        -15.0
+      ],
+      "footprint_centre": [
+        0.0,
+        -15.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -7.5,
+          25.0
+        ],
+        [
+          -5.0,
+          2.5
+        ],
+        [
+          5.0,
+          -35.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        -2.5,
+        -2.5
+      ],
+      "footprint_centre": [
+        -2.5000000000000004,
+        -2.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -7.5,
+          27.5
+        ],
+        [
+          17.5,
+          -30.0
+        ],
+        [
+          5.0,
+          -27.5
+        ]
+      ],
+      "grasps": "no move grasp for part 4: part 4: no usable move grasp; of the 222 feasible move grasps fail: walls 216, singularity / joint limits 104, finger overlap 38, flat pickup 8 (stable poses 4, with the less stable ones 5); the 1 that pass these fail at the assembly, e.g. no straight move to the insertion start (virtual wall after 0.25 cm)"
+    },
+    {
+      "assembly": [
+        10.0,
+        -25.0
+      ],
+      "footprint_centre": [
+        10.0,
+        -25.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -5.0,
+          20.0
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -5.0,
+          35.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        -2.5,
+        -27.5
+      ],
+      "footprint_centre": [
+        -2.5000000000000004,
+        -27.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          -10.0
+        ],
+        [
+          20.0,
+          -22.5
+        ],
+        [
+          -5.0,
+          12.5
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        12.5,
+        -20.0
+      ],
+      "footprint_centre": [
+        12.5,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          17.5
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -5.0,
+          -32.5
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        5.0,
+        -20.0
+      ],
+      "footprint_centre": [
+        5.0,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          0.0
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -7.5,
+          20.0
+        ]
+      ],
+      "grasps": "ok"
+    },
+    {
+      "assembly": [
+        5.0,
+        -15.0
+      ],
+      "footprint_centre": [
+        5.0,
+        -15.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          7.5,
+          -35.0
+        ],
+        [
+          -5.0,
+          22.5
+        ],
+        [
+          -2.5,
+          32.5
+        ]
+      ]
+    }
+  ],
+  "runs": {
+    "a0_p0": {
+      "assembly": [
+        0.0,
+        -20.0
+      ],
+      "pickup": [
+        0.0,
+        10.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 4.0
+    },
+    "a1_p1": {
+      "assembly": [
+        0.0,
+        -7.5
+      ],
+      "pickup": [
+        -7.5,
+        30.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 4.1
+    },
+    "a1_p2": {
+      "assembly": [
+        0.0,
+        -7.5
+      ],
+      "pickup": [
+        -5.0,
+        25.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 5.8
+    },
+    "a1_p0": {
+      "assembly": [
+        0.0,
+        -7.5
+      ],
+      "pickup": [
+        -7.5,
+        15.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 7.1
+    },
+    "a2_p2": {
+      "assembly": [
+        10.0,
+        -15.0
+      ],
+      "pickup": [
+        -5.0,
+        0.0
+      ],
+      "verified": true,
+      "attempts": 2,
+      "banned_grasps": 1,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 4.7
+    },
+    "a2_p1": {
+      "assembly": [
+        10.0,
+        -15.0
+      ],
+      "pickup": [
+        0.0,
+        12.5
+      ],
+      "verified": true,
+      "attempts": 2,
+      "banned_grasps": 1,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 7.2
+    },
+    "a2_p0": {
+      "assembly": [
+        10.0,
+        -15.0
+      ],
+      "pickup": [
+        7.5,
+        -35.0
+      ],
+      "verified": true,
+      "attempts": 2,
+      "banned_grasps": 1,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 8.3
+    },
+    "a3_p0": {
+      "assembly": [
+        2.5,
+        -32.5
+      ],
+      "pickup": [
+        10.0,
+        -10.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 7.5
+    },
+    "a0_p1": {
+      "assembly": [
+        0.0,
+        -20.0
+      ],
+      "pickup": [
+        2.5,
+        37.5
+      ],
+      "verified": true,
+      "attempts": 2,
+      "banned_grasps": 1,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 15.1
+    },
+    "a4_p0": {
+      "assembly": [
+        5.0,
+        -27.5
+      ],
+      "pickup": [
+        0.0,
+        0.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 3.7
+    },
+    "a3_p2": {
+      "assembly": [
+        2.5,
+        -32.5
+      ],
+      "pickup": [
+        2.5,
+        7.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 5.1
+    },
+    "a3_p1": {
+      "assembly": [
+        2.5,
+        -32.5
+      ],
+      "pickup": [
+        2.5,
+        25.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 6.6
+    },
+    "a5_p2": {
+      "assembly": [
+        0.0,
+        -15.0
+      ],
+      "pickup": [
+        5.0,
+        -35.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 3.3
+    },
+    "a5_p1": {
+      "assembly": [
+        0.0,
+        -15.0
+      ],
+      "pickup": [
+        -5.0,
+        2.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 4.9
+    },
+    "a4_p2": {
+      "assembly": [
+        5.0,
+        -27.5
+      ],
+      "pickup": [
+        -2.5,
+        10.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 8.3
+    },
+    "a5_p0": {
+      "assembly": [
+        0.0,
+        -15.0
+      ],
+      "pickup": [
+        -7.5,
+        25.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 8.0
+    },
+    "a4_p1": {
+      "assembly": [
+        5.0,
+        -27.5
+      ],
+      "pickup": [
+        10.0,
+        -10.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 9.6
+    },
+    "a7_p0": {
+      "assembly": [
+        10.0,
+        -25.0
+      ],
+      "pickup": [
+        -5.0,
+        20.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 4.1
+    },
+    "a7_p1": {
+      "assembly": [
+        10.0,
+        -25.0
+      ],
+      "pickup": [
+        -7.5,
+        7.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 5.7
+    },
+    "a8_p0": {
+      "assembly": [
+        -2.5,
+        -27.5
+      ],
+      "pickup": [
+        -2.5,
+        -10.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 3.0
+    },
+    "a8_p2": {
+      "assembly": [
+        -2.5,
+        -27.5
+      ],
+      "pickup": [
+        -5.0,
+        12.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 3.4
+    },
+    "a8_p1": {
+      "assembly": [
+        -2.5,
+        -27.5
+      ],
+      "pickup": [
+        20.0,
+        -22.5
+      ],
+      "verified": true,
+      "attempts": 4,
+      "banned_grasps": 3,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 5.4
+    },
+    "a9_p0": {
+      "assembly": [
+        12.5,
+        -20.0
+      ],
+      "pickup": [
+        -2.5,
+        17.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 3.4
+    },
+    "a9_p1": {
+      "assembly": [
+        12.5,
+        -20.0
+      ],
+      "pickup": [
+        -7.5,
+        7.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 5.2
+    },
+    "a0_p2": {
+      "assembly": [
+        0.0,
+        -20.0
+      ],
+      "pickup": [
+        -5.0,
+        32.5
+      ],
+      "verified": true,
+      "attempts": 5,
+      "banned_grasps": 4,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 33.3
+    },
+    "a7_p2": {
+      "assembly": [
+        10.0,
+        -25.0
+      ],
+      "pickup": [
+        -5.0,
+        35.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 11.6
+    },
+    "a9_p2": {
+      "assembly": [
+        12.5,
+        -20.0
+      ],
+      "pickup": [
+        -5.0,
+        -32.5
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 11.1
+    },
+    "a10_p1": {
+      "assembly": [
+        5.0,
+        -20.0
+      ],
+      "pickup": [
+        -7.5,
+        7.5
+      ],
+      "verified": true,
+      "attempts": 2,
+      "banned_grasps": 1,
+      "banned_spots": 0,
+      "place_poses": false,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 9.6
+    },
+    "a10_p0": {
+      "assembly": [
+        5.0,
+        -20.0
+      ],
+      "pickup": [
+        -2.5,
+        0.0
+      ],
+      "verified": true,
+      "attempts": 3,
+      "banned_grasps": 2,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 10.5
+    },
+    "a10_p2": {
+      "assembly": [
+        5.0,
+        -20.0
+      ],
+      "pickup": [
+        -7.5,
+        20.0
+      ],
+      "verified": true,
+      "attempts": 1,
+      "banned_grasps": 0,
+      "banned_spots": 0,
+      "place_poses": true,
+      "first_part": "hold",
+      "reason": null,
+      "minutes": 11.1
+    }
+  }
+}

@@ -915,12 +915,12 @@ def sampled_grasps_of_a_real_assembly(planners):
     log_dir = os.path.join(
         project_base_dir,
         'logs',
-        'exp_socket_set_small_flat_run2',
+        'old_exp_socket_set_small_flat_run2',
         'socket_set_small',
     )
     if not os.path.exists(os.path.join(log_dir, 'precedence.pkl')):
         print(
-            '      (skipped: logs/exp_socket_set_small_flat_run2 is not on this machine)'
+            '      (skipped: logs/old_exp_socket_set_small_flat_run2 is not on this machine)'
         )
         return
     from planning.run_grasp_arm_gen import GraspArmGenerator

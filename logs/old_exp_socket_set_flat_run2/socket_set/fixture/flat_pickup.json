@@ -1,0 +1,74 @@
+{
+    "0": {
+        "arm": "hold",
+        "grasp_id": 584,
+        "tilt": 19.725002115192694,
+        "tip_angle": 72.83415094333986,
+        "margin": 2.9999999999999964,
+        "fallback": false,
+        "prob": 0.3960709121371421,
+        "gripper_min_z": 1.1364784715321923,
+        "yaw_offset": 90,
+        "yaw_rank": 2
+    },
+    "5": {
+        "arm": "move",
+        "grasp_id": 527,
+        "tilt": 2.52844585386008,
+        "tip_angle": 54.5917785898508,
+        "margin": 1.4951354596066233,
+        "fallback": false,
+        "prob": 0.2105092733163072,
+        "gripper_min_z": 1.5948593790626946,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    },
+    "1": {
+        "arm": "move",
+        "grasp_id": 704,
+        "tilt": 6.701055300454343,
+        "tip_angle": 29.384211685038576,
+        "margin": 0.6974729728276259,
+        "fallback": false,
+        "prob": 0.06445826728767184,
+        "gripper_min_z": 1.7201225857086513,
+        "yaw_offset": 90,
+        "yaw_rank": 2
+    },
+    "2": {
+        "arm": "move",
+        "grasp_id": 352,
+        "tilt": 5.016075990649334,
+        "tip_angle": 36.80181058872607,
+        "margin": 0.846765280027646,
+        "fallback": false,
+        "prob": 0.09982654516274383,
+        "gripper_min_z": 1.407731204819461,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    },
+    "4": {
+        "arm": "move",
+        "grasp_id": 567,
+        "tilt": 11.819407712333842,
+        "tip_angle": 48.84920359624807,
+        "margin": 1.1959009817519402,
+        "fallback": false,
+        "prob": 0.1711912429671235,
+        "gripper_min_z": 1.5769626577708937,
+        "yaw_offset": 90,
+        "yaw_rank": 2
+    },
+    "3": {
+        "arm": "move",
+        "grasp_id": 507,
+        "tilt": 11.683735589489105,
+        "tip_angle": 45.61344378183759,
+        "margin": 1.0962426914840417,
+        "fallback": false,
+        "prob": 0.15045590437550233,
+        "gripper_min_z": 1.484716137083625,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    }
+}

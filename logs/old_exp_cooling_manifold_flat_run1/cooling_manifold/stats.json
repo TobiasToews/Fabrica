@@ -1,0 +1,1 @@
+{"preced_plan": {"time": 21.2}, "grasp_gen": {"success": true, "time": 306.23}, "seq_plan": {"success": false, "time": 0.0, "stop_msg": "tree fully explored (solution found: False)"}}

@@ -1,0 +1,21 @@
+{
+    "workcell": [],
+    "grasps": [],
+    "paths": {
+        "step 8 switch": [],
+        "step 10 switch": [],
+        "step 12 transport part 2": [],
+        "step 13 assembly part 2": [],
+        "step 15 switch": [],
+        "step 17 switch": [],
+        "step 19 transport part 1": [],
+        "step 20 assembly part 1": [],
+        "step 25 transport": []
+    },
+    "finger_overlap": {
+        "1": 0.93,
+        "2": 0.83
+    },
+    "passed": true,
+    "robot_base_z": -3.0
+}

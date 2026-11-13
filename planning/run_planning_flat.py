@@ -1,8 +1,11 @@
 """Plans an assembly for the real robot without a fixture, in one go.
 
-The parts lie flat on the table, the single real arm (the "move" arm)
-picks and inserts them, and a human holds the first part
-(real_robot/run.py --single-arm). This file is the driver of that
+The parts lie flat on the table, the "move" arm picks and inserts them,
+and the "hold" arm holds the assembly. Both arms are planned as robots:
+each avoids the other, and no step is left to a human (since
+2026-11-13). Today only the move arm is a real robot; real_robot/run.py
+--single-arm lets a human do the steps of the hold arm. This file is the
+driver of that
 pipeline: it runs the stages below one after the other, each as a
 subprocess. All stages work on one log directory,
 logs/<exp-name>/<assembly>, called "the log" here. The docstring of
@@ -12,7 +15,7 @@ run_planning_flat lists the files each stage reads and writes there.
    robot height. The precedence plan says which part has to be in
    place before which. A grasp is where the gripper holds a part: a
    move grasp is one of the move arm, a hold grasp one of the hold arm
-   (the arm that holds the assembly; here the human). The grasps are
+   (the arm that holds the assembly). The grasps are
    generated for the flat pipeline (run_grasp_arm_gen.py --flat):
    contact on the grid of the finger pads, more surface points for
    parts without a usable grasp, and the move grasps that are kept can
@@ -26,6 +29,9 @@ run_planning_flat lists the files each stage reads and writes there.
 
    * the move grasp (arm or gripper do not fit): it is removed, the
      next best sequence is tried;
+   * the hold grasp (the hold arm cannot pick the first part, has no
+     path, or comes too close to the move arm): it is removed, the next
+     best sequence is tried;
    * the spot where a part lies: the grasp stays, the part is laid out
      at another spot (same sequence);
    * the insertion itself (the part has no way to where its insertion
@@ -39,7 +45,8 @@ The assembly stands at --assembly-center, the parts are laid out around
 assembly.
 
 Every path of the real arm is checked with planning/plan_checks.py
-(exact geometry). The plan is only reported as done when verify_plan.py
+(exact geometry), and every path of either arm keeps its distance to
+the other arm. The plan is only reported as done when verify_plan.py
 passes.
 
 Usage:
@@ -78,6 +85,7 @@ from planning.plan_checks import (
     CAUSE_GRASP,
     CAUSE_SPOT,
     CAUSE_INSERTION,
+    CAUSE_HOLD_GRASP,
 )
 from planning.robot.motion_plan_arm import VIRTUAL_WALL_SAFETY
 from planning.robot.workcell import (
@@ -323,8 +331,10 @@ def next_step(failure):
             stage named no failure.
 
     Returns:
-        str: 'ban grasp' (and take the next best sequence), 'ban spot'
-        (lay the part out elsewhere, same sequence) or 'stop'.
+        str: 'ban grasp' (drop the move grasp and take the next best
+        sequence), 'ban hold grasp' (the same for a hold grasp),
+        'ban spot' (lay the part out elsewhere, same sequence) or
+        'stop'.
     """
     if failure is None:
         return 'stop'
@@ -332,11 +342,47 @@ def next_step(failure):
     cause = failure.get('cause', CAUSE_GRASP)
     if cause == CAUSE_INSERTION:
         return 'stop'
-    # Without a grasp id the failure is not about a part of the real
-    # arm: there is no grasp to drop and no spot of its own.
+    # Without a grasp id there is no grasp to drop and no spot of its
+    # own.
     if failure.get('grasp_id') is None:
         return 'stop'
+    if cause == CAUSE_HOLD_GRASP:
+        return 'ban hold grasp'
     return 'ban spot' if cause == CAUSE_SPOT else 'ban grasp'
+
+
+def ban_hold_grasp(log_dir, part, grasp_id):
+    """Removes a hold grasp and its pairs from grasps.pkl.
+
+    The loop of run_planning_flat does this when the hold arm could not
+    do its part with this grasp (no arm pose to pick the first part, no
+    path, too close to the move arm). The sequence optimization then
+    picks another hold grasp, or another sequence.
+
+    Args:
+        log_dir (str): Log directory with grasps.pkl. The file is
+            rewritten.
+        part (str): Id of the part the hold grasp belongs to.
+        grasp_id (int): Id of the hold grasp to remove.
+    """
+    path = os.path.join(log_dir, 'grasps.pkl')
+    with open(path, 'rb') as fp:
+        grasps = pickle.load(fp)
+    # Unlike a move grasp (a list of grasps along the insertion path), a
+    # hold grasp is a single grasp: the part does not move while held.
+    grasps['grasps'][part]['hold'] = [
+        g for g in grasps['grasps'][part]['hold'] if g.grasp_id != grasp_id
+    ]
+    # Pairs are (move grasp id, hold grasp id) per (moved part, held
+    # part); the pairs that hold this part with the removed grasp go.
+    grasps['grasp_id_pairs'] = {
+        (pm, ph): [
+            (m, h) for m, h in pairs if not (ph == part and h == grasp_id)
+        ]
+        for (pm, ph), pairs in grasps['grasp_id_pairs'].items()
+    }
+    with open(path, 'wb') as fp:
+        pickle.dump(grasps, fp)
 
 
 def run_planning_flat(
@@ -506,6 +552,7 @@ def run_planning_flat(
         return False
 
     banned, banned_spots = [], []
+    banned_hold = []  # (part, hold grasp id) dropped by the loop
     clear_banned_spots(
         log_dir
     )  # spots banned by an earlier run belong to its sequences
@@ -514,6 +561,11 @@ def run_planning_flat(
         print(
             f'[run_planning_flat] sequence attempt {attempt}/{MAX_SEQUENCE_ATTEMPTS}'
             + (f', without move grasps {banned}' if banned else '')
+            + (
+                f', without hold grasps {banned_hold}'
+                if banned_hold
+                else ''
+            )
             + (
                 f', without the spots (part, grasp, x, y) {banned_spots}'
                 if banned_spots
@@ -558,7 +610,6 @@ def run_planning_flat(
                 log_dir,
                 '--optimized',
                 '--no-viz',
-                '--single-arm',
             ],
         ]
         failed = False
@@ -580,9 +631,20 @@ def run_planning_flat(
                         )
                     else:
                         print(
-                            f'[run_planning_flat] {failure}: not caused by a move grasp, cannot continue'
+                            f'[run_planning_flat] {failure}: names no grasp '
+                            f'to drop, cannot continue'
                         )
                     return False
+                if step == 'ban hold grasp':
+                    # The hold arm cannot do its part with this hold
+                    # grasp: drop it and take the next best sequence.
+                    banned_hold.append((failure['part'], failure['grasp_id']))
+                    ban_hold_grasp(
+                        log_dir, failure['part'], failure['grasp_id']
+                    )
+                    new_sequence = True
+                    failed = True
+                    break
                 if (
                     step == 'ban spot'
                 ):  # the grasp is fine: only the place where the part lies changes
@@ -650,6 +712,7 @@ def run_planning_flat(
                 **values,
                 'planned': datetime.now().isoformat(timespec='seconds'),
                 'banned_move_grasps': banned,
+                'banned_hold_grasps': banned_hold,
                 'banned_spots': banned_spots,
                 'place_poses': place_poses,
                 'verified': True,

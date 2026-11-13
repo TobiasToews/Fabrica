@@ -1,0 +1,41 @@
+--- grasp stats ---
+part 0: 96 move + 90 hold
+part 1: 100 move + 102 hold
+part 2: 100 move + 100 hold
+part 3: 100 move + 100 hold
+part 4: 44 move + 100 hold
+part 5: 11 move + 18 hold
+part 6: 100 move + 100 hold
+--- grasp pair stats ---
+part pair 0-0: 1040
+part pair 1-0: 732
+part pair 1-1: 45
+part pair 1-2: 0
+part pair 2-0: 2298
+part pair 2-1: 2304
+part pair 2-2: 23
+part pair 3-0: 1486
+part pair 3-1: 728
+part pair 3-2: 0
+part pair 3-3: 590
+part pair 4-0: 123
+part pair 4-1: 79
+part pair 4-2: 7
+part pair 4-3: 87
+part pair 4-4: 16
+part pair 4-5: 22
+part pair 4-6: 214
+part pair 5-0: 592
+part pair 5-1: 665
+part pair 5-2: 481
+part pair 5-3: 973
+part pair 5-4: 1091
+part pair 5-5: 3
+part pair 5-6: 850
+part pair 6-0: 2837
+part pair 6-1: 4110
+part pair 6-2: 2064
+part pair 6-3: 3052
+part pair 6-4: 6922
+part pair 6-5: 67
+part pair 6-6: 120

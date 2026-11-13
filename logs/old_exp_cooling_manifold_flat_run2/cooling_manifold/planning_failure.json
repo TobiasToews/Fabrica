@@ -1,0 +1,6 @@
+{
+    "stage": "run_motion_plan",
+    "part": "4",
+    "grasp_id": 773,
+    "reason": "transport path: carried part 4 closer than 1.0 cm to lying part 6 (poses 5..40 of 248, 36x)"
+}

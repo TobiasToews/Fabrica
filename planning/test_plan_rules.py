@@ -65,6 +65,7 @@ from planning.config import (
     ASSEMBLY_ZONE_MARGIN,
     ROBOT_SELF_CLEARANCE,
     ASSEMBLY_CLEARANCE,
+    ARM_ARM_CLEARANCE,
     MIN_SIGMA,
     MIN_SIGMA_INSERTION,
     MIN_JOINT_LIMIT_MARGIN,
@@ -90,6 +91,7 @@ from planning.plan_checks import (
     CAUSE_GRASP,
     CAUSE_SPOT,
     CAUSE_INSERTION,
+    CAUSE_HOLD_GRASP,
     CAUSE_TEXT,
     WRIST_LINK,
     PICKUP_POSE_SLACK,
@@ -1510,7 +1512,12 @@ def failure_file_names_the_cause(c):
             'reason': 'no way',
             'cause': CAUSE_GRASP,
         }
-        for cause in [CAUSE_SPOT, CAUSE_INSERTION, CAUSE_GRASP]:
+        for cause in [
+            CAUSE_SPOT,
+            CAUSE_INSERTION,
+            CAUSE_HOLD_GRASP,
+            CAUSE_GRASP,
+        ]:
             write_failure(tmp, 'run_motion_plan', '3', 17, 'no way', cause)
             assert read()['cause'] == cause
         write_failure(tmp, 'run_pickup_gen', '0', None, 'the human part')
@@ -1526,7 +1533,7 @@ def failure_file_names_the_cause(c):
     finally:
         shutil.rmtree(tmp)
     assert sorted(CAUSE_TEXT) == sorted(
-        [CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION]
+        [CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION, CAUSE_HOLD_GRASP]
     )
 
 
@@ -1925,12 +1932,102 @@ def assembly_zone_is_wide_enough_for_gamepad(c):
 
 
 @test
+def arms_keep_their_distance(c):
+    """
+    SceneChecker.other_arm_violations: the arm that moves keeps
+    ARM_ARM_CLEARANCE to the other arm, which stands still, except in a
+    stretch at the start and at the end of its path; it never touches it,
+    also not while inserting. Tested for both arms: the hold arm's
+    gripper points down over a spot, the move arm's gripper comes to it
+    along x, and the distance of the two arms is measured on the meshes.
+    """
+    set_scene(c)
+    spot = np.array([0.0, -25.0])  # between the two arms (world, cm)
+    hold = c.arm_planner('hold')
+    q_hold = hold.inverse_kinematics(
+        np.array([*spot, 21.2]), DOWN, q_init=None
+    )
+    assert q_hold is not None, 'the hold arm does not reach the spot'
+
+    def distance(q_move, q_other=q_hold):
+        """distance of the two arms (links and grippers), 0 if touching"""
+        move_arm = c.placed_arm('move', q_move, 0.5)
+        hold_arm = c.placed_arm('hold', q_other, 0.5)
+        if move_arm.in_collision_other(hold_arm):
+            return 0.0
+        return move_arm.min_distance_other(hold_arm)
+
+    # The move gripper at the height of the hold gripper, further and
+    # further away along +x (towards the move arm).
+    poses, q = [], None
+    for dx in np.arange(4.0, 40.0, 0.5):
+        q = ik_down(c, spot + [dx, 0.0], 10.0, q_init=q)
+        poses.append((distance(q), q))
+    touching = next(q for d, q in poses if d == 0.0)
+    close = next(q for d, q in poses if 0.2 < d < ARM_ARM_CLEARANCE - 0.2)
+    clear = next(q for d, q in poses if d > ARM_ARM_CLEARANCE + 1.0)
+
+    def check(path, inserting=False):
+        return c.other_arm_violations(
+            'move', path, 0.5, q_hold, 0.5, inserting=inserting
+        )
+
+    passes = f'passes closer than {ARM_ARM_CLEARANCE} cm to hold'
+    # close only in the middle of the path: not allowed
+    assert has(check([clear, close, clear]), passes)
+    # close at the start and at the end (leaving, arriving): allowed
+    assert check([close, clear, close]) == []
+    # touching is never allowed, also at the end of a path
+    assert has(check([clear, touching]), 'move arm touches the hold arm')
+    # while inserting only contact counts
+    assert check([close, close], inserting=True) == []
+    assert has(
+        check([close, touching], inserting=True),
+        'move arm touches the hold arm',
+    )
+    # check_path applies the rule when it is told where the hold arm is
+    assert has(
+        c.check_path(
+            [clear, close, clear], 0.5, {}, other_arm=(q_hold, 0.5)
+        ),
+        passes,
+    )
+    assert not has(c.check_path([clear, close, clear], 0.5, {}), passes)
+
+    # The same rule for a path of the hold arm, the move arm standing at
+    # `close`: away from the spot, to it, away again.
+    q_far = hold.inverse_kinematics(
+        np.array([spot[0] - 20.0, spot[1], 21.2]), DOWN, q_init=q_hold
+    )
+    assert q_far is not None and distance(close, q_far) > 3.0
+    assert has(
+        c.other_arm_violations(
+            'hold', [q_far, q_hold, q_far], 0.5, close, 0.5
+        ),
+        f'passes closer than {ARM_ARM_CLEARANCE} cm to move',
+    )
+    # A part carried by the hold arm counts too. carried=(mesh, None):
+    # the part is where the mesh is at the first pose of the path. A box
+    # put right at the move gripper touches the move arm.
+    gripper_pos = c.gripper_transform(close)[:3, 3]
+    at_move_gripper = box([2, 2, 2], gripper_pos)
+    assert has(
+        c.other_arm_violations(
+            'hold', [q_far], 0.5, close, 0.5, carried=(at_move_gripper, None)
+        ),
+        'hold arm touches the move arm',
+    )
+
+
+@test
 def final_check_follows_who_brings_the_first_part(c):
     """
     verify_plan.iterate_move_paths: which parts lie and which stand at the assembly at every path of the move arm. The first
-    part gets to the assembly spot by the hold arm (the human), or in the fallback by the move arm itself, which then lets go.
+    part gets to the assembly spot by the hold arm, or in the fallback by the move arm itself, which then lets go.
+    Every path of the move arm also gets where the hold arm stands meanwhile (other_arm), and iterate_hold_paths gives
+    every path of the hold arm with where the move arm stands.
     """
-    from planning.verify_plan import iterate_move_paths
+    from planning.verify_plan import iterate_move_paths, iterate_hold_paths
 
     def P(name):
         return [name]  # a path, only named here
@@ -1980,16 +2077,37 @@ def final_check_follows_who_brings_the_first_part(c):
         {'0': 'pickup', '1': 'pickup'},
         {'0': 'final', '1': 'pickup'},
     )
+    holding = ('h carry', 0.5)  # the hold arm holds part 0 at the assembly
     assert seen(usual) == [
-        ('to 1', 0.4, standing, dict(pick_part='1', released_part=None)),
-        ('carry 1', 0.3, standing, dict(carried='1')),
-        ('insert 1', 0.3, standing, dict(carried='1', inserting=True)),
+        (
+            'to 1',
+            0.4,
+            standing,
+            dict(pick_part='1', released_part=None, other_arm=holding),
+        ),
+        ('carry 1', 0.3, standing, dict(carried='1', other_arm=holding)),
+        (
+            'insert 1',
+            0.3,
+            standing,
+            dict(carried='1', inserting=True, other_arm=holding),
+        ),
         (
             'home',
             0.4,
             {'0': 'final', '1': 'final'},
-            dict(pick_part=None, released_part='1'),
+            dict(pick_part=None, released_part='1', other_arm=holding),
         ),
+    ]
+    # the hold arm moves while the move arm waits at rest, gripper 0.5
+    assert [
+        (path[0], ratio, move_q, move_open, part)
+        for _, path, ratio, move_q, move_open, part in iterate_hold_paths(
+            usual
+        )
+    ] == [
+        ('h pick', 0.6, 'rest', 0.5, None),
+        ('h carry', 0.5, 'rest', 0.5, '0'),
     ]
     # fallback: the move arm picks part 0, stands it at the assembly spot, lets go and moves away; then the hold arm takes it
     place_0 = [
@@ -2003,30 +2121,50 @@ def final_check_follows_who_brings_the_first_part(c):
         ['hold', 'arm', P('h to 0'), None, 'transport'],
         grip('hold', 0.5, 'close'),
     ]
+    resting = ('rest', 0.5)  # the hold arm waits at rest
+    holding = ('h to 0', 0.5)  # then holds part 0 where it stands
     assert seen(start + place_0 + insert_1) == [
         (
             'to 0',
             0.45,
             lying,
-            dict(pick_part='0', released_part=None),
+            dict(pick_part='0', released_part=None, other_arm=resting),
         ),  # everything still lies on the board
-        ('carry 0', 0.35, lying, dict(carried='0')),
+        ('carry 0', 0.35, lying, dict(carried='0', other_arm=resting)),
         (
             'away',
             0.45,
             standing,
-            dict(pick_part='1', released_part='0'),
+            dict(pick_part='1', released_part='0', other_arm=resting),
         ),  # part 0 stands at its place and was just released
-        ('to 1', 0.4, standing, dict(pick_part='1', released_part='0')),
-        ('carry 1', 0.3, standing, dict(carried='1')),
-        ('insert 1', 0.3, standing, dict(carried='1', inserting=True)),
+        (
+            'to 1',
+            0.4,
+            standing,
+            dict(pick_part='1', released_part='0', other_arm=holding),
+        ),
+        ('carry 1', 0.3, standing, dict(carried='1', other_arm=holding)),
+        (
+            'insert 1',
+            0.3,
+            standing,
+            dict(carried='1', inserting=True, other_arm=holding),
+        ),
         (
             'home',
             0.4,
             {'0': 'final', '1': 'final'},
-            dict(pick_part=None, released_part='1'),
+            dict(pick_part=None, released_part='1', other_arm=holding),
         ),
     ]
+    # the hold arm takes part 0 while the move arm stands where it went
+    # after letting go ('away'), its gripper opened to 0.45
+    assert [
+        (path[0], ratio, move_q, move_open, part)
+        for _, path, ratio, move_q, move_open, part in iterate_hold_paths(
+            start + place_0 + insert_1
+        )
+    ] == [('h to 0', 0.6, 'away', 0.45, None)]
 
 
 @test

@@ -3773,6 +3773,65 @@ def generator_drops_grasps_without_the_moves_at_the_assembly(c):
 
 
 @test
+def hold_arm_picks_the_first_part_only_where_it_reaches(c):
+    """
+    run_pickup_gen.hold_pickup_q: a spot for the first part counts only
+    if the hold arm has an arm pose there that puts the gripper where the
+    hold grasp wants it, and its arm and opened gripper touch nothing
+    (until 2026-11-13 every free spot counted: a human took the part).
+    """
+    ArmMotionPlanner.VISUALIZE = False
+    hold = ArmMotionPlanner(
+        get_arm_chain('panda', 'hold'),
+        'panda',
+        False,
+        get_dual_arm_box('panda')[1],
+    )
+    grasp = top_grasp(1.0)
+
+    def q_at(x, y, others=()):
+        mat = brick_at(x, y)
+        brick = BRICK.copy().apply_transform(mat)
+        return run_pickup_gen.hold_pickup_q(
+            hold,
+            grasp,
+            mat,
+            np.eye(4),
+            [brick, *others],
+            False,
+            c.chain,
+            False,
+        )
+
+    # In front of the hold arm (its base stands at x = -45, y = 20): an
+    # arm pose, with the gripper where the grasp wants it.
+    q = q_at(-20.0, 0.0)
+    assert q is not None
+    gripper = get_transform_matrix_quat(
+        *get_gripper_pos_quat_from_arm_q(
+            hold.arm_chain, q, 'panda', has_ft_sensor=False
+        )
+    )
+    wanted = get_pickup_gripper_pose(grasp, brick_at(-20.0, 0.0), np.eye(4))
+    assert np.allclose(gripper[:3, 3], wanted[:3, 3], atol=0.05)
+    # More than a metre from its base: out of reach.
+    assert q_at(40.0, -40.0) is None
+    # Reachable, but something is where the hand would be: no pose. The
+    # plate goes through the middle of the hand, above the brick (wider
+    # than the hand: the collision test compares surfaces, so a box that
+    # lies entirely inside the hand would not count).
+    _, grip_tf, _ = hold.get_meshes_transforms(
+        q, min(grasp.open_ratio + config.RETRACT_OPEN_RATIO, 1.0), None, None
+    )
+    T_hand = grip_tf['panda_hand']
+    hand = hold.gripper_meshes['panda_hand'].vertices
+    hand = hand @ T_hand[:3, :3].T + T_hand[:3, 3]
+    blocker = box([30.0, 30.0, 1.0], hand.mean(axis=0))
+    assert blocker.bounds[0, 2] > 4.0  # above the brick (0 to 4 cm high)
+    assert q_at(-20.0, 0.0, [blocker]) is None
+
+
+@test
 def layout_searches_no_arm_pose_where_the_hand_is_behind_a_wall(c):
     """
     pickup_ik_solutions: wrist frame and flange follow the gripper, so their wall margin is known before an arm pose is searched
@@ -3915,7 +3974,8 @@ def banned_spots_of_the_layout(c):
 @test
 def loop_reacts_to_the_cause_of_a_failure(c):
     """run_planning_flat.py: drop the grasp, move the part to another spot, or stop"""
-    from planning.run_planning_flat import next_step
+    from planning.run_planning_flat import next_step, ban_hold_grasp
+    from planning.plan_checks import CAUSE_HOLD_GRASP
 
     def failure(**kw):
         return {
@@ -3939,6 +3999,43 @@ def loop_reacts_to_the_cause_of_a_failure(c):
         and next_step(failure(cause=CAUSE_SPOT, grasp_id=None)) == 'stop'
     )  # not a part of the real arm
     assert next_step(None) == 'stop'  # the stage failed without saying why
+    # The hold arm cannot do its part with its grasp: that hold grasp goes.
+    assert next_step(failure(cause=CAUSE_HOLD_GRASP)) == 'ban hold grasp'
+    assert (
+        next_step(failure(cause=CAUSE_HOLD_GRASP, grasp_id=None)) == 'stop'
+    )  # no hold grasp named: nothing to drop
+
+    # ban_hold_grasp removes the hold grasp and the pairs that use it, and
+    # nothing else (not the move grasp with the same id, not other parts).
+    def g(grasp_id):
+        return types.SimpleNamespace(grasp_id=grasp_id)
+
+    tmp = tempfile.mkdtemp()
+    try:
+        grasps = {
+            'grasps': {
+                '0': {'move': [[g(3)]], 'hold': [g(3), g(4)]},
+                '1': {'move': [[g(7)]], 'hold': [g(3)]},
+            },
+            'grasp_id_pairs': {
+                ('1', '0'): [(7, 3), (7, 4)],
+                ('0', '1'): [(3, 3)],
+            },
+        }
+        with open(os.path.join(tmp, 'grasps.pkl'), 'wb') as fp:
+            pickle.dump(grasps, fp)
+        ban_hold_grasp(tmp, '0', 3)
+        with open(os.path.join(tmp, 'grasps.pkl'), 'rb') as fp:
+            after = pickle.load(fp)
+    finally:
+        shutil.rmtree(tmp)
+    assert [h.grasp_id for h in after['grasps']['0']['hold']] == [4]
+    assert [m[0].grasp_id for m in after['grasps']['0']['move']] == [3]
+    assert [h.grasp_id for h in after['grasps']['1']['hold']] == [3]
+    assert after['grasp_id_pairs'] == {
+        ('1', '0'): [(7, 4)],  # part 0 held with grasp 3: gone
+        ('0', '1'): [(3, 3)],  # part 1 held with its own grasp 3: kept
+    }
 
 
 # ------------------------------------------------------------------------------- the grasp filter on a real planning log
@@ -3952,11 +4049,11 @@ def filter_reproduces_a_verified_plan(c):
     earlier filter kept when it is given those two values; without the tilt limit it keeps those and more.
     """
     log_dir = os.path.join(
-        project_base_dir, 'logs', 'exp_human_normal_flat_v6', 'human_normal'
+        project_base_dir, 'logs', 'old_exp_human_normal_flat_v6', 'human_normal'
     )
     if not os.path.exists(os.path.join(log_dir, 'grasps_unfiltered.pkl')):
         print(
-            '      (skipped: logs/exp_human_normal_flat_v6 is not on this machine)'
+            '      (skipped: logs/old_exp_human_normal_flat_v6 is not on this machine)'
         )
         return
     with open(os.path.join(log_dir, 'grasps.pkl'), 'rb') as fp:
@@ -4042,51 +4139,62 @@ def layout_of_a_planned_assembly(c):
     log_dir = os.path.join(
         project_base_dir,
         'logs',
-        'exp_socket_set_small_flat_run2',
+        'old_exp_socket_set_small_flat_run2',
         'socket_set_small',
     )
     if not os.path.exists(os.path.join(log_dir, 'tree_opt.pkl')):
         print(
-            '      (skipped: logs/exp_socket_set_small_flat_run2 is not on this machine)'
+            '      (skipped: logs/old_exp_socket_set_small_flat_run2 is not on this machine)'
         )
         return
     assembly_dir = os.path.join(
         project_base_dir, 'assets', 'fabrica', 'socket_set_small'
     )
-    tmp = tempfile.mkdtemp(prefix='test_flat_grasp_')
-    try:
-        for name in [
-            'grasps.pkl',
-            'precedence.pkl',
-            'tree_opt.pkl',
-            'stats.json',
-        ]:
-            shutil.copy(os.path.join(log_dir, name), os.path.join(tmp, name))
-        use_log_workcell(
-            tmp
-        )  # default places of the assembly and of the pickup area
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            assert run_pickup_gen.run_pickup_gen(assembly_dir, tmp) is True, (
-                out.getvalue()
-            )
-        fixture = os.path.join(tmp, 'fixture')
-        with open(os.path.join(fixture, 'flat_pickup.json')) as fp:
-            flat = json.load(fp)
-        with open(os.path.join(fixture, 'pickup.json')) as fp:
-            pickup = {
-                k: get_transform_matrix(v) for k, v in json.load(fp).items()
-            }
-        with open(os.path.join(fixture, 'pickup_q.json')) as fp:
-            pickup_q = json.load(fp)
-        with open(os.path.join(tmp, 'grasps.pkl'), 'rb') as fp:
-            grasps = pickle.load(fp)
-        with open(os.path.join(tmp, 'precedence.pkl'), 'rb') as fp:
-            G = pickle.load(fp)
-        with open(os.path.join(tmp, 'tree_opt.pkl'), 'rb') as fp:
-            tree = pickle.load(fp)
-    finally:
-        shutil.rmtree(tmp)
+
+    def lay_out():
+        """runs the layout on a copy of the log, returns what it wrote"""
+        tmp = tempfile.mkdtemp(prefix='test_flat_grasp_')
+        try:
+            for name in [
+                'grasps.pkl',
+                'precedence.pkl',
+                'tree_opt.pkl',
+                'stats.json',
+            ]:
+                shutil.copy(
+                    os.path.join(log_dir, name), os.path.join(tmp, name)
+                )
+            use_log_workcell(
+                tmp
+            )  # default places of the assembly and of the pickup area
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                assert run_pickup_gen.run_pickup_gen(
+                    assembly_dir, tmp
+                ), out.getvalue()
+            written = {}
+            for name in [
+                'flat_pickup.json',
+                'pickup.json',
+                'pickup_q.json',
+                'pickup_q_hold.json',
+            ]:
+                with open(os.path.join(tmp, 'fixture', name)) as fp:
+                    written[name] = json.load(fp)
+            for name in ['grasps.pkl', 'precedence.pkl', 'tree_opt.pkl']:
+                with open(os.path.join(tmp, name), 'rb') as fp:
+                    written[name] = pickle.load(fp)
+            return written, out.getvalue()
+        finally:
+            shutil.rmtree(tmp)
+
+    written, _ = lay_out()
+    flat, pickup_q = written['flat_pickup.json'], written['pickup_q.json']
+    pickup = {
+        k: get_transform_matrix(v) for k, v in written['pickup.json'].items()
+    }
+    grasps, G = written['grasps.pkl'], written['precedence.pkl']
+    tree = written['tree_opt.pkl']
     sequence, grasps_sequence = SequenceOptimizer(G, grasps).get_sequence(tree)
     sequence, grasps_sequence = (
         sequence[::-1],
@@ -4100,6 +4208,40 @@ def layout_of_a_planned_assembly(c):
     assert sorted(pickup_q) == sorted(part for part, _ in sequence) and all(
         flat[part]['arm'] == 'move' for part, _ in sequence
     )
+    # The hold arm picks the first part: the layout stored its arm pose,
+    # and that pose holds the gripper where the hold grasp wants it.
+    pickup_q_hold = written['pickup_q_hold.json']
+    assert sorted(pickup_q_hold) == [first]
+    cfg_first = load_final_part_cfg(assembly_dir, 'panda')
+    hold_gripper = get_transform_matrix_quat(
+        *get_gripper_pos_quat_from_arm_q(
+            get_arm_chain('panda', 'hold'),
+            np.array(pickup_q_hold[first]),
+            'panda',
+            has_ft_sensor=False,
+        )
+    )
+    wanted = get_pickup_gripper_pose(
+        grasps_sequence[0][1],
+        pickup[first],
+        get_transform_matrix_quat(
+            cfg_first['pos'][first], cfg_first['quat'][first]
+        ),
+    )
+    assert np.allclose(hold_gripper[:3, 3], wanted[:3, 3], atol=0.05)
+
+    # Where the hold arm can pick the first part on no spot, the move arm
+    # brings it (fallback 'place'), and no hold-arm pose is stored.
+    real = run_pickup_gen.hold_pickup_q
+    run_pickup_gen.hold_pickup_q = lambda *args, **kwargs: None
+    try:
+        fallback, out = lay_out()
+    finally:
+        run_pickup_gen.hold_pickup_q = real
+    assert fallback['flat_pickup.json'][first]['arm'] == 'place', out
+    assert fallback['pickup_q_hold.json'] == {}
+    assert first in fallback['pickup_q.json']  # the move arm's pose there
+    assert 'the hold arm can pick it on none of the' in out
     cfg = load_final_part_cfg(assembly_dir, 'panda')
     raw = {
         k[4:]: v

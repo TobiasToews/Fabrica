@@ -1,7 +1,9 @@
 """
 Final check of a planned log before it goes to the real robot: everything the move arm executes in motion.pkl is checked
 with planning/plan_checks.py (exact geometry, no buffers), plus the grasp finger overlap and that the plan was made with the
-current workcell (robot height). Writes <log-dir>/verify_report.json, exit code 1 on any violation.
+current workcell (robot height). Every path of the hold arm is checked for
+its distance to the move arm.
+Writes <log-dir>/verify_report.json, exit code 1 on any violation.
 
 python planning/verify_plan.py --assembly-dir assets/fabrica/human_normal --log-dir logs/exp_human_normal_flat_v2/human_normal
 """
@@ -45,6 +47,7 @@ def load_checker(assembly_dir, log_dir, grasps):
         part_meshes,
         pickup_mats,
         final_meshes,
+        has_ft_sensor_hold=grasps['ft_sensor']['hold'],
     )
 
 
@@ -98,6 +101,15 @@ def iterate_move_paths(motion, part_ids):
     """yields (step index, path, open ratio, state, kwargs for SceneChecker.check_path) for every move-arm path, as run.py executes it"""
     state = {p: 'pickup' for p in part_ids}
     open_ratio, last_inserted = None, None
+    # Where the hold arm stands (arm pose, gripper opening) while the move
+    # arm moves: the move arm must keep its distance to it.
+    hold_q, hold_open = None, None
+
+    def with_other_arm(kwargs):
+        if hold_q is not None and hold_open is not None:
+            kwargs['other_arm'] = (hold_q, hold_open)
+        return kwargs
+
     picks = [
         (i, s[3])
         for i, s in enumerate(motion)
@@ -108,9 +120,13 @@ def iterate_move_paths(motion, part_ids):
     ]
     for i, (arm, body, path, part, task) in enumerate(motion):
         if arm == 'hold':
-            if body == 'arm' and task == 'transport' and part is not None:
+            if body == 'gripper':
+                hold_open = path
+                continue
+            hold_q = path[-1]
+            if task == 'transport' and part is not None:
                 state[part] = (
-                    'final'  # the human (hold arm) puts its part at the assembly
+                    'final'  # the hold arm puts its part at the assembly
                 )
             continue
         if body == 'gripper':
@@ -119,7 +135,9 @@ def iterate_move_paths(motion, part_ids):
         if task == 'init':
             continue
         if task == 'transport' and part is not None:
-            yield i, path, open_ratio, dict(state), dict(carried=part)
+            yield i, path, open_ratio, dict(state), with_other_arm(
+                dict(carried=part)
+            )
             last_inserted = None
             # a carried part is inserted by the next arm path of the move arm. If it is not (the first part in the fallback: the
             # move arm stands it at the assembly spot and lets go), it is at its place after this path
@@ -142,7 +160,7 @@ def iterate_move_paths(motion, part_ids):
                 path,
                 open_ratio,
                 dict(state),
-                dict(carried=part, inserting=True),
+                with_other_arm(dict(carried=part, inserting=True)),
             )
             state[part] = 'final'
             last_inserted = part
@@ -153,8 +171,38 @@ def iterate_move_paths(motion, part_ids):
                 path,
                 open_ratio,
                 dict(state),
-                dict(pick_part=pick_part, released_part=last_inserted),
+                with_other_arm(
+                    dict(pick_part=pick_part, released_part=last_inserted)
+                ),
             )
+
+
+def iterate_hold_paths(motion):
+    """Goes through the paths of the hold arm, with the move arm's pose.
+
+    Only one arm moves at a time, so for every path of the hold arm the
+    move arm stands still where its last path ended.
+
+    Args:
+        motion (list): The steps of motion.pkl: [arm ('move' / 'hold'),
+            body ('arm' / 'gripper'), path or opening, part, task].
+
+    Yields:
+        tuple: (step index, path, gripper opening of the hold arm, arm
+        pose of the move arm, its gripper opening, part the hold arm
+        carries or None).
+    """
+    hold_open, move_q, move_open = None, None, None
+    for i, (arm, body, path, part, task) in enumerate(motion):
+        if body == 'gripper':
+            if arm == 'hold':
+                hold_open = path
+            else:
+                move_open = path
+        elif arm == 'move':
+            move_q = path[-1]
+        elif task != 'init' and move_q is not None:
+            yield i, path, hold_open, move_q, move_open, part
 
 
 def verify_plan(assembly_dir, log_dir, verbose=True):
@@ -172,6 +220,28 @@ def verify_plan(assembly_dir, log_dir, verbose=True):
         violations = checker.check_path(path, open_ratio, state, **kwargs)
         name = f'step {i + 1} {motion[i][4]}' + (
             f' part {motion[i][3]}' if motion[i][3] is not None else ''
+        )
+        report['paths'][name] = violations
+        if verbose:
+            print(
+                f'[verify_plan] {name}: '
+                + ('ok' if not violations else '; '.join(violations))
+            )
+    # The hold arm: its distance to the move arm (the other rules of
+    # plan_checks.py are written for the real move arm and its walls).
+    for i, path, open_ratio, move_q, move_open, part in iterate_hold_paths(
+        motion
+    ):
+        # A carried part lies where the pickup left it when the path
+        # starts (None: at the gripper pose of the first arm pose).
+        carried = None
+        if part is not None:
+            carried = (checker.pickup_meshes[part], None)
+        violations = checker.other_arm_violations(
+            'hold', path, open_ratio, move_q, move_open, carried=carried
+        )
+        name = f'step {i + 1} hold arm {motion[i][4]}' + (
+            f' part {part}' if part is not None else ''
         )
         report['paths'][name] = violations
         if verbose:

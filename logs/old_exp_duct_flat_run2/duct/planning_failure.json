@@ -1,0 +1,6 @@
+{
+    "stage": "run_pickup_gen",
+    "part": "7",
+    "grasp_id": 1617,
+    "reason": "no spot within 152 tries where the pickup passes the checks: pickup of part 7: gripper panda_rightfinger closer than 1.0 cm to lying part 4 (83x); pickup of part 7: gripper panda_rightfinger closer than 1.0 cm to lying part 2 (57x); pickup of part 7: gripper panda_leftfinger closer than 1.0 cm to lying part 2 (50x)"
+}

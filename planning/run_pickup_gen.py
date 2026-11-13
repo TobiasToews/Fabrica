@@ -114,6 +114,7 @@ from planning.run_motion_plan import (
     get_pickup_gripper_pose,
     get_back_retract_dir,
     make_move_planner,
+    PICKUP_Q_HOLD_FILE,
 )
 from planning.run_seq_opt import SequenceOptimizer
 from planning.config import (
@@ -1465,6 +1466,82 @@ def pickup_anchor(
     )
 
 
+def hold_pickup_q(
+    planner,
+    grasp,
+    pickup_mat,
+    final_mat,
+    lying_meshes,
+    has_ft_sensor,
+    move_chain,
+    has_ft_sensor_move,
+):
+    """Finds the arm pose with which the hold arm picks the first part.
+
+    The hold arm takes the first part from the board before anything
+    else moves: the move arm is at rest, and every other part lies where
+    the layout put it. A spot counts only if the hold arm reaches the
+    grasp there and its arm and opened gripper are then clear of the
+    lying parts, the table and the move arm. The arm pose is searched
+    the same way as in run_motion_plan.py, which uses the result (the
+    file PICKUP_Q_HOLD_FILE). The moves into the grasp and up with the
+    part are planned later; if they fail, run_planning_flat.py drops
+    the hold grasp.
+
+    Args:
+        planner (ArmMotionPlanner): Planner of the hold arm.
+        grasp (Grasp): The hold grasp (a gripper pose relative to the
+            part at its assembled pose).
+        pickup_mat (np.ndarray): 4x4 transform of the part mesh where
+            it lies (world frame, cm), as in fixture/pickup.json.
+        final_mat (np.ndarray): 4x4 transform of the part mesh at its
+            assembled pose.
+        lying_meshes (list[trimesh.Trimesh]): Every part where it lies,
+            this part included (world frame, cm).
+        has_ft_sensor (bool): Whether the hold arm has a force-torque
+            sensor between flange and hand (it moves the hand).
+        move_chain (ArmChain): Kinematic chain of the move arm.
+        has_ft_sensor_move (bool): The same for the move arm.
+
+    Returns:
+        np.ndarray | None: The arm pose (9 values: 7 joints and the 2
+        fingers), or None if there is none at this spot.
+    """
+    rest = planner.arm_chain.active_to_full(planner.arm_chain.rest_q)
+    q = get_pickup_arm_q(
+        planner,
+        grasp,
+        pickup_mat,
+        final_mat,
+        arm_q_init=rest,
+        has_ft_sensor=has_ft_sensor,
+        optimizer='least_squares',
+        regularization=1.0,
+    )
+    if q is None:
+        return None
+    # The gripper arrives opened a little wider than the grasp, as in
+    # run_motion_plan.py, and the move arm waits at its rest pose.
+    open_ratio = min(grasp.open_ratio + _RETRACT_OPEN_RATIO, 1.0)
+    _, _, _, collision_fn = planner.get_fns(
+        None,
+        None,
+        lying_meshes,
+        open_ratio,
+        arm_chain_other=move_chain,
+        arm_q_other=move_chain.active_to_full(move_chain.rest_q),
+        open_ratio_other=OPEN_RATIO_REST,
+        has_ft_sensor_other=has_ft_sensor_move,
+    )
+    # Exact meshes (no planner buffers): the planner of run_motion_plan.py
+    # also only asks the goal pose itself to be free of contact; its
+    # straight move into the grasp is planned there.
+    active = planner.arm_chain.active_from_full(q)
+    if collision_fn(active, buffered=False, move_ground_buffer=False):
+        return None
+    return q
+
+
 def run_pickup_gen(
     assembly_dir,
     log_dir,
@@ -1502,9 +1579,14 @@ def _run_pickup_gen(
     pickup_shift_y,
     pickup_center_x,
     verbose=False,
+    first_by_move=False,
 ):
     """
     Choose a flat resting pose for every part of the optimized sequence and lay the parts out on the board
+    first_by_move: the move arm brings the first part to the assembly
+        spot ('place'). Set when the layout found no spot where the hold
+        arm can pick that part: the function then calls itself once more
+        with it.
     """
     with open(os.path.join(log_dir, 'precedence.pkl'), 'rb') as fp:
         G_preced = pickle.load(fp)
@@ -1548,6 +1630,7 @@ def _run_pickup_gen(
         clear_failure,
         write_failure,
         joint_condition,
+        CAUSE_HOLD_GRASP,
     )
     from planning.robot.geometry import load_part_meshes
 
@@ -1583,12 +1666,16 @@ def _run_pickup_gen(
             clearance,
         )
         if (
-            len(candidates[part_id]) == 0
+            (len(candidates[part_id]) == 0 or first_by_move)
             and part_id == first_part
             and checker is not None
         ):
-            # fallback (run_flat_seq_opt): the hold grasp cannot take the first part from the board, so the move arm brings it to
-            # the assembly spot ('place'): with its best move grasp whose arm pose there, the part standing on the table, passes the checks
+            # fallback: the hold grasp cannot take the first part from the
+            # board (it cannot pick the part lying flat, or the hold arm
+            # reaches it on no spot of the layout: first_by_move), so the
+            # move arm brings it to the assembly spot ('place'): with its
+            # best move grasp whose arm pose there, the part standing on
+            # the table, passes the checks
             def final_pose_ok(g):
                 return (
                     len(
@@ -1613,7 +1700,24 @@ def _run_pickup_gen(
                 clearance,
                 final_pose_ok,
             )
+            why = (
+                'the hold arm reaches it on no spot of the layout'
+                if first_by_move
+                else 'it cannot pick the part lying flat'
+            )
             if len(places) == 0:
+                if first_by_move:
+                    # Another hold grasp may reach the part: drop this one.
+                    write_failure(
+                        log_dir,
+                        'run_pickup_gen',
+                        part_id,
+                        grasp.grasp_id,
+                        f'hold grasp {grasp.grasp_id}: {why}, and no move '
+                        f'grasp can bring the part to the assembly spot',
+                        CAUSE_HOLD_GRASP,
+                    )
+                    return False
                 write_failure(
                     log_dir,
                     'run_pickup_gen',
@@ -1623,7 +1727,10 @@ def _run_pickup_gen(
                 )
                 return False
             print(
-                f'[run_pickup_gen] part {part_id} (held first): hold grasp {grasp.grasp_id} cannot pick it lying flat; fallback: the move arm brings it to the assembly spot with move grasp {places[0][0].grasp_id}'
+                f'[run_pickup_gen] part {part_id} (held first): hold grasp '
+                f'{grasp.grasp_id}: {why}; fallback: the move arm brings '
+                f'it to the assembly spot with move grasp '
+                f'{places[0][0].grasp_id}'
             )
             pickup_grasps[part_id] = (places[0][0], 'place')
             candidates[part_id] = places[0][1]
@@ -1796,6 +1903,7 @@ def _run_pickup_gen(
         sequence_forward[0][1]
     ]  # last picked first; the human's part last
     placed, footprints, choice, pickup_q, spots = {}, {}, {}, {}, {}
+    pickup_q_hold = {}  # the first part: arm pose of the hold arm there
     for part_id in order:
         grasp, kind = pickup_grasps[part_id]
         arm = (
@@ -1803,6 +1911,13 @@ def _run_pickup_gen(
         )  # 'place': the first part, picked by the move arm (fallback)
         planner = motion_planners[arm]
         found, tried, violations_seen = False, 0, {}
+        if arm == 'hold':
+            # The hold arm picks first, while every other part lies on
+            # the board (they are all placed by now: it comes last).
+            hold_scene = [
+                part_meshes_raw[k].copy().apply_transform(m)
+                for k, m in placed.items()
+            ]
         checked, fingers_at_origin = (
             set(),
             {},
@@ -1845,7 +1960,32 @@ def _run_pickup_gen(
                         continue
                     pose = place(part_id, k, xy)
                     mat = pose @ final_mats[part_id]
-                    if arm == 'hold':  # the human takes it: a free spot
+                    if arm == 'hold':
+                        # The hold arm takes the first part from here; the
+                        # spot counts only if it has an arm pose for that
+                        # (until 2026-11-13 any free spot: a human took it).
+                        tried += 1
+                        here = part_meshes_raw[part_id].copy()
+                        q = hold_pickup_q(
+                            planner,
+                            grasp,
+                            mat,
+                            final_mats[part_id],
+                            hold_scene + [here.apply_transform(mat)],
+                            has_ft_sensor['hold'],
+                            get_arm_chain(arm_type, 'move'),
+                            has_ft_sensor['move'],
+                        )
+                        if q is None:
+                            why = (
+                                'hold arm: no arm pose that picks the part '
+                                'there clear of the parts and the move arm'
+                            )
+                            violations_seen[why] = (
+                                violations_seen.get(why, 0) + 1
+                            )
+                            continue
+                        pickup_q_hold[part_id] = q
                         found = True
                     elif (
                         checker is None
@@ -1986,6 +2126,29 @@ def _run_pickup_gen(
                     break
             if found:
                 break
+        if not found and arm == 'hold' and checker is not None:
+            # The hold arm can pick the first part nowhere near the pickup
+            # area: the move arm brings it to the assembly spot instead.
+            # The layout starts again, because the move arm then picks
+            # this part first and the other parts are checked with that.
+            save_ik_cache(log_dir, ik_cache)
+            print(
+                f'[run_pickup_gen] part {part_id} (held first): the hold '
+                f'arm can pick it on none of the {tried} spots tried; '
+                f'fallback: the move arm brings it to the assembly spot'
+            )
+            return _run_pickup_gen(
+                assembly_dir,
+                log_dir,
+                max_tilt,
+                clearance,
+                min_tip_angle,
+                seed,
+                pickup_shift_y,
+                pickup_center_x,
+                verbose,
+                first_by_move=True,
+            )
         if not found:
             reasons = '; '.join(
                 f'{v} ({n}x)'
@@ -2036,6 +2199,17 @@ def _run_pickup_gen(
             {
                 part_id: np.asarray(q).tolist()
                 for part_id, q in pickup_q.items()
+            },
+            fp,
+            indent=4,
+        )
+    # The arm pose of the hold arm at the first part (empty if the move
+    # arm brings that part), used by run_motion_plan.py.
+    with open(os.path.join(fixture_dir, PICKUP_Q_HOLD_FILE), 'w') as fp:
+        json.dump(
+            {
+                part_id: np.asarray(q).tolist()
+                for part_id, q in pickup_q_hold.items()
             },
             fp,
             indent=4,

@@ -20,6 +20,11 @@ Rules (clearances in planning/config.py):
   every move grasp: finger overlap with the part >= GRASP_MIN_FINGER_OVERLAP (see grasp_finger_overlap)
   every pose: smallest singular value of the arm Jacobian >= MIN_SIGMA (MIN_SIGMA_INSERTION while inserting),
               every joint >= MIN_JOINT_LIMIT_MARGIN from its limits
+  the arm that moves (links, gripper, carried part) vs the other arm,
+      which stands still meanwhile: no contact, and >= ARM_ARM_CLEARANCE
+      except in one stretch at the start and one at the end of the path
+      (both hands work at the assembly); while inserting only no contact.
+      Checked for the paths of both arms (other_arm_violations)
 
 Not checked (TODO):
   the wrist camera mount and its cable are not in the robot model (real_robot/_tobi_stuff/RealSenseD435_Camera_Mount_on_angle.step):
@@ -52,6 +57,7 @@ from planning.config import (
     ROBOT_SELF_CLEARANCE,
     ASSEMBLY_CLEARANCE,
     ZONE_PART_TABLE_CLEARANCE,
+    ARM_ARM_CLEARANCE,
 )
 from planning.robot.geometry import (
     load_gripper_meshes,
@@ -163,6 +169,7 @@ class SceneChecker:
         part_meshes_raw,
         pickup_mats,
         final_meshes,
+        has_ft_sensor_hold=False,
     ):
         assert arm_type == 'panda', (
             'the real-robot checks are written for the panda workcell'
@@ -173,6 +180,11 @@ class SceneChecker:
         )
         self.gripper_type = gripper_type
         self.has_ft_sensor = has_ft_sensor
+        # The hold arm is only needed for the distance between the two
+        # arms; its planner is made when it is first asked for.
+        self.has_ft_sensor_hold = has_ft_sensor_hold
+        self._hold_planner = None
+        self._moving_mgrs = {}
         self.table_z = get_panda_base_z() + get_panda_desk_z()
         self.part_ids = list(part_meshes_raw.keys())
         self.pickup_meshes = {
@@ -249,6 +261,7 @@ class SceneChecker:
         released_part=None,
         inserting=False,
         label='',
+        other_arm=None,
     ):
         """
         path: list of full (9) or active (7) arm qs of the move arm
@@ -256,6 +269,8 @@ class SceneChecker:
         carried: part in the gripper (it lies at its pickup pose when the path starts, unless inserting)
         pick_part: part picked after this path (lying): the open gripper must not touch it on any pose of the path
         released_part: part released before this path (assembled): checked like every assembled part, only named in the message
+        other_arm: (arm pose q, gripper open ratio) of the hold arm, which
+            stands still during the path; None: not checked
         returns a list of violation strings (empty: ok)
         """
         path = [np.asarray(q) for q in path]
@@ -492,8 +507,187 @@ class SceneChecker:
                         f'{what} passes closer than {ASSEMBLY_CLEARANCE} cm to assembled part {values[k][1]}',
                         k,
                     )
-        return [
+        result = [
             f'{label}{key} (poses {ks[0]}..{ks[-1]} of {len(path)}, {len(ks)}x)'
+            for key, ks in violations.items()
+        ]
+        if other_arm is not None:
+            carried_at = None
+            if carried is not None:
+                carried_at = (carried_mesh, T_grip_ref)
+            result += self.other_arm_violations(
+                'move',
+                path,
+                open_ratio,
+                other_arm[0],
+                other_arm[1],
+                carried=carried_at,
+                inserting=inserting,
+                label=label,
+            )
+        return result
+
+    def arm_planner(self, arm):
+        """Returns the planner of one arm (it knows the arm's meshes).
+
+        The planner is used here only for its forward kinematics: where
+        every link and the gripper are for a given arm pose.
+
+        Args:
+            arm (str): 'move' (the real robot) or 'hold'.
+
+        Returns:
+            ArmMotionPlanner: The planner of that arm.
+        """
+        if arm == 'move':
+            return self.planner
+        if self._hold_planner is None:
+            self._hold_planner = ArmMotionPlanner(
+                get_arm_chain('panda', 'hold'),
+                self.gripper_type,
+                self.has_ft_sensor_hold,
+            )
+        return self._hold_planner
+
+    def placed_arm(self, arm, q, open_ratio):
+        """Returns the links and the gripper of an arm at one arm pose.
+
+        Args:
+            arm (str): 'move' or 'hold'.
+            q (array): Arm pose, 9 joint values (7 joints and the 2
+                fingers) or only the 7 joints.
+            open_ratio (float): How far the gripper is open, from 0
+                (closed) to 1 (fully open).
+
+        Returns:
+            trimesh.collision.CollisionManager: One object per link and
+            per gripper piece, named '<arm> <link>'.
+        """
+        planner = self.arm_planner(arm)
+        q = np.asarray(q, dtype=float)
+        if len(q) == 7:
+            q = planner.arm_chain.active_to_full(q)
+        arm_tf, grip_tf, _ = planner.get_meshes_transforms(
+            q, open_ratio, None, None
+        )
+        mgr = trimesh.collision.CollisionManager()
+        for name, tf in arm_tf.items():
+            mgr.add_object(f'{arm} {name}', planner.arm_meshes[name], tf)
+        for name, tf in grip_tf.items():
+            mgr.add_object(f'{arm} {name}', planner.gripper_meshes[name], tf)
+        return mgr
+
+    def other_arm_violations(
+        self,
+        arm,
+        path,
+        open_ratio,
+        other_q,
+        other_open_ratio,
+        carried=None,
+        inserting=False,
+        label='',
+    ):
+        """Checks the distance of a moving arm to the other arm.
+
+        Only one arm moves at a time: while `arm` follows `path`, the
+        other arm stands still at `other_q`. The rule is the same as
+        for the assembled parts (ASSEMBLY_CLEARANCE): the two arms
+        never touch, and they stay ARM_ARM_CLEARANCE apart, except in
+        one stretch at the start and one at the end of the path. Those
+        stretches are allowed because both hands work at the assembly:
+        a path that arrives there to insert, or leaves after letting
+        go, starts or ends close to the hand that holds the assembly.
+        While inserting, only contact counts.
+
+        Args:
+            arm (str): The arm that moves, 'move' or 'hold'.
+            path (list): Its arm poses (9 or 7 values each).
+            open_ratio (float): Its gripper opening during the path.
+            other_q (array): Pose of the other arm (9 or 7 values).
+            other_open_ratio (float): Gripper opening of the other arm.
+            carried (tuple | None): (mesh, T_grip_ref) if the moving
+                arm carries a part: the part mesh where it is when the
+                gripper is at T_grip_ref (4x4, world frame, cm). The
+                part follows the gripper. T_grip_ref None: the gripper
+                pose at the first arm pose of the path (the part is
+                picked there). None: no part.
+            inserting (bool): True for an insertion path.
+            label (str): Text put in front of every message.
+
+        Returns:
+            list[str]: The violations, in the format of check_path
+            (empty: the path keeps the rule).
+        """
+        other = 'hold' if arm == 'move' else 'move'
+        other_mgr = self.placed_arm(other, other_q, other_open_ratio)
+        planner = self.arm_planner(arm)
+        # The managers of the moving arm are made once per arm and moved
+        # to every pose of the path (making them is slower than moving).
+        if arm not in self._moving_mgrs:
+            rest = planner.arm_chain.active_to_full(planner.arm_chain.rest_q)
+            self._moving_mgrs[arm] = self.placed_arm(arm, rest, open_ratio)
+        moving_mgr = self._moving_mgrs[arm]
+        carried_mgr = None
+        if carried is not None:
+            carried_mgr = self.manager({f'{arm} carried part': carried[0]})
+        chain = planner.arm_chain
+        has_ft = self.has_ft_sensor if arm == 'move' else (
+            self.has_ft_sensor_hold
+        )
+        touching, near = [], []
+        T_grip_ref = None if carried is None else carried[1]
+        for k, q in enumerate(path):
+            q = np.asarray(q, dtype=float)
+            if len(q) == 7:
+                q = chain.active_to_full(q)
+            arm_tf, grip_tf, _ = planner.get_meshes_transforms(
+                q, open_ratio, None, None
+            )
+            for name, tf in {**arm_tf, **grip_tf}.items():
+                moving_mgr.set_transform(f'{arm} {name}', tf)
+            managers = [moving_mgr]
+            if carried_mgr is not None:
+                # The part keeps its pose relative to the gripper.
+                T_grip = get_transform_matrix_quat(
+                    *get_gripper_pos_quat_from_arm_q(
+                        chain, q, self.gripper_type, has_ft_sensor=has_ft
+                    )
+                )
+                if T_grip_ref is None:
+                    T_grip_ref = T_grip
+                carried_mgr.set_transform(
+                    f'{arm} carried part',
+                    T_grip @ np.linalg.inv(T_grip_ref),
+                )
+                managers.append(carried_mgr)
+            if any(m.in_collision_other(other_mgr) for m in managers):
+                touching.append(k)
+            d, names = min(
+                (m.min_distance_other(other_mgr, return_names=True)
+                 for m in managers),
+                key=lambda result: result[0],
+            )
+            near.append((d, names))
+        violations = {}
+        if touching:
+            violations[f'{arm} arm touches the {other} arm'] = touching
+        if not inserting:
+            clear = [d >= ARM_ARM_CLEARANCE - DISTANCE_TOL for d, _ in near]
+            if True in clear:
+                first = clear.index(True)
+                last = len(clear) - 1 - clear[::-1].index(True)
+                for k in range(first, last + 1):
+                    if not clear[k]:
+                        names = near[k][1]
+                        key = (
+                            f'{names[0]} passes closer than '
+                            f'{ARM_ARM_CLEARANCE} cm to {names[1]}'
+                        )
+                        violations.setdefault(key, []).append(k)
+        return [
+            f'{label}{key} (poses {ks[0]}..{ks[-1]} of {len(path)}, '
+            f'{len(ks)}x)'
             for key, ks in violations.items()
         ]
 
@@ -601,10 +795,15 @@ def clear_failure(log_dir):
 CAUSE_GRASP = 'grasp'  # the arm or the gripper cannot do it with this move grasp: another grasp of the part can
 CAUSE_SPOT = 'spot'  # the place where the part lies does not work (neighbours, approach, lift): the same grasp can at another spot
 CAUSE_INSERTION = 'insertion'  # the part itself has no way to where its insertion starts, however it is grasped
+# The hold arm cannot do its part with this hold grasp (no arm pose at
+# the pickup, no path, too close to the move arm): another hold grasp
+# of the part can.
+CAUSE_HOLD_GRASP = 'hold grasp'
 CAUSE_TEXT = {
     CAUSE_GRASP: 'the move grasp',
     CAUSE_SPOT: 'the spot where the part lies',
     CAUSE_INSERTION: 'the insertion itself, whatever the grasp',
+    CAUSE_HOLD_GRASP: 'the hold grasp',
 }
 
 
@@ -628,6 +827,8 @@ def write_failure(log_dir, stage, part, grasp_id, reason, cause=CAUSE_GRASP):
             fp,
             indent=4,
         )
+    which = 'hold' if cause == CAUSE_HOLD_GRASP else 'move'
     print(
-        f'[{stage}] FAILED for part {part} (move grasp {grasp_id}), cause: {CAUSE_TEXT[cause]}: {reason}'
+        f'[{stage}] FAILED for part {part} ({which} grasp {grasp_id}), '
+        f'cause: {CAUSE_TEXT[cause]}: {reason}'
     )

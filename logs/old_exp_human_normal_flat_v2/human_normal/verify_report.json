@@ -1,0 +1,64 @@
+{
+    "workcell": [],
+    "grasps": [],
+    "paths": {
+        "step 9 switch": [],
+        "step 11 switch": [
+            "gripper panda_rightfinger closer than 1.0 cm to lying part 6 (poses 313..344 of 392, 32x)",
+            "gripper panda_hand closer than 1.0 cm to lying part 6 (poses 363..391 of 392, 29x)",
+            "joint 7 closer than 0.5 rad to its limit (poses 387..391 of 392, 5x)"
+        ],
+        "step 13 transport part 1": [
+            "joint 7 closer than 0.5 rad to its limit (poses 0..99 of 445, 100x)",
+            "gripper panda_hand closer than 1.0 cm to lying part 6 (poses 0..24 of 445, 25x)"
+        ],
+        "step 14 assembly part 1": [],
+        "step 16 switch": [
+            "too close to a singularity (Jacobian sigma_min < 0.1) (poses 227..261 of 386, 35x)"
+        ],
+        "step 18 switch": [],
+        "step 20 transport part 2": [],
+        "step 21 assembly part 2": [],
+        "step 28 switch": [
+            "gripper panda_leftfinger closer than 1.0 cm to lying part 5 (poses 74..130 of 212, 57x)",
+            "joint 4 closer than 0.5 rad to its limit (poses 174..211 of 212, 38x)"
+        ],
+        "step 30 switch": [
+            "joint 4 closer than 0.5 rad to its limit (poses 0..77 of 78, 78x)",
+            "gripper panda_leftfinger closer than 1.0 cm to lying part 4 (poses 61..77 of 78, 17x)"
+        ],
+        "step 32 transport part 3": [
+            "joint 4 closer than 0.5 rad to its limit (poses 0..118 of 293, 119x)",
+            "gripper panda_leftfinger closer than 1.0 cm to lying part 4 (poses 0..5 of 293, 6x)"
+        ],
+        "step 33 assembly part 3": [],
+        "step 40 switch": [],
+        "step 42 switch": [
+            "gripper hits part 3 (just released) away from its release (poses 71..71 of 223, 1x)"
+        ],
+        "step 44 transport part 5": [],
+        "step 45 assembly part 5": [
+            "too close to a singularity (Jacobian sigma_min < 0.15) (poses 0..140 of 141, 141x)"
+        ],
+        "step 52 switch": [
+            "gripper hits assembled part 3 (poses 102..143 of 232, 13x)"
+        ],
+        "step 54 transport part 4": [],
+        "step 55 assembly part 4": [],
+        "step 57 switch": [],
+        "step 59 switch": [],
+        "step 61 transport part 6": [],
+        "step 62 assembly part 6": [],
+        "step 67 transport": []
+    },
+    "finger_overlap": {
+        "6": 2.41,
+        "4": 2.02,
+        "5": 2.05,
+        "3": 2.36,
+        "2": 1.88,
+        "1": 1.78
+    },
+    "passed": false,
+    "robot_base_z": -3.0
+}

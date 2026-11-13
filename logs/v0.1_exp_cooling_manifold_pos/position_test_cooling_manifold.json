@@ -1,0 +1,324 @@
+{
+  "assembly": "cooling_manifold",
+  "seed": 0,
+  "min_corners": 4,
+  "min_separation": 5.0,
+  "n_assembly": 10,
+  "footprint_at_default": [
+    [
+      -6.009625,
+      -21.01439
+    ],
+    [
+      6.009625,
+      -8.985610000000001
+    ]
+  ],
+  "default_center": [
+    0.0,
+    -15.0
+  ],
+  "places": [
+    {
+      "assembly": [
+        0.0,
+        -20.0
+      ],
+      "footprint_centre": [
+        0.0,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          0.0,
+          10.0
+        ],
+        [
+          2.5,
+          37.5
+        ],
+        [
+          -5.0,
+          32.5
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        0.0,
+        -7.5
+      ],
+      "footprint_centre": [
+        0.0,
+        -7.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -7.5,
+          15.0
+        ],
+        [
+          -7.5,
+          30.0
+        ],
+        [
+          -5.0,
+          25.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        5.0,
+        -30.0
+      ],
+      "footprint_centre": [
+        5.0,
+        -30.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          5.0,
+          -7.5
+        ],
+        [
+          0.0,
+          12.5
+        ],
+        [
+          -5.0,
+          -5.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        0.0,
+        -27.5
+      ],
+      "footprint_centre": [
+        0.0,
+        -27.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          10.0
+        ],
+        [
+          0.0,
+          35.0
+        ],
+        [
+          -7.5,
+          25.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        -2.5,
+        -2.5
+      ],
+      "footprint_centre": [
+        -2.5,
+        -2.5
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -7.5,
+          27.5
+        ],
+        [
+          17.5,
+          -30.0
+        ],
+        [
+          5.0,
+          -27.5
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        7.5,
+        -15.0
+      ],
+      "footprint_centre": [
+        7.5,
+        -15.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -5.0,
+          20.0
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -5.0,
+          35.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        12.5,
+        -20.0
+      ],
+      "footprint_centre": [
+        12.5,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          17.5
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -5.0,
+          -32.5
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        0.0,
+        -15.0
+      ],
+      "footprint_centre": [
+        0.0,
+        -15.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -5.0,
+          5.0
+        ],
+        [
+          2.5,
+          -37.5
+        ],
+        [
+          -2.5,
+          37.5
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        5.0,
+        -20.0
+      ],
+      "footprint_centre": [
+        5.0,
+        -20.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          0.0
+        ],
+        [
+          -7.5,
+          7.5
+        ],
+        [
+          -7.5,
+          20.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        -2.5,
+        35.0
+      ],
+      "footprint_centre": [
+        -2.5,
+        35.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          12.5,
+          -32.5
+        ],
+        [
+          2.5,
+          -10.0
+        ],
+        [
+          12.5,
+          -27.5
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        5.0,
+        -25.0
+      ],
+      "footprint_centre": [
+        5.0,
+        -25.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          2.5
+        ],
+        [
+          0.0,
+          -2.5
+        ],
+        [
+          -7.5,
+          25.0
+        ]
+      ]
+    },
+    {
+      "assembly": [
+        10.0,
+        -25.0
+      ],
+      "footprint_centre": [
+        10.0,
+        -25.0
+      ],
+      "corners_reachable": 4,
+      "pickup": [
+        [
+          -2.5,
+          22.5
+        ],
+        [
+          -7.5,
+          -7.5
+        ],
+        [
+          5.0,
+          -2.5
+        ]
+      ]
+    }
+  ],
+  "runs": {}
+}

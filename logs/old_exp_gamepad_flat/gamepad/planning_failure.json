@@ -1,0 +1,6 @@
+{
+    "stage": "run_motion_plan",
+    "part": "0",
+    "grasp_id": 389,
+    "reason": "approach path: before opening: joint 7 closer than 0.5 rad to its limit (poses 35..83 of 84, 49x); after opening: joint 7 closer than 0.5 rad to its limit (poses 0..22 of 172, 23x)"
+}

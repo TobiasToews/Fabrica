@@ -1,0 +1,80 @@
+--- grasp stats ---
+part 0: 100 move + 100 hold
+part 1: 0 move + 100 hold
+part 2: 100 move + 150 hold
+part 3: 0 move + 100 hold
+part 4: 100 move + 100 hold
+part 5: 0 move + 100 hold
+part 6: 100 move + 100 hold
+part 7: 0 move + 100 hold
+part 8: 100 move + 100 hold
+--- grasp pair stats ---
+part pair 0-0: 35
+part pair 0-1: 1674
+part pair 0-2: 2537
+part pair 0-3: 1216
+part pair 0-4: 23
+part pair 0-5: 3059
+part pair 0-6: 729
+part pair 0-7: 612
+part pair 0-8: 974
+part pair 1-1: 0
+part pair 1-2: 0
+part pair 1-3: 0
+part pair 1-4: 0
+part pair 1-5: 0
+part pair 1-6: 0
+part pair 1-7: 0
+part pair 1-8: 0
+part pair 2-2: 1123
+part pair 3-0: 0
+part pair 3-1: 0
+part pair 3-2: 0
+part pair 3-3: 0
+part pair 3-4: 0
+part pair 3-5: 0
+part pair 3-7: 0
+part pair 3-8: 0
+part pair 4-0: 1922
+part pair 4-1: 2884
+part pair 4-2: 3773
+part pair 4-3: 2385
+part pair 4-4: 24
+part pair 4-5: 4244
+part pair 4-6: 868
+part pair 4-7: 1157
+part pair 4-8: 2931
+part pair 5-0: 0
+part pair 5-1: 0
+part pair 5-2: 0
+part pair 5-3: 0
+part pair 5-4: 0
+part pair 5-5: 0
+part pair 5-6: 0
+part pair 5-7: 0
+part pair 6-0: 2232
+part pair 6-1: 2187
+part pair 6-2: 3406
+part pair 6-3: 1381
+part pair 6-4: 686
+part pair 6-5: 3476
+part pair 6-6: 9
+part pair 6-7: 902
+part pair 6-8: 1863
+part pair 7-0: 0
+part pair 7-1: 0
+part pair 7-2: 0
+part pair 7-3: 0
+part pair 7-5: 0
+part pair 7-6: 0
+part pair 7-7: 0
+part pair 7-8: 0
+part pair 8-0: 272
+part pair 8-1: 1217
+part pair 8-2: 2044
+part pair 8-3: 435
+part pair 8-4: 199
+part pair 8-5: 2122
+part pair 8-6: 33
+part pair 8-7: 291
+part pair 8-8: 22

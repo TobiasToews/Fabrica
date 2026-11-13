@@ -20,6 +20,7 @@ ASSEMBLY_ZONE_MARGIN = 4.0 # cm, the assembly zone is the footprint of the finis
 ZONE_PART_TABLE_CLEARANCE = 0.2 # cm, a carried part to the table inside the assembly zone (as the gripper), until the last stretch of its path, where it comes down to its goal. The motion planner keeps it with its table slab of this thickness; until 2026-11-11 it kept its table buffer (0.78 cm) there, so a part inserted just above the table (gamepad part 4: 0.65 cm) had no approach
 ROBOT_SELF_CLEARANCE = 1.0 # cm, gripper (hand, fingers) to the robot's own links 0-5
 ASSEMBLY_CLEARANCE = 1.0 # cm, gripper and carried part to the assembled parts while passing by; closer only where a path starts (leaving after a release) or ends (arriving to insert), never touching
+ARM_ARM_CLEARANCE = 1.0 # cm, the arm that moves (links, gripper, carried part) to the other arm, which stands still meanwhile (links, gripper); closer only where a path starts or ends (both hands work at the assembly), never touching. Added 2026-11-13: until then the move arm did not avoid the hold arm (--single-arm)
 # the motion planner of the real arm (ArmMotionPlanner.strict) plans with these reserves on top of the checked values, so that
 # a planned path passes the checks (poses between two planned waypoints, inflated meshes are approximate)
 PLANNER_MARGIN = 0.2 # cm, added to ROBOT_PART_CLEARANCE / ASSEMBLY_CLEARANCE / VIRTUAL_WALL_SAFETY

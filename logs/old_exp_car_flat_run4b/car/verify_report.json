@@ -1,0 +1,36 @@
+{
+    "workcell": [],
+    "grasps": [],
+    "paths": {
+        "step 9 switch": [],
+        "step 11 switch": [],
+        "step 13 transport part 1": [],
+        "step 14 assembly part 1": [],
+        "step 21 switch": [],
+        "step 23 switch": [],
+        "step 25 transport part 5": [],
+        "step 26 assembly part 5": [],
+        "step 33 switch": [],
+        "step 35 switch": [],
+        "step 37 transport part 0": [],
+        "step 38 assembly part 0": [],
+        "step 40 switch": [],
+        "step 42 switch": [],
+        "step 44 transport part 4": [],
+        "step 45 assembly part 4": [],
+        "step 47 switch": [],
+        "step 49 switch": [],
+        "step 51 transport part 3": [],
+        "step 52 assembly part 3": [],
+        "step 57 transport": []
+    },
+    "finger_overlap": {
+        "3": 0.5,
+        "4": 0.6,
+        "0": 0.43,
+        "5": 0.55,
+        "1": 0.5
+    },
+    "passed": true,
+    "robot_base_z": -3.0
+}

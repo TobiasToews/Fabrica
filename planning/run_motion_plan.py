@@ -26,7 +26,11 @@ from utils.common import TimeStamp
 from planning.run_seq_plan import SequencePlanner
 from planning.run_seq_opt import SequenceOptimizer
 from planning.config import RETRACT_OPEN_RATIO, OPEN_RATIO_REST, RETRACT_DELTA_FAR, TRANSFER_PART_CLEARANCE, MAX_PLAN_ATTEMPTS, ASSEMBLY_ZONE_MARGIN, PLANNER_TABLE_MARGIN
-from planning.plan_checks import SceneChecker, clear_failure, write_failure, CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION
+from planning.plan_checks import SceneChecker, clear_failure, write_failure, CAUSE_GRASP, CAUSE_SPOT, CAUSE_INSERTION, CAUSE_HOLD_GRASP
+
+# Arm pose with which the hold arm picks the first part where the layout
+# put it, chosen and checked by run_pickup_gen.py (file in fixture/).
+PICKUP_Q_HOLD_FILE = 'pickup_q_hold.json'
 
 
 def get_pickup_gripper_pose(grasp, pickup_pose, final_pose, lift=0):
@@ -56,7 +60,7 @@ NO_PATH_REASON = { # ArmMotionPlanner.last_failure (real arm)
 
 def make_move_planner(arm_chain_move, gripper_type, has_ft_sensor, arm_box_move, part_meshes_final, stamp=None):
     '''
-    The motion planner of the move arm, the real robot (also in --single-arm). run_pickup_gen.py tests the straight moves at a
+    The motion planner of the move arm, the real robot. run_pickup_gen.py tests the straight moves at a
     pickup spot with the same planner. part_meshes_final: {part_id: mesh at its assembled pose}, they span the assembly zone.
     '''
     panda = arm_chain_move.arm_type == 'panda'
@@ -204,7 +208,7 @@ def post_process_motion(arm_chain, path, last_q=None):
     return processed_path
 
 
-def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, single_arm=False):
+def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False):
 
     precedence_path = os.path.join(log_dir, 'precedence.pkl')
     if not os.path.exists(precedence_path):
@@ -246,6 +250,11 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
 
     pickup_q_path = os.path.join(fixture_dir, 'pickup_q.json')
     pickup_q_checked = json.load(open(pickup_q_path, 'r')) if os.path.exists(pickup_q_path) else {}
+    pickup_q_hold_path = os.path.join(fixture_dir, PICKUP_Q_HOLD_FILE)
+    pickup_q_hold_checked = {}
+    if os.path.exists(pickup_q_hold_path):
+        with open(pickup_q_hold_path, 'r') as fp:
+            pickup_q_hold_checked = json.load(fp)
     part_meshes_pickup = get_transformed_part_meshes(part_meshes, part_pickup_pose)
     part_meshes_final = get_transformed_part_meshes(part_meshes, part_final_pose)
     part_meshes_map = {'pickup': part_meshes_pickup, 'final': part_meshes_final}
@@ -302,6 +311,15 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
     commands.append(['move', 'gripper', OPEN_RATIO_REST, None, 'init'])
     commands.append(['hold', 'gripper', OPEN_RATIO_REST, None, 'init'])
 
+    # For every arm command of the hold arm: the hold grasp it belongs to,
+    # (part id, grasp id). If that path cannot be planned, this is the hold
+    # grasp that run_planning_flat.py drops before the next attempt.
+    hold_blame = {}
+
+    def add_hold_arm(command, grasp):
+        hold_blame[len(commands)] = (grasp.part_id, grasp.grasp_id)
+        commands.append(command)
+
     # fallback for the first part (run_pickup_gen.py, 'arm': 'place'): its hold grasp cannot pick it lying flat, so the move arm
     # brings it to the assembly spot with one of its own move grasps and the hold arm takes it there
     placed_first, place_grasp = None, None
@@ -331,21 +349,28 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
             commands.append(['move', 'arm', (rest_q_move, [None, None]), None, 'transport'])
             # the hold arm: take the part where it stands
             commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-            commands.append(['hold', 'arm', (grasp_hold.arm_q, [None, None]), None, 'transport'])
+            add_hold_arm(['hold', 'arm', (grasp_hold.arm_q, [None, None]), None, 'transport'], grasp_hold)
             commands.append(['hold', 'gripper', grasp_hold.open_ratio, None, 'close'])
         elif step == 0:
-            pickup_q_hold = get_pickup_arm_q(motion_planner_hold, grasp_hold, part_pickup_pose[part_hold], part_final_pose[part_hold], arm_q_init=rest_q_hold, has_ft_sensor=has_ft_sensor['hold'], optimizer='least_squares', regularization=1.0)
-            if pickup_q_hold is None and not single_arm:
-                raise Exception(f'[run_motion_plan] Failed to solve pickup IK for hold arm in step {step} ({assembly_dir})')
+            # The hold arm picks the first part where the layout put it.
+            # run_pickup_gen.py laid the part out only where the hold arm
+            # has this arm pose (else the move arm brings the part, see
+            # above), so it is read from there. Older logs: search it.
+            if part_hold in pickup_q_hold_checked:
+                pickup_q_hold = np.array(pickup_q_hold_checked[part_hold])
+            else:
+                pickup_q_hold = get_pickup_arm_q(motion_planner_hold, grasp_hold, part_pickup_pose[part_hold], part_final_pose[part_hold], arm_q_init=rest_q_hold, has_ft_sensor=has_ft_sensor['hold'], optimizer='least_squares', regularization=1.0)
+            if pickup_q_hold is None:
+                # No silent way out (until 2026-11-13 a human picked the
+                # part instead): another hold grasp may reach the part.
+                write_failure(log_dir, 'run_motion_plan', part_hold, grasp_hold.grasp_id, 'the hold arm has no arm pose to pick the part where it lies', CAUSE_HOLD_GRASP)
+                raise Exception(f'[run_motion_plan] no arm pose of the hold arm to pick part {part_hold} ({assembly_dir})')
             gripper_pickup_pose[part_hold] = get_pickup_gripper_pose(grasp_hold, part_pickup_pose[part_hold], part_final_pose[part_hold])
             open_ratio_retract_hold = min(grasp_hold.open_ratio + RETRACT_OPEN_RATIO, 1.0)
             commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-            if pickup_q_hold is not None:
-                commands.append(['hold', 'arm', (pickup_q_hold, [None, np.array([0, 0, 1.0])]), None, 'transport']) # transport with goal retract
-            else: # --single-arm: the human (or planning/plan_place_part.py) brings the first part to the assembly spot
-                print(f'[run_motion_plan] the hold grasp cannot reach part {part_hold} where it lies: no pickup of the hold arm in the plan')
+            add_hold_arm(['hold', 'arm', (pickup_q_hold, [None, np.array([0, 0, 1.0])]), None, 'transport'], grasp_hold) # transport with goal retract
             commands.append(['hold', 'gripper', grasp_hold.open_ratio, None, 'close'])
-            commands.append(['hold', 'arm', (grasp_hold.arm_q, [np.array([0, 0, 1.0]), np.array([0, 0, 1.0])]), part_hold, 'transport']) # transport with both retract
+            add_hold_arm(['hold', 'arm', (grasp_hold.arm_q, [np.array([0, 0, 1.0]), np.array([0, 0, 1.0])]), part_hold, 'transport'], grasp_hold) # transport with both retract
         
         # move (assembly)
         if part_move in pickup_q_checked: # arm pose chosen and checked by run_pickup_gen.py
@@ -368,11 +393,11 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
             if not (grasp_hold.part_id == grasp_hold_next.part_id and grasp_hold.grasp_id == grasp_hold_next.grasp_id):
                 open_ratio_retract_hold_next = min(grasp_hold_next.open_ratio + RETRACT_OPEN_RATIO, 1.0)
                 commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-                commands.append(['hold', 'arm', (grasp_hold_next.arm_q, [None, None], open_ratio_retract_hold_next), None, 'switch']) # transport with both retract and open gripper
+                add_hold_arm(['hold', 'arm', (grasp_hold_next.arm_q, [None, None], open_ratio_retract_hold_next), None, 'switch'], grasp_hold_next) # transport with both retract and open gripper
                 commands.append(['hold', 'gripper', grasp_hold_next.open_ratio, None, 'close'])
         else:
             commands.append(['hold', 'gripper', open_ratio_retract_hold, None, 'open'])
-            commands.append(['hold', 'arm', (rest_q_hold, [None, None]), None, 'transport']) # transport with start retract
+            add_hold_arm(['hold', 'arm', (rest_q_hold, [None, None]), None, 'transport'], grasp_hold) # transport with start retract
             commands.append(['hold', 'gripper', OPEN_RATIO_REST, None, 'close'])
         
         # move (rest)
@@ -402,8 +427,9 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
     ['move/hold', 'arm/gripper', path, active_part, task]
     '''
 
-    # exact checks of every path of the real (move) arm, re-plan with another seed if one fails (planning/plan_checks.py)
-    checker = SceneChecker(arm_type, gripper_type, has_ft_sensor['move'], part_meshes, part_pickup_pose, part_meshes_final) if arm_type == 'panda' else None
+    # exact checks of every path of the real (move) arm, re-plan with another seed if one fails (planning/plan_checks.py); the
+    # paths of the hold arm are checked for their distance to the move arm
+    checker = SceneChecker(arm_type, gripper_type, has_ft_sensor['move'], part_meshes, part_pickup_pose, part_meshes_final, has_ft_sensor_hold=has_ft_sensor['hold']) if arm_type == 'panda' else None
     clear_failure(log_dir)
     move_grasp_id = {part_move: grasps_move[0].grasp_id for (part_move, _), (grasps_move, _) in zip(sequence, grasps_sequence)}
     if place_grasp is not None: move_grasp_id[placed_first] = place_grasp.grasp_id # the grasp to drop if the move arm cannot bring the first part to its place
@@ -415,6 +441,12 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
     def fail(part, reason, cause=CAUSE_GRASP):
         write_failure(log_dir, 'run_motion_plan', part, move_grasp_id.get(part), reason, cause)
         raise Exception(f'[run_motion_plan] no checked path for part {part}: {reason}')
+
+    def fail_hold(cid, reason):
+        # A path of the hold arm failed: name the hold grasp it belongs to.
+        part, grasp_id = hold_blame[cid]
+        write_failure(log_dir, 'run_motion_plan', part, grasp_id, reason, CAUSE_HOLD_GRASP)
+        raise Exception(f'[run_motion_plan] no checked path of the hold arm with hold grasp {grasp_id} of part {part}: {reason}')
 
     paths = []
     current_states = {
@@ -450,16 +482,15 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
 
             part_meshes_curr = {part_id: part_meshes_map[current_states['parts'][part_id]][part_id] for part_id in part_ids}
             motion_type_other = 'hold' if motion_type == 'move' else 'move'
+            # Both arms are robots: the arm that moves avoids the other one, which stands still meanwhile (until 2026-11-13
+            # --single-arm switched this off for the move arm and let the hold arm jump where it had no path)
             arm_chain_other, arm_q_other, open_ratio_other = arm_chains[motion_type_other], current_states[motion_type_other]['arm'], current_states[motion_type_other]['gripper']
-            if single_arm and motion_type == 'move': # the hold arm is a human: no robot to avoid (the assembly and the parts are checked)
-                arm_chain_other, arm_q_other, open_ratio_other = None, None, None
+            other_arm = (arm_q_other, open_ratio_other) # for the exact distance check between the two arms
 
             checked = checker is not None and motion_type == 'move' # the real arm: every path must pass the exact checks
-            human = single_arm and motion_type == 'hold' # a human does this step (real_robot/run.py --single-arm): the path is only shown in the viewer
+            hold_checked = checker is not None and motion_type == 'hold' # the hold arm: its distance to the move arm is checked
+            n_attempts = MAX_PLAN_ATTEMPTS if checked or hold_checked else 1
             state_before = dict(current_states['parts'])
-            def jump(): # no path for the simulated hold arm: this must not stop the plan of the real arm
-                print(f'[run_motion_plan] no path for the hold arm in task {task}: shown as a jump (the human does this step)')
-                return [np.array(q_start)], [np.array(q_goal)]
 
             if task == 'transport':
                 q_goal, [retract_start, retract_goal] = value
@@ -468,7 +499,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
 
                 blame = active_part if active_part is not None else last_inserted
                 seen = [] # violations of all attempts
-                for attempt in range(MAX_PLAN_ATTEMPTS if checked else 1):
+                for attempt in range(n_attempts):
                     if attempt > 0: reseed(cid, attempt)
                     try:
                       if active_part is not None: # transport with part (pickup -> assembly)
@@ -486,25 +517,28 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
                             retract_start=retract_start, retract_goal=retract_goal, retract_delta=RETRACT_DELTA_FAR,
                             max_speed=max_speed[task], verbose=verbose)
                     except Exception as e: # AssertionError: the planner gives up on a start/goal in collision
-                        if not (human or (checked and isinstance(e, AssertionError))): raise
+                        if not (hold_checked or (checked and isinstance(e, AssertionError))): raise
                         print(f'[run_motion_plan] planner error: {e}')
                         path = None
-                    if path is None and human:
-                        path = sum(jump(), [])
-                        break
                     if path is None:
-                        if not checked:
+                        if not (checked or hold_checked):
                             raise Exception(f'[run_motion_plan] Failed to plan path for {motion_type} {body_type} in task {task} ({assembly_dir})')
-                        violations = [no_path_reason(motion_planner)]
-                    elif not checked:
+                        violations = [no_path_reason(motion_planner) if checked else 'no path found for the hold arm']
+                    elif not (checked or hold_checked):
                         break
-                    else:
+                    elif checked:
                         kwargs = dict(carried=active_part) if active_part is not None else dict(released_part=last_inserted)
-                        violations = checker.check_path(path, open_ratio, state_before, **kwargs)
+                        violations = checker.check_path(path, open_ratio, state_before, other_arm=other_arm, **kwargs)
+                        if not violations: break
+                    else: # the hold arm, carrying the first part from where it lay or moving without a part
+                        carried_at = (part_meshes_pickup[active_part], gripper_pickup_pose[active_part]) if active_part is not None else None
+                        violations = checker.other_arm_violations('hold', path, open_ratio, *other_arm, carried=carried_at)
                         if not violations: break
                     seen += violations
-                    print(f'[run_motion_plan] {task} part {active_part}, attempt {attempt + 1}/{MAX_PLAN_ATTEMPTS} rejected: ' + '; '.join(violations))
+                    print(f'[run_motion_plan] {motion_type} arm {task} part {active_part}, attempt {attempt + 1}/{MAX_PLAN_ATTEMPTS} rejected: ' + '; '.join(violations))
                 else:
+                    if hold_checked:
+                        fail_hold(cid, f'hold arm {task} path: ' + '; '.join(violations))
                     fail(blame, f'{task} path: ' + '; '.join(violations),
                          failure_cause(task, active_part is not None, motion_planner.last_failure if path is None else None, motion_planner.blocked_by_carried_part(), seen))
                 if active_part is not None:
@@ -523,7 +557,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
 
                 pick_part = next((p for j, p in pick_cids if j > cid), None) if motion_type == 'move' else None
                 seen = [] # violations of all attempts
-                for attempt in range(MAX_PLAN_ATTEMPTS if checked else 1):
+                for attempt in range(n_attempts):
                     if attempt > 0: reseed(cid, attempt)
                     try:
                         path1, path2 = motion_planner.plan_path_switch(q_start, q_goal,
@@ -532,26 +566,29 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
                             retract_start=retract_start, retract_goal=retract_goal, retract_delta=RETRACT_DELTA_FAR,
                             max_speed=max_speed[task], verbose=verbose)
                     except Exception as e:
-                        if not (human or (checked and isinstance(e, AssertionError))): raise
+                        if not (hold_checked or (checked and isinstance(e, AssertionError))): raise
                         print(f'[run_motion_plan] planner error: {e}')
                         path1, path2 = None, None
-                    if (path1 is None or path2 is None) and human:
-                        path1, path2 = jump()
-                        break
                     if None in [path1, path2]:
-                        if not checked:
+                        if not (checked or hold_checked):
                             raise Exception(f'[run_motion_plan] Failed to plan path for {motion_type} {body_type} in task {task} ({assembly_dir})')
-                        violations = [no_path_reason(motion_planner)]
-                    elif not checked:
+                        violations = [no_path_reason(motion_planner) if checked else 'no path found for the hold arm']
+                    elif not (checked or hold_checked):
                         break
-                    else:
-                        kwargs = dict(pick_part=pick_part, released_part=last_inserted)
+                    elif checked:
+                        kwargs = dict(pick_part=pick_part, released_part=last_inserted, other_arm=other_arm)
                         violations = (checker.check_path(path1, open_ratio, state_before, label='before opening: ', **kwargs) if len(path1) > 0 else []) + \
                                      (checker.check_path(path2, open_ratio_next, state_before, label='after opening: ', **kwargs) if len(path2) > 0 else [])
                         if not violations: break
+                    else: # the hold arm changes its grasp
+                        violations = (checker.other_arm_violations('hold', path1, open_ratio, *other_arm, label='before opening: ') if len(path1) > 0 else []) + \
+                                     (checker.other_arm_violations('hold', path2, open_ratio_next, *other_arm, label='after opening: ') if len(path2) > 0 else [])
+                        if not violations: break
                     seen += violations
-                    print(f'[run_motion_plan] {task} to part {pick_part}, attempt {attempt + 1}/{MAX_PLAN_ATTEMPTS} rejected: ' + '; '.join(violations))
+                    print(f'[run_motion_plan] {motion_type} arm {task} to part {pick_part}, attempt {attempt + 1}/{MAX_PLAN_ATTEMPTS} rejected: ' + '; '.join(violations))
                 else:
+                    if hold_checked:
+                        fail_hold(cid, f'hold arm {task} path: ' + '; '.join(violations))
                     # the way out of the release pose belongs to the grasp of the part just released, the rest to the next part: to the
                     # spot where it lies if the straight move into its grasp is what fails (or its neighbours are too close), else to its grasp
                     no_path = None in [path1, path2]
@@ -578,7 +615,7 @@ def run_motion_plan(assembly_dir, log_dir, optimized, seed, verbose=False, singl
                     if checked: fail(active_part, 'no insertion path')
                     raise Exception(f'[run_motion_plan] Failed to plan path for {motion_type} {body_type} in task {task} ({assembly_dir})')
                 if checked:
-                    violations = checker.check_path(path, open_ratio, state_before, carried=active_part, inserting=True)
+                    violations = checker.check_path(path, open_ratio, state_before, carried=active_part, inserting=True, other_arm=other_arm)
                     if violations: fail(active_part, 'insertion path: ' + '; '.join(violations)) # fixed by the grasp, no re-plan possible
                     last_inserted = active_part
                 paths.append([motion_type, body_type, path, active_part, task])
@@ -641,14 +678,15 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--verbose', default=True, action='store_true')
     parser.add_argument('--no-viz', default=False, action='store_true', help='no debug viewers (for unattended runs)')
-    parser.add_argument('--single-arm', default=False, action='store_true', help='the hold arm is a human (real_robot/run.py --single-arm): the move arm does not avoid it')
+    # --single-arm (until 2026-11-13: the move arm did not avoid the hold arm) is gone: both arms are always planned as robots.
+    # real_robot/run.py --single-arm still lets a human do the steps of the hold arm.
     args = parser.parse_args()
 
     from planning.robot.workcell import use_log_workcell
     use_log_workcell(args.log_dir) # the place of the assembly this log is planned for
     if args.no_viz: ArmMotionPlanner.VISUALIZE = False
     try:
-        run_motion_plan(args.assembly_dir, args.log_dir, args.optimized, args.seed, args.verbose, args.single_arm)
+        run_motion_plan(args.assembly_dir, args.log_dir, args.optimized, args.seed, args.verbose)
     except Exception as e:
         print(e)
         sys.exit(2 if os.path.exists(os.path.join(args.log_dir, 'planning_failure.json')) else 1)
