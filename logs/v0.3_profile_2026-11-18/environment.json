@@ -1,0 +1,40 @@
+[
+  {
+    "date": "2026-11-18T18:46:07",
+    "cpu": "AMD Ryzen 7 3700X 8-Core Processor",
+    "hardware_threads": 16,
+    "mem_total_mb": 15934.4921875,
+    "kernel": "5.15.179-rt84",
+    "os": "Ubuntu 20.04.6 LTS",
+    "python": "3.10.0",
+    "numpy": "1.21.4",
+    "scipy": "1.7.3",
+    "trimesh": "4.4.1",
+    "networkx": "2.6.3",
+    "git_commit": "3d20bb64130a2acbe3ccff1bcdb55d809f68947c",
+    "planning_uncommitted": "",
+    "fabrica_env": {
+      "FABRICA_PANDA_BASE_Z": "-3.3"
+    },
+    "sample_period_s": 1.0
+  },
+  {
+    "date": "2026-11-18T18:54:15",
+    "cpu": "AMD Ryzen 7 3700X 8-Core Processor",
+    "hardware_threads": 16,
+    "mem_total_mb": 15934.4921875,
+    "kernel": "5.15.179-rt84",
+    "os": "Ubuntu 20.04.6 LTS",
+    "python": "3.10.0",
+    "numpy": "1.21.4",
+    "scipy": "1.7.3",
+    "trimesh": "4.4.1",
+    "networkx": "2.6.3",
+    "git_commit": "3d20bb64130a2acbe3ccff1bcdb55d809f68947c",
+    "planning_uncommitted": "",
+    "fabrica_env": {
+      "FABRICA_PANDA_BASE_Z": "-3.3"
+    },
+    "sample_period_s": 1.0
+  }
+]
