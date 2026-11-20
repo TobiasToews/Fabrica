@@ -912,7 +912,7 @@
         "duration_s": 0.88,
         "cpu_s": 1.8,
         "cores_mean": 2.09,
-        "pss_peak_mb": 0.1,
+        "pss_peak_mb": 0,
         "other_load_mean": null
       },
       {
@@ -3012,7 +3012,7 @@
         "cpu_s": 17895.0,
         "cores_mean": 10.71,
         "pss_peak_mb": 2920.1,
-        "other_load_mean": 2.56
+        "other_load_mean": 0.36
       }
     ],
     "pss_peak_mb": 3242.5,

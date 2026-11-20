@@ -49,7 +49,10 @@ from outside (details in the docstring of the script):
   live processes does not drop when a worker exits (its time moves to its
   parent). CPU seconds of a stage = sum at its end minus sum at its start,
   linearly interpolated between the neighbouring samples; at the end of the
-  run the exact total of `/usr/bin/time` is used.
+  run the exact total of `/usr/bin/time` is used. Samples after the end are
+  dropped, and the summed CPU seconds are taken as their running maximum: the
+  true value never decreases, a dip is an undercount (a process that has
+  exited is not listed any more until its time reaches its parent).
 - **Memory.** Proportional set size (PSS, `/proc/<pid>/smaps_rollup`) summed
   over all processes: pages shared by forked workers are split between them,
   so the sum is the memory really occupied. Units: MiB / GiB.
@@ -85,9 +88,10 @@ Per-stage times and cores: [report.md](report.md).
   `/usr/bin/time` (largest difference 0.2 s) and the stage durations add up to
   the wall time (largest difference 0.6 s).
 - No other planning or training process was running at any start.
-- Other programs used on average at most 0.7 of the 16 threads during a stage;
-  exception: the grasp generation of stool_circular, 2.6 threads, so that one
-  value is slightly too high.
+- Other programs used on average at most 0.7 of the 16 threads during a stage.
+  (The first evaluation showed 2.6 threads for the grasp generation of
+  stool_circular. That was an artifact: the last sample after the end of the
+  run sees no process. Fixed on 2026-11-19, see Method.)
 
 ### Runs without a plan (fact, from the logs)
 
@@ -95,10 +99,11 @@ Per-stage times and cores: [report.md](report.md).
   1, 4) or the legs (parts 1, 3, 5, 7) lying flat; the pipeline stops after
   the grasp generation. Same result as with v0.1 on 2026-11-12.
 - **socket_set:** the loop used up its 10 changes of a move grasp or spot.
-  16 of 17 failures: the straight move of the move arm into a pickup is
+  15 of 17 failures: the straight move of the move arm into a pickup is
   blocked by the hold arm (`no straight move into the goal pose from a pose
-  clear of everything (dual-arm after 0.25 cm)`); the loop changed spots and
-  move grasps and only once a hold grasp.
+  clear of everything (dual-arm after 0.25 cm)`); one more: the move arm
+  touches the hold arm; one: no path for the hold arm. The loop changed spots
+  and move grasps and only once a hold grasp.
 - **cooling_manifold:** 5 failures of the same kind for part 2, one of a hold
   arm path; in attempt 7 the layout stage crashed while drawing the PDF
   template: `shapely.errors.GEOSException: TopologyException: Ring edge

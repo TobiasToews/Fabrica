@@ -73,7 +73,7 @@ loop = sequence optimization + layout + motion planning over all attempts; mean 
 | car | 6817.4 | 6817.5 | 1315.9 | 1315.9 | 17% | 0.47 | 0 | 4.11 |
 | socket_set | 4355.1 | 4355.2 | 1274.7 | 1274.7 | 10% | 0.50 | 0 | 4.39 |
 | socket_set_small | 2081.5 | 2081.6 | 256.4 | 256.4 | 10% | 0.62 | 0 | 4.42 |
-| stool_circular | 18207.1 | 18207.1 | 1729.5 | 1729.5 | 6% | 2.56 | 0 | 7.52 |
+| stool_circular | 18207.1 | 18207.1 | 1729.5 | 1729.5 | 6% | 0.36 | 0 | 7.52 |
 
 
 ## How runs without a plan ended

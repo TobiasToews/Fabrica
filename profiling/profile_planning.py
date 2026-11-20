@@ -281,13 +281,40 @@ def parse_time_v(path):
     return result
 
 
+def in_run_samples(samples, end):
+    """Keeps the samples of the run and makes the CPU sum monotone.
+
+    Samples after the end of the run see no process and are dropped.
+    The CPU seconds used so far can never decrease. A sample can still
+    show a lower sum than the one before: a process that has exited is
+    no longer listed, and its time reaches the sum only when its parent
+    collects it (or at the end, through /usr/bin/time). Such a dip is
+    an undercount, so the running maximum is used instead.
+
+    Args:
+        samples (list[dict]): The rows of Sampler.
+        end (float): Time of the end of the run (s since start).
+
+    Returns:
+        list[dict]: Copies of the samples with 0 < t < end and at least
+        one process, with cpu_s replaced by its running maximum.
+    """
+    kept, highest = [], 0.0
+    for s in samples:
+        if not (0.0 < s['t'] < end and s['n_proc'] > 0):
+            continue
+        highest = max(highest, s['cpu_s'])
+        kept.append({**s, 'cpu_s': highest})
+    return kept
+
+
 def cpu_at(t, samples, end, cpu_end):
     """Estimates the CPU seconds the pipeline had used at a given time.
 
     Between two samples the CPU seconds are interpolated linearly. At
     the start of the run they are 0, at its end they are the exact
-    total of /usr/bin/time (after the end no process is left to sample,
-    so the samples there say 0).
+    total of /usr/bin/time. Pass the samples through in_run_samples
+    first.
 
     Args:
         t (float): Time in s since the start of the run.
@@ -300,12 +327,8 @@ def cpu_at(t, samples, end, cpu_end):
         float: CPU seconds used up to time t.
     """
     points = [(0.0, 0.0)]
-    points += [
-        (s['t'], s['cpu_s'])
-        for s in samples
-        if 0.0 < s['t'] < end and s['n_proc'] > 0
-    ]
-    points.append((end, cpu_end))
+    points += [(s['t'], s['cpu_s']) for s in samples]
+    points.append((end, max(cpu_end, points[-1][1])))
     for (ta, ca), (tb, cb) in zip(points, points[1:]):
         if ta <= t <= tb:
             if tb == ta:
@@ -331,6 +354,8 @@ def summarize_stages(stages, samples, end, cpu_end):
         (cpu_s / duration_s), pss_peak_mb, other_load_mean (busy
         threads of the machine not used by the pipeline).
     """
+    samples = in_run_samples(samples, end)
+    threads = os.cpu_count() or 1
     result, count = [], {}
     for i, stage in enumerate(stages):
         t0 = stage['t_start']
@@ -346,10 +371,15 @@ def summarize_stages(stages, samples, end, cpu_end):
         if len(busy) >= 2:
             # Threads the pipeline used between two samples, from the
             # increase of its CPU seconds.
+            # A process that finished between two samples is counted at
+            # the next one at which its time has reached its parent, so
+            # single values are clipped to what the machine can do.
             values = []
             for a, b in zip(busy, busy[1:]):
                 own = (b['cpu_s'] - a['cpu_s']) / (b['t'] - a['t'])
-                values.append(max(0.0, b['machine_busy'] - own))
+                values.append(
+                    min(float(threads), max(0.0, b['machine_busy'] - own))
+                )
             other = sum(values) / len(values)
         count[stage['name']] = count.get(stage['name'], 0) + 1
         result.append(
