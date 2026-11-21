@@ -235,13 +235,13 @@
   <joint name="panda_finger_joint1" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_leftfinger"/>
-    <origin xyz="0.0 0.00999963992952328 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 0.009999084675417848 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
 
   <joint name="panda_finger_joint2" type="fixed">
     <parent link="panda_hand"/>
     <child link="panda_rightfinger"/>
-    <origin xyz="0.0 -0.00999963992952328 0.0584" rpy="0.0 0.0 0.0"/>
+    <origin xyz="0.0 -0.009999084675417848 0.0584" rpy="0.0 0.0 0.0"/>
 </joint>
   
   <link name="panda_leftfinger">
@@ -337,7 +337,7 @@
     <joint name="0_joint" type="fixed">
         <parent link="panda_hand"/>
         <child link="0"/>
-        <origin xyz="0.01031490335876542 0.015595220474089684 0.14098313535408952" rpy="2.833684925920598 0.046306929553205256 1.7894383581148574" />
+        <origin xyz="-0.07194172168345256 0.008971567241635198 0.13280152838064457" rpy="3.1415538862174723 0.00013573499725483273 -1.849000279162316" />
     </joint>
     
 </robot>

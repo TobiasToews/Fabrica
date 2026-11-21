@@ -60,7 +60,7 @@ und die Griff-Erzeugung verhält sich ohne den Schalter `--flat` wie im Original
 | 4 | `run_seq_opt.py` | `run_pickup_gen.py --seq-opt` | dieselbe Optimierung mit einer Zusatzbedingung: Der erste Haltegriff muss das liegende Teil aufnehmen können, sonst greift der Rückfall für das erste Teil |
 | 5 | `run_fixture_gen.py` (Fixture) | `run_pickup_gen.py` (Ablage) | ersetzt: statt eines Fixtures eine geprüfte Ablage der liegenden Teile mit Schablone (5.3) |
 | 6 | `run_motion_plan.py` | `run_motion_plan.py --optimized --no-viz --single-arm` | strenger Planer für den realen Arm, jeder Pfad geprüft und bei Bedarf neu geplant (5.4, 5.5) |
-| 7 | gibt es nicht | Schleife in `run_planning_flat.py` | reagiert auf die Ursache eines Fehlschlags (5.6) |
+| 7 | gibt es nicht (läuft nur einmal durch und falls nichts gefunden, schlägt planung fehl) | Schleife in `run_planning_flat.py` (schleife um 4-6) | reagiert auf die Ursache eines Fehlschlags (5.6) |
 | 8 | gibt es nicht | `verify_plan.py`, `workcell.json` | Schlussprüfung; die realen Werte, für die der Plan gilt, werden mit dem Plan gespeichert |
 
 ## 5. Die neuen Bausteine
@@ -77,10 +77,10 @@ Ursprung verschobenen Teil, damit das Ergebnis nicht davon abhängt, wo die Baug
 
 | Schritt | Original | Flat |
 |---|---|---|
-| Kandidaten | Punktpaare am montierten Teil | dieselben, und zusätzlich Kandidaten, die am liegenden Teil erzeugt werden (Hand möglichst von oben, Finger so tief wie der Tisch erlaubt); jede Sorte wird an der jeweils anderen Lage geprüft |
-| brauchbar | erreichbar und kollisionsfrei in der montierten Lage | zusätzlich: nimmt das liegende Teil auf, bleibt in den virtuellen Wänden, weg von Singularitäten und Gelenkgrenzen, 3 mm Fingertiefe |
+| Kandidaten | Punktpaare am montierten Teil | dieselben, und zusätzlich Kandidaten, die am liegenden Teil erzeugt werden (Hand möglichst von oben, Finger so tief wie der Tisch erlaubt); jede Sorte (am liegenden Teil erzeugter oder am montierten Teil erzeugter Griff) wird an der jeweils anderen Lage geprüft |
+| brauchbar | erreichbar und kollisionsfrei in der montierten Lage | zusätzlich: nimmt das liegende Teil auf, bleibt in den virtuellen Wänden, weg von Singularitäten und Gelenkgrenzen, 3 mm Fingertiefe des Griffes in die Bauteiltiefe|
 | gerade Bewegungen an der Baugruppe | nicht geprüft | der Arm muss das Teil gerade zum Einschub-Startpunkt bringen und nach dem Loslassen gerade zurückfahren können; sonst fällt der Griff weg |
-| zu wenige Griffe | bleibt so | zweite Runde mit 600 weiteren Punktpaaren, wenn ein Teil weniger als 10 brauchbare hat |
+| zu wenige Griffe | bleibt so | zweite Runde mit 600 weiteren Punktpaaren, wenn ein Teil weniger als 10 brauchbare Griffe hat |
 | Auswahl | 100 zufällig | die 100 am besten bewerteten, verteilt über die Anfahrrichtungen. Bewertung: Griffsicherheit 0,4; Schwerpunkt nahe der Fingerlinie 0,25; aufrechte Hand 0,2; Einschub-Bewertung des Originals 0,15 |
 | Haltegriffe | 100 zufällig | wie im Original, ergänzt um Haltegriffe, die das erste Teil liegend aufnehmen können, und um solche, die Platz für das Einsetzen der Nachbarteile lassen |
 | Sperrbereich | ein Quader dort, wo das Fixture steht, ist für Greifer und Arm tabu | entfällt, die Baugruppe darf überall stehen |
@@ -95,7 +95,7 @@ daneben, die im echten Ablauf dann noch dort liegen. Ein Platz wird nur genommen
 - der Arm gerade in den Griff hinein und mit dem Teil gerade nach oben herauskommt. Das wird mit der Routine des Planers
   selbst getestet, damit kein Platz gewählt wird, den die Bewegungsplanung später ablehnt.
 
-Für jede Aufnahme werden mehrere Armstellungen berechnet und die am besten konditionierte behalten. Ergebnis sind die
+Für jede Aufnahme werden mehrere Armstellungen berechnet und die am besten konditionierte (Armstellung ist weit weg von Singularität und von den Gelenkgrenzen) behalten. Ergebnis sind die
 Lagen der Teile, die geprüfte Armstellung je Aufnahme und die Schablonen als PDF.
 
 ### 5.4 Strenger Planer für den realen Arm (`ArmMotionPlanner.strict`)

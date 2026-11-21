@@ -1,0 +1,255 @@
+{
+  "exp_name": "v0.3_exp_socket_set_small_flat_prof2",
+  "assembly": "socket_set_small",
+  "command": "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_socket_set_small_flat_prof2 --assembly socket_set_small --assembly-root fabrica",
+  "started": "2026-11-19T15:38:34",
+  "exit_code": 0,
+  "wall_s": 292.42,
+  "load_avg_before": [
+    "3.70",
+    "4.49",
+    "7.47"
+  ],
+  "other_pipelines_at_start": [],
+  "time_v": {
+    "user_s": 1920.33,
+    "sys_s": 211.91,
+    "wall_s": 292.40999999999997,
+    "max_rss_mb": 211.9765625
+  },
+  "stage_starts": [
+    {
+      "name": "driver_setup",
+      "t_start": 0.0,
+      "command": ""
+    },
+    {
+      "name": "precedence",
+      "t_start": 0.885,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_preced_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --num-proc 12 --arm panda"
+    },
+    {
+      "name": "grasps",
+      "t_start": 3.614,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_grasp_arm_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --num-proc 50 --max-n-grasp 100 --arm panda --gripper panda --ft-sensor none --flat"
+    },
+    {
+      "name": "grasp_filter",
+      "t_start": 166.692,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --filter"
+    },
+    {
+      "name": "sequence_plan",
+      "t_start": 168.745,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_seq_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --plot"
+    },
+    {
+      "name": "sequence_opt",
+      "t_start": 169.903,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --seq-opt --plot"
+    },
+    {
+      "name": "layout",
+      "t_start": 171.477,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 178.106,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --optimized --no-viz"
+    },
+    {
+      "name": "layout",
+      "t_start": 189.585,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 197.763,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --optimized --no-viz"
+    },
+    {
+      "name": "layout",
+      "t_start": 209.592,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 216.75,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small --optimized --no-viz"
+    },
+    {
+      "name": "verify",
+      "t_start": 276.09,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/verify_plan.py --assembly-dir assets/fabrica/socket_set_small --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small"
+    },
+    {
+      "name": "place_poses",
+      "t_start": 290.217,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_place_poses.py --log-dir logs/v0.3_exp_socket_set_small_flat_prof2/socket_set_small"
+    }
+  ],
+  "stages": [
+    {
+      "name": "driver_setup",
+      "attempt": 1,
+      "t_start": 0.0,
+      "duration_s": 0.89,
+      "cpu_s": 1.8,
+      "cores_mean": 2.08,
+      "pss_peak_mb": 0.2,
+      "other_load_mean": null
+    },
+    {
+      "name": "precedence",
+      "attempt": 1,
+      "t_start": 0.89,
+      "duration_s": 2.73,
+      "cpu_s": 17.2,
+      "cores_mean": 6.29,
+      "pss_peak_mb": 448.8,
+      "other_load_mean": 0.15
+    },
+    {
+      "name": "grasps",
+      "attempt": 1,
+      "t_start": 3.61,
+      "duration_s": 163.08,
+      "cpu_s": 1987.2,
+      "cores_mean": 12.19,
+      "pss_peak_mb": 1285.9,
+      "other_load_mean": 0.59
+    },
+    {
+      "name": "grasp_filter",
+      "attempt": 1,
+      "t_start": 166.69,
+      "duration_s": 2.05,
+      "cpu_s": 2.5,
+      "cores_mean": 1.24,
+      "pss_peak_mb": 253.6,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "sequence_plan",
+      "attempt": 1,
+      "t_start": 168.75,
+      "duration_s": 1.16,
+      "cpu_s": 1.2,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 231.0,
+      "other_load_mean": 0.11
+    },
+    {
+      "name": "sequence_opt",
+      "attempt": 1,
+      "t_start": 169.9,
+      "duration_s": 1.57,
+      "cpu_s": 1.6,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 254.8,
+      "other_load_mean": null
+    },
+    {
+      "name": "layout",
+      "attempt": 1,
+      "t_start": 171.48,
+      "duration_s": 6.63,
+      "cpu_s": 6.6,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 287.5,
+      "other_load_mean": 0.15
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 1,
+      "t_start": 178.11,
+      "duration_s": 11.48,
+      "cpu_s": 11.5,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 282.9,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "layout",
+      "attempt": 2,
+      "t_start": 189.59,
+      "duration_s": 8.18,
+      "cpu_s": 8.1,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 308.4,
+      "other_load_mean": 0.1
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 2,
+      "t_start": 197.76,
+      "duration_s": 11.83,
+      "cpu_s": 11.8,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 284.1,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "layout",
+      "attempt": 3,
+      "t_start": 209.59,
+      "duration_s": 7.16,
+      "cpu_s": 7.2,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 295.9,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 3,
+      "t_start": 216.75,
+      "duration_s": 59.34,
+      "cpu_s": 59.3,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 292.1,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "verify",
+      "attempt": 1,
+      "t_start": 276.09,
+      "duration_s": 14.13,
+      "cpu_s": 14.1,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 269.3,
+      "other_load_mean": 0.07
+    },
+    {
+      "name": "place_poses",
+      "attempt": 1,
+      "t_start": 290.22,
+      "duration_s": 2.2,
+      "cpu_s": 2.2,
+      "cores_mean": 0.99,
+      "pss_peak_mb": 255.5,
+      "other_load_mean": 0.12
+    }
+  ],
+  "pss_peak_mb": 1285.9,
+  "facts": {
+    "verified": true,
+    "sequence_attempts": 3,
+    "failures": [
+      "[run_motion_plan] FAILED for part 1 (move grasp 972), cause: the spot where the part lies: approach path: no path found: no straight move into the goal pose from a pose clear of everything (dual-arm after 0.25 cm)",
+      "[run_motion_plan] FAILED for part 1 (move grasp 972), cause: the spot where the part lies: approach path: no path found: no straight move into the goal pose from a pose clear of everything (dual-arm after 0.25 cm)"
+    ],
+    "path_rejections": 16,
+    "grasp_lines": [
+      "grasp generation:   0%|          | 0/3 [00:00<?, ?it/s][generate_grasps] part 2: 1220 candidates + 690 made for the lying part, 205 feasible move grasps, 97 usable lying flat (0 of them made for the lying part, 0 of those kept), 1 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 97 move + 100 hold",
+      "grasp generation:  33%|\u2588\u2588\u2588\u258e      | 1/3 [02:16<04:33, 136.61s/it][generate_grasps] part 1: 1240 candidates + 806 made for the lying part, 226 feasible move grasps, 116 usable lying flat (6 of them made for the lying part, 6 of those kept), 1 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 100 move + 100 hold",
+      "grasp generation:  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 2/3 [02:20<00:58, 58.76s/it] [generate_grasps] part 0: 1105 candidates + 453 made for the lying part, 610 feasible move grasps, 302 usable lying flat (93 of them made for the lying part, 19 of those kept), 62 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 100 move + 150 hold (50 of the hold grasps added to pick the part lying flat)"
+    ],
+    "n_paths": 14,
+    "n_poses": 2673
+  },
+  "size": {
+    "n_parts": 3,
+    "n_faces": 1092
+  }
+}

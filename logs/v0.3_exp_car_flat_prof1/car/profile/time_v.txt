@@ -1,0 +1,23 @@
+	Command being timed: "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_car_flat_prof1 --assembly car --assembly-root fabrica"
+	User time (seconds): 5677.20
+	System time (seconds): 1140.28
+	Percent of CPU this job got: 518%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 21:55.91
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1220320
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 61
+	Minor (reclaiming a frame) page faults: 111575413
+	Voluntary context switches: 1701611
+	Involuntary context switches: 1469937
+	Swaps: 0
+	File system inputs: 155816
+	File system outputs: 65552
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

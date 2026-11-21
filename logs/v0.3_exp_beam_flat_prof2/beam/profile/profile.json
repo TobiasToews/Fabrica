@@ -1,0 +1,194 @@
+{
+  "exp_name": "v0.3_exp_beam_flat_prof2",
+  "assembly": "beam",
+  "command": "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_beam_flat_prof2 --assembly beam --assembly-root fabrica",
+  "started": "2026-11-19T11:45:02",
+  "exit_code": 0,
+  "wall_s": 959.25,
+  "load_avg_before": [
+    "18.66",
+    "16.57",
+    "9.26"
+  ],
+  "other_pipelines_at_start": [],
+  "time_v": {
+    "user_s": 5787.02,
+    "sys_s": 400.61,
+    "wall_s": 959.25,
+    "max_rss_mb": 1528.5078125
+  },
+  "stage_starts": [
+    {
+      "name": "driver_setup",
+      "t_start": 0.0,
+      "command": ""
+    },
+    {
+      "name": "precedence",
+      "t_start": 0.901,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_preced_plan.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --num-proc 12 --arm panda"
+    },
+    {
+      "name": "grasps",
+      "t_start": 20.428,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_grasp_arm_gen.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --num-proc 50 --max-n-grasp 100 --arm panda --gripper panda --ft-sensor none --flat"
+    },
+    {
+      "name": "grasp_filter",
+      "t_start": 418.876,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --filter"
+    },
+    {
+      "name": "sequence_plan",
+      "t_start": 421.747,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_seq_plan.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --plot"
+    },
+    {
+      "name": "sequence_opt",
+      "t_start": 423.216,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --seq-opt --plot"
+    },
+    {
+      "name": "layout",
+      "t_start": 425.415,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 479.862,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam --optimized --no-viz"
+    },
+    {
+      "name": "verify",
+      "t_start": 788.139,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/verify_plan.py --assembly-dir assets/fabrica/beam --log-dir logs/v0.3_exp_beam_flat_prof2/beam"
+    },
+    {
+      "name": "place_poses",
+      "t_start": 954.289,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_place_poses.py --log-dir logs/v0.3_exp_beam_flat_prof2/beam"
+    }
+  ],
+  "stages": [
+    {
+      "name": "driver_setup",
+      "attempt": 1,
+      "t_start": 0.0,
+      "duration_s": 0.9,
+      "cpu_s": 1.9,
+      "cores_mean": 2.09,
+      "pss_peak_mb": 0.2,
+      "other_load_mean": null
+    },
+    {
+      "name": "precedence",
+      "attempt": 1,
+      "t_start": 0.9,
+      "duration_s": 19.53,
+      "cpu_s": 89.9,
+      "cores_mean": 4.61,
+      "pss_peak_mb": 1338.6,
+      "other_load_mean": 0.25
+    },
+    {
+      "name": "grasps",
+      "attempt": 1,
+      "t_start": 20.43,
+      "duration_s": 398.45,
+      "cpu_s": 5555.8,
+      "cores_mean": 13.94,
+      "pss_peak_mb": 2799.1,
+      "other_load_mean": 0.65
+    },
+    {
+      "name": "grasp_filter",
+      "attempt": 1,
+      "t_start": 418.88,
+      "duration_s": 2.87,
+      "cpu_s": 3.2,
+      "cores_mean": 1.11,
+      "pss_peak_mb": 272.6,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "sequence_plan",
+      "attempt": 1,
+      "t_start": 421.75,
+      "duration_s": 1.47,
+      "cpu_s": 1.5,
+      "cores_mean": 0.99,
+      "pss_peak_mb": 238.9,
+      "other_load_mean": null
+    },
+    {
+      "name": "sequence_opt",
+      "attempt": 1,
+      "t_start": 423.22,
+      "duration_s": 2.2,
+      "cpu_s": 2.2,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 268.2,
+      "other_load_mean": 0.07
+    },
+    {
+      "name": "layout",
+      "attempt": 1,
+      "t_start": 425.42,
+      "duration_s": 54.45,
+      "cpu_s": 54.4,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 687.9,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 1,
+      "t_start": 479.86,
+      "duration_s": 308.28,
+      "cpu_s": 307.9,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 719.6,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "verify",
+      "attempt": 1,
+      "t_start": 788.14,
+      "duration_s": 166.15,
+      "cpu_s": 165.9,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 359.0,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "place_poses",
+      "attempt": 1,
+      "t_start": 954.29,
+      "duration_s": 4.96,
+      "cpu_s": 5.0,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 313.2,
+      "other_load_mean": 0.09
+    }
+  ],
+  "pss_peak_mb": 2799.1,
+  "facts": {
+    "verified": true,
+    "sequence_attempts": 1,
+    "failures": [],
+    "path_rejections": 0,
+    "grasp_lines": [
+      "grasp generation:   0%|          | 0/5 [00:00<?, ?it/s][generate_grasps] part 1: 1425 candidates + 336 made for the lying part, 295 feasible move grasps, 89 usable lying flat (34 of them made for the lying part, 34 of those kept) -> kept 89 move + 100 hold",
+      "grasp generation:  20%|\u2588\u2588        | 1/5 [05:41<22:45, 341.43s/it][generate_grasps] part 6: 860 candidates + 421 made for the lying part, 490 feasible move grasps, 179 usable lying flat (52 of them made for the lying part, 51 of those kept), 12 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 100 move + 150 hold (50 of the hold grasps added to pick the part lying flat)",
+      "grasp generation:  40%|\u2588\u2588\u2588\u2588      | 2/5 [05:43<07:04, 141.58s/it][generate_grasps] part 2: 1065 candidates + 366 made for the lying part, 592 feasible move grasps, 62 usable lying flat (25 of them made for the lying part, 25 of those kept) -> kept 62 move + 100 hold",
+      "grasp generation:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [06:00<02:49, 84.66s/it] [generate_grasps] part 3: 1100 candidates + 351 made for the lying part, 617 feasible move grasps, 66 usable lying flat (25 of them made for the lying part, 25 of those kept), 3 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 66 move + 100 hold",
+      "grasp generation:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [06:02<00:52, 52.11s/it][generate_grasps] part 0: 1470 candidates + 348 made for the lying part, 298 feasible move grasps, 151 usable lying flat (73 of them made for the lying part, 54 of those kept) -> kept 100 move + 100 hold"
+    ],
+    "n_paths": 26,
+    "n_poses": 4434
+  },
+  "size": {
+    "n_parts": 5,
+    "n_faces": 48422
+  }
+}

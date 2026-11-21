@@ -1,0 +1,90 @@
+{
+  "exp_name": "v0.3_exp_plumbers_block_flat_prof3",
+  "assembly": "plumbers_block",
+  "command": "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_plumbers_block_flat_prof3 --assembly plumbers_block --assembly-root fabrica",
+  "started": "2026-11-19T16:12:56",
+  "exit_code": 1,
+  "wall_s": 392.6,
+  "load_avg_before": [
+    "6.67",
+    "10.89",
+    "19.87"
+  ],
+  "other_pipelines_at_start": [],
+  "time_v": {
+    "user_s": 3325.45,
+    "sys_s": 932.15,
+    "wall_s": 392.6,
+    "max_rss_mb": 1105.53125
+  },
+  "stage_starts": [
+    {
+      "name": "driver_setup",
+      "t_start": 0.0,
+      "command": ""
+    },
+    {
+      "name": "precedence",
+      "t_start": 0.879,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_preced_plan.py --assembly-dir assets/fabrica/plumbers_block --log-dir logs/v0.3_exp_plumbers_block_flat_prof3/plumbers_block --num-proc 12 --arm panda"
+    },
+    {
+      "name": "grasps",
+      "t_start": 26.852,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_grasp_arm_gen.py --assembly-dir assets/fabrica/plumbers_block --log-dir logs/v0.3_exp_plumbers_block_flat_prof3/plumbers_block --num-proc 50 --max-n-grasp 100 --arm panda --gripper panda --ft-sensor none --flat"
+    }
+  ],
+  "stages": [
+    {
+      "name": "driver_setup",
+      "attempt": 1,
+      "t_start": 0.0,
+      "duration_s": 0.88,
+      "cpu_s": 1.8,
+      "cores_mean": 2.08,
+      "pss_peak_mb": 4.2,
+      "other_load_mean": null
+    },
+    {
+      "name": "precedence",
+      "attempt": 1,
+      "t_start": 0.88,
+      "duration_s": 25.97,
+      "cpu_s": 195.8,
+      "cores_mean": 7.54,
+      "pss_peak_mb": 3411.5,
+      "other_load_mean": 0.23
+    },
+    {
+      "name": "grasps",
+      "attempt": 1,
+      "t_start": 26.85,
+      "duration_s": 365.75,
+      "cpu_s": 4060.0,
+      "cores_mean": 11.1,
+      "pss_peak_mb": 2044.3,
+      "other_load_mean": 0.56
+    }
+  ],
+  "pss_peak_mb": 3411.5,
+  "facts": {
+    "verified": false,
+    "sequence_attempts": 0,
+    "failures": [],
+    "path_rejections": 0,
+    "grasp_lines": [
+      "grasp generation:   0%|          | 0/5 [00:00<?, ?it/s][generate_grasps] part 2: 1110 candidates + 538 made for the lying part, 441 feasible move grasps, 213 usable lying flat (24 of them made for the lying part, 9 of those kept) -> kept 100 move + 150 hold (50 of the hold grasps added to pick the part lying flat)",
+      "grasp generation:  20%|\u2588\u2588        | 1/5 [04:28<17:54, 268.50s/it][generate_grasps] part 3: 1850 candidates + 710 made for the lying part, 455 feasible move grasps, 223 usable lying flat (129 of them made for the lying part, 69 of those kept), 8 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 100 move + 100 hold",
+      "grasp generation:  40%|\u2588\u2588\u2588\u2588      | 2/5 [04:48<06:06, 122.30s/it][generate_grasps] part 0: 1250 candidates + 871 made for the lying part + 3590 from 600 further surface point pairs, 10 feasible move grasps, 5 usable lying flat (0 of them made for the lying part, 0 of those kept) -> kept 5 move + 62 hold",
+      "grasp generation:  60%|\u2588\u2588\u2588\u2588\u2588\u2588    | 3/5 [05:45<03:04, 92.39s/it] [generate_grasps] part 4: 1645 candidates + 1936 made for the lying part + 4455 from 600 further surface point pairs, 299 feasible move grasps, 0 usable lying flat (0 of them made for the lying part, 0 of those kept) -> kept 0 move + 100 hold",
+      "[generate_grasps] part 4: no usable move grasp; of the 299 feasible move grasps fail: walls 21, singularity / joint limits 116, finger overlap 46, flat pickup 299 (stable poses 1, with the less stable ones 7)",
+      "grasp generation:  80%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588  | 4/5 [05:57<01:00, 60.61s/it][generate_grasps] part 1: 1565 candidates + 1909 made for the lying part + 4660 from 600 further surface point pairs, 296 feasible move grasps, 0 usable lying flat (0 of them made for the lying part, 0 of those kept) -> kept 0 move + 100 hold",
+      "[generate_grasps] part 1: no usable move grasp; of the 296 feasible move grasps fail: walls 79, singularity / joint limits 120, finger overlap 44, flat pickup 295 (stable poses 1, with the less stable ones 7)",
+      "[run_planning_flat] no plan where the assembly stands now: no move grasp works there for part 1, 4 (why: the lines \"[generate_grasps] part ...: no usable move grasp\" in logs/v0.3_exp_plumbers_block_flat_prof3/plumbers_block/planning.log)"
+    ]
+  },
+  "size": {
+    "n_parts": 5,
+    "n_faces": 6488
+  }
+}

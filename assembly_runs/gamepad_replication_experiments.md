@@ -121,10 +121,30 @@ not valid. The run was stopped. The recording has no episode.
 
 ### Run 5 (fact)
 
-Run after another restart of the control stack. All five insertion steps reached; step 42 failed in three trials.
-franka-interface reported `status not ready` at 18:59:13, 19:00:00 and 19:00:05 (ROS log `~/.ros/log/bd8d690c-…`)
-without stopping the run. The kernel log shows the USB Ethernet adapter of the robot link losing and regaining its
+Run after another restart of the control stack. All five insertion steps reached; step 42 failed in three trials (see
+the next section). Separately from that, franka-interface reported `status not ready` five times between insertions,
+never during one, and the run continued: 18:59:13 (after the insertion of part 4), 19:00:00 and 19:00:05 (after the
+insertion of part 2), 19:02:57 and 19:03:09 (after the last trial of step 42, on the way back) (ROS log
+`~/.ros/log/bd8d690c-…`). The runs 1 and 2 of the same afternoon have no such message. The kernel log shows the USB Ethernet adapter of the robot link losing and regaining its
 carrier at about 18:54 (`r8152 … enx00e04c011267: carrier off` / `carrier on`), before the run.
+
+### Step 42 (part 1): why it counts as failed (fact)
+
+Step 42 is the fifth insertion, part 1. "Failed" means the state-based success flag was not reached in any of the
+three trials: each trial ended after the 10 s timeout. The flag is set when the remaining distance to the planned goal
+along the insertion direction is below about 3.7 mm for this part (`obs[-1] > -0.003` in
+`real_robot/robot_interface.py`, scaled by the 24.8 mm length of its insertion path). Where each trial ended, short of
+the planned goal along the insertion direction (from `steps.pos` of the insertion logs):
+
+| counted run | trial 1 | trial 2 | trial 3 |
+|---|---|---|---|
+| 1 | 9.8 mm | 4.3 mm | 4.0 mm |
+| 2 | 9.8 mm | 4.3 mm | 4.1 mm |
+| 5 | 9.8 mm | 4.0 mm | 4.1 mm |
+
+Interpretation: the same stops in every run (9.8 mm in the first trial, about 4 mm in the second and third) point to a
+systematic obstacle or offset for part 1, not to chance; trials 2 and 3 miss the threshold by 0.3 to 0.6 mm. Whether
+part 1 was physically seated, and what stops it, is not in the logs (not examined).
 
 ## Incident 17:48 to 18:01 (runs 3 and 4): timeline and analysis
 

@@ -1,0 +1,24 @@
+Command exited with non-zero status 1
+	Command being timed: "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_cooling_manifold_flat_prof1 --assembly cooling_manifold --assembly-root fabrica"
+	User time (seconds): 12070.93
+	System time (seconds): 1354.46
+	Percent of CPU this job got: 298%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 1:14:56
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 914976
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 71
+	Minor (reclaiming a frame) page faults: 110006381
+	Voluntary context switches: 1147901
+	Involuntary context switches: 2719446
+	Swaps: 0
+	File system inputs: 102464
+	File system outputs: 114320
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

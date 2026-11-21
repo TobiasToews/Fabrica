@@ -1,0 +1,110 @@
+{
+    "0": {
+        "arm": "hold",
+        "grasp_id": 300,
+        "spot": [
+            0.0,
+            15.0
+        ],
+        "candidate": 2,
+        "tilt": 69.02394339691658,
+        "tip_angle": 72.834151,
+        "margin": 3.0,
+        "fallback": false,
+        "prob": 0.396071,
+        "gripper_min_z": 0.5692454628736008,
+        "wrist_min_z": 1.5676821883773822,
+        "yaw_offset": 90,
+        "yaw_rank": 2
+    },
+    "4": {
+        "arm": "move",
+        "grasp_id": 427,
+        "spot": [
+            0.0,
+            -1.25
+        ],
+        "candidate": 0,
+        "tilt": 0.7364007525435609,
+        "tip_angle": 48.849204,
+        "margin": 1.195901,
+        "fallback": false,
+        "prob": 0.171191,
+        "gripper_min_z": 1.5723933448046203,
+        "wrist_min_z": 12.776487996194687,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    },
+    "2": {
+        "arm": "move",
+        "grasp_id": 702,
+        "spot": [
+            0.0,
+            8.75
+        ],
+        "candidate": 0,
+        "tilt": 0.8465298094895218,
+        "tip_angle": 36.801811,
+        "margin": 0.846765,
+        "fallback": false,
+        "prob": 0.099827,
+        "gripper_min_z": 1.7874554356001902,
+        "wrist_min_z": 12.986522929193425,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    },
+    "5": {
+        "arm": "move",
+        "grasp_id": 1547,
+        "spot": [
+            -3.75,
+            2.5
+        ],
+        "candidate": 2,
+        "tilt": 0.0,
+        "tip_angle": 54.591779,
+        "margin": 1.495135,
+        "fallback": false,
+        "prob": 0.210509,
+        "gripper_min_z": 1.4299326363045788,
+        "wrist_min_z": 12.67113603630746,
+        "yaw_offset": 90,
+        "yaw_rank": 2
+    },
+    "3": {
+        "arm": "move",
+        "grasp_id": 1599,
+        "spot": [
+            3.75,
+            3.75
+        ],
+        "candidate": 3,
+        "tilt": 0.0,
+        "tip_angle": 45.613444,
+        "margin": 1.096243,
+        "fallback": false,
+        "prob": 0.150456,
+        "gripper_min_z": 1.4410762142133349,
+        "wrist_min_z": 12.682279614216217,
+        "yaw_offset": -90,
+        "yaw_rank": 3
+    },
+    "1": {
+        "arm": "move",
+        "grasp_id": 2138,
+        "spot": [
+            0.0,
+            5.0
+        ],
+        "candidate": 0,
+        "tilt": 0.030147663105267657,
+        "tip_angle": 29.384212,
+        "margin": 0.697473,
+        "fallback": false,
+        "prob": 0.064458,
+        "gripper_min_z": 1.4611428568657772,
+        "wrist_min_z": 12.703455435054343,
+        "yaw_offset": 0,
+        "yaw_rank": 0
+    }
+}

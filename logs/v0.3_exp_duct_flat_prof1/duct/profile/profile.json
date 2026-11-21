@@ -1,0 +1,244 @@
+{
+  "exp_name": "v0.3_exp_duct_flat_prof1",
+  "assembly": "duct",
+  "command": "/home/panda/miniconda3/envs/fabrica/bin/python -u planning/run_planning_flat.py --exp-name v0.3_exp_duct_flat_prof1 --assembly duct --assembly-root fabrica",
+  "started": "2026-11-18T20:44:49",
+  "exit_code": 0,
+  "wall_s": 3901.54,
+  "load_avg_before": [
+    "3.68",
+    "3.76",
+    "3.88"
+  ],
+  "other_pipelines_at_start": [],
+  "time_v": {
+    "user_s": 13231.59,
+    "sys_s": 2064.81,
+    "wall_s": 3901.0,
+    "max_rss_mb": 3836.734375
+  },
+  "stage_starts": [
+    {
+      "name": "driver_setup",
+      "t_start": 0.0,
+      "command": ""
+    },
+    {
+      "name": "precedence",
+      "t_start": 0.888,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_preced_plan.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --num-proc 12 --arm panda"
+    },
+    {
+      "name": "grasps",
+      "t_start": 175.072,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_grasp_arm_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --num-proc 50 --max-n-grasp 100 --arm panda --gripper panda --ft-sensor none --flat"
+    },
+    {
+      "name": "grasp_filter",
+      "t_start": 1226.14,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --filter"
+    },
+    {
+      "name": "sequence_plan",
+      "t_start": 1232.412,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_seq_plan.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --plot"
+    },
+    {
+      "name": "sequence_opt",
+      "t_start": 1334.804,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --seq-opt --plot"
+    },
+    {
+      "name": "layout",
+      "t_start": 1834.416,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 1920.496,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --optimized --no-viz"
+    },
+    {
+      "name": "sequence_opt",
+      "t_start": 1955.345,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --seq-opt --plot"
+    },
+    {
+      "name": "layout",
+      "t_start": 2423.394,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_pickup_gen.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct"
+    },
+    {
+      "name": "motion_plan",
+      "t_start": 2501.273,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_motion_plan.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct --optimized --no-viz"
+    },
+    {
+      "name": "verify",
+      "t_start": 3317.571,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/verify_plan.py --assembly-dir assets/fabrica/duct --log-dir logs/v0.3_exp_duct_flat_prof1/duct"
+    },
+    {
+      "name": "place_poses",
+      "t_start": 3895.585,
+      "command": "/home/panda/miniconda3/envs/fabrica/bin/python planning/run_place_poses.py --log-dir logs/v0.3_exp_duct_flat_prof1/duct"
+    }
+  ],
+  "stages": [
+    {
+      "name": "driver_setup",
+      "attempt": 1,
+      "t_start": 0.0,
+      "duration_s": 0.89,
+      "cpu_s": 1.8,
+      "cores_mean": 2.08,
+      "pss_peak_mb": 0.1,
+      "other_load_mean": null
+    },
+    {
+      "name": "precedence",
+      "attempt": 1,
+      "t_start": 0.89,
+      "duration_s": 174.18,
+      "cpu_s": 1455.0,
+      "cores_mean": 8.35,
+      "pss_peak_mb": 11918.5,
+      "other_load_mean": 0.39
+    },
+    {
+      "name": "grasps",
+      "attempt": 1,
+      "t_start": 175.07,
+      "duration_s": 1051.07,
+      "cpu_s": 11167.7,
+      "cores_mean": 10.63,
+      "pss_peak_mb": 4246.2,
+      "other_load_mean": 0.44
+    },
+    {
+      "name": "grasp_filter",
+      "attempt": 1,
+      "t_start": 1226.14,
+      "duration_s": 6.27,
+      "cpu_s": 6.1,
+      "cores_mean": 0.97,
+      "pss_peak_mb": 324.2,
+      "other_load_mean": 0.07
+    },
+    {
+      "name": "sequence_plan",
+      "attempt": 1,
+      "t_start": 1232.41,
+      "duration_s": 102.39,
+      "cpu_s": 102.3,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 508.9,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "sequence_opt",
+      "attempt": 1,
+      "t_start": 1334.8,
+      "duration_s": 499.61,
+      "cpu_s": 499.0,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 668.2,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "layout",
+      "attempt": 1,
+      "t_start": 1834.42,
+      "duration_s": 86.08,
+      "cpu_s": 85.9,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 1008.9,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 1,
+      "t_start": 1920.5,
+      "duration_s": 34.85,
+      "cpu_s": 34.8,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 507.9,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "sequence_opt",
+      "attempt": 2,
+      "t_start": 1955.35,
+      "duration_s": 468.05,
+      "cpu_s": 467.4,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 666.6,
+      "other_load_mean": 0.08
+    },
+    {
+      "name": "layout",
+      "attempt": 2,
+      "t_start": 2423.39,
+      "duration_s": 77.88,
+      "cpu_s": 77.8,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 1008.8,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "motion_plan",
+      "attempt": 2,
+      "t_start": 2501.27,
+      "duration_s": 816.3,
+      "cpu_s": 815.3,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 969.6,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "verify",
+      "attempt": 1,
+      "t_start": 3317.57,
+      "duration_s": 578.01,
+      "cpu_s": 577.3,
+      "cores_mean": 1.0,
+      "pss_peak_mb": 456.8,
+      "other_load_mean": 0.09
+    },
+    {
+      "name": "place_poses",
+      "attempt": 1,
+      "t_start": 3895.59,
+      "duration_s": 5.95,
+      "cpu_s": 5.9,
+      "cores_mean": 0.99,
+      "pss_peak_mb": 357.7,
+      "other_load_mean": 0.08
+    }
+  ],
+  "pss_peak_mb": 11918.5,
+  "facts": {
+    "verified": true,
+    "sequence_attempts": 2,
+    "failures": [
+      "[run_motion_plan] FAILED for part 0 (hold grasp 375), cause: the hold grasp: hold arm transport path: no path found for the hold arm"
+    ],
+    "path_rejections": 8,
+    "grasp_lines": [
+      "grasp generation:   0%|          | 0/8 [00:00<?, ?it/s][generate_grasps] part 0: 1130 candidates + 806 made for the lying part, 119 feasible move grasps, 49 usable lying flat (22 of them made for the lying part, 22 of those kept), 6 more dropped (no straight move of the arm to the insertion start or away after the release) -> kept 49 move + 104 hold (4 of the hold grasps added to pick the part lying flat)",
+      "grasp generation:  12%|\u2588\u258e        | 1/8 [05:04<35:29, 304.16s/it][generate_grasps] part 1: 1095 candidates + 321 made for the lying part, 141 feasible move grasps, 63 usable lying flat (24 of them made for the lying part, 24 of those kept) -> kept 63 move + 100 hold",
+      "grasp generation:  25%|\u2588\u2588\u258c       | 2/8 [05:20<13:30, 135.02s/it][generate_grasps] part 4: 1365 candidates + 1716 made for the lying part + 3825 from 600 further surface point pairs, 261 feasible move grasps, 92 usable lying flat (0 of them made for the lying part, 0 of those kept) in a less stable resting pose (no grasp fits a stable one) -> kept 92 move + 100 hold",
+      "grasp generation:  38%|\u2588\u2588\u2588\u258a      | 3/8 [12:49<23:11, 278.29s/it][generate_grasps] part 5: 1365 candidates + 1727 made for the lying part + 3900 from 600 further surface point pairs, 348 feasible move grasps, 125 usable lying flat (4 of them made for the lying part, 4 of those kept) in a less stable resting pose (no grasp fits a stable one) -> kept 100 move + 100 hold",
+      "grasp generation:  50%|\u2588\u2588\u2588\u2588\u2588     | 4/8 [13:29<12:16, 184.22s/it][generate_grasps] part 6: 1360 candidates + 1698 made for the lying part + 3835 from 600 further surface point pairs, 242 feasible move grasps, 108 usable lying flat (2 of them made for the lying part, 2 of those kept) in a less stable resting pose (no grasp fits a stable one) -> kept 100 move + 100 hold",
+      "grasp generation:  62%|\u2588\u2588\u2588\u2588\u2588\u2588\u258e   | 5/8 [13:36<06:01, 120.43s/it][generate_grasps] part 3: 1360 candidates + 1715 made for the lying part + 3900 from 600 further surface point pairs, 353 feasible move grasps, 158 usable lying flat (6 of them made for the lying part, 6 of those kept) in a less stable resting pose (no grasp fits a stable one) -> kept 100 move + 100 hold",
+      "grasp generation:  75%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258c  | 6/8 [14:18<03:07, 93.65s/it] [generate_grasps] part 7: 1365 candidates + 1752 made for the lying part + 3940 from 600 further surface point pairs, 459 feasible move grasps, 189 usable lying flat (10 of them made for the lying part, 10 of those kept) in a less stable resting pose (no grasp fits a stable one) -> kept 100 move + 100 hold",
+      "grasp generation:  88%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u258a | 7/8 [14:30<01:07, 67.06s/it][generate_grasps] part 2: 1360 candidates + 1639 made for the lying part + 3890 from 600 further surface point pairs, 547 feasible move grasps, 231 usable lying flat (8 of them made for the lying part, 8 of those kept), 5 more dropped (no straight move of the arm to the insertion start or away after the release) in a less stable resting pose (no grasp fits a stable one) -> kept 100 move + 100 hold"
+    ],
+    "n_paths": 34,
+    "n_poses": 6154
+  },
+  "size": {
+    "n_parts": 8,
+    "n_faces": 69682
+  }
+}
